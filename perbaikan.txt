@@ -1,0 +1,790 @@
+# TASK: INVITATION ACCEPTANCE WELCOME TRANSITION
+# PROJECT: DESA SEHAT KENANGA
+
+Saya ingin menambahkan sebuah UX transition khusus ketika
+user menerima undangan melalui email dan menekan tombol
+"Terima Undangan" / "Masuk ke Portal".
+
+Saat ini flow sudah berfungsi:
+
+EMAIL UNDANGAN
+    ↓
+User klik tombol "Terima Undangan"
+    ↓
+Website terbuka
+    ↓
+User langsung masuk ke dashboard
+
+Secara functionality sudah benar.
+
+Namun UX terasa terlalu tiba-tiba karena user langsung
+dilempar ke dashboard.
+
+Saya ingin menambahkan sebuah halaman / transition screen
+yang terasa profesional, modern, friendly, dan cocok dengan
+identitas website Desa Sehat Kenanga.
+
+==================================================
+CRITICAL RULE — JANGAN MERUSAK EXISTING SYSTEM
+==================================================
+
+Website ini SUDAH BERJALAN.
+
+JANGAN mengubah atau merusak:
+
+- Authentication
+- Google Login
+- Session
+- Invitation token
+- Invitation validation
+- Database
+- API
+- Role system
+- Permission
+- Admin
+- Nakes
+- Warga
+- Dashboard
+- Logout
+- Existing routes
+- Existing invitation email
+- Existing email sending system
+
+JANGAN membuat authentication baru.
+
+JANGAN membuat invitation system baru.
+
+JANGAN mengubah struktur database jika tidak benar-benar
+diperlukan.
+
+JANGAN mengubah flow invitation yang sudah berhasil.
+
+Kita hanya ingin menambahkan TRANSITION UX setelah
+invitation berhasil divalidasi.
+
+==================================================
+CURRENT FLOW
+==================================================
+
+Saat ini:
+
+Email Invitation
+      ↓
+Klik "Terima Undangan"
+      ↓
+Website
+      ↓
+Langsung Dashboard
+
+UBAH MENJADI:
+
+Email Invitation
+      ↓
+Klik "Terima Undangan"
+      ↓
+Validasi invitation existing
+      ↓
+Invitation valid
+      ↓
+WELCOME TRANSITION SCREEN
+      ↓
+User melihat proses persiapan akun
+      ↓
+Redirect ke dashboard sesuai role
+
+==================================================
+IMPORTANT SECURITY RULE
+==================================================
+
+JANGAN menampilkan welcome screen sebelum
+invitation/token berhasil divalidasi.
+
+Urutan harus:
+
+1. Token diterima
+2. Token divalidasi menggunakan logic existing
+3. Invitation valid
+4. User/session/access disiapkan menggunakan
+   logic existing
+5. Tampilkan transition
+6. Redirect ke dashboard sesuai role
+
+Jangan pernah menganggap token valid hanya karena
+user membuka URL.
+
+Jika token invalid:
+
+gunakan existing error handling.
+
+Jika token expired:
+
+gunakan existing expired invitation handling.
+
+Jangan mengubah security behavior.
+
+==================================================
+WELCOME SCREEN
+==================================================
+
+Setelah invitation berhasil diterima,
+tampilkan sebuah full-screen transition.
+
+Konsep visual:
+
+┌──────────────────────────────────┐
+│                                  │
+│                                  │
+│              🩺                  │
+│                                  │
+│       Desa Sehat Kenanga         │
+│                                  │
+│       Selamat datang! 👋         │
+│                                  │
+│  Akses portal Anda sedang        │
+│  disiapkan.                      │
+│                                  │
+│       ✓ Undangan diterima        │
+│       ✓ Akun dikonfirmasi        │
+│       ✓ Akses disiapkan          │
+│                                  │
+│        ● ● ●                     │
+│                                  │
+│     Membuka portal...            │
+│                                  │
+└──────────────────────────────────┘
+
+Jangan menggunakan emoji jika project sudah memiliki
+icon library.
+
+Gunakan icon library existing.
+
+==================================================
+VISUAL STYLE
+==================================================
+
+Gunakan design system yang sudah digunakan
+website Desa Sehat Kenanga.
+
+Gunakan:
+
+- white
+- very light mint
+- teal
+- dark teal
+- soft green
+
+Style:
+
+clean
+modern
+friendly
+professional
+healthcare
+calm
+
+JANGAN menggunakan:
+
+- cyberpunk
+- neon
+- gradient berlebihan
+- glassmorphism berlebihan
+- particle animation
+- animasi berat
+- loading spinner yang membosankan
+
+==================================================
+LOGO
+==================================================
+
+Gunakan logo Desa Sehat Kenanga yang
+SUDAH ADA di project.
+
+JANGAN membuat logo baru.
+
+Logo harus tampil di tengah.
+
+Animation:
+
+fade-in
++
+scale ringan
+
+Contoh:
+
+opacity:
+0 → 1
+
+scale:
+0.95 → 1
+
+Durasi sekitar:
+
+400–600ms
+
+Gunakan existing animation library
+jika project sudah menggunakannya.
+
+Jika project menggunakan Framer Motion,
+gunakan Framer Motion.
+
+Jangan install library baru jika
+tidak diperlukan.
+
+==================================================
+WELCOME MESSAGE
+==================================================
+
+Gunakan nama user jika data user
+sudah tersedia dari invitation/session.
+
+Contoh:
+
+"Selamat datang, Andhika! 👋"
+
+Jika nama tidak tersedia:
+
+"Selamat datang di Desa Sehat Kenanga! 👋"
+
+Jangan membuat nama dummy.
+
+Gunakan data user sebenarnya.
+
+==================================================
+ROLE-AWARE MESSAGE
+==================================================
+
+Welcome screen harus mengetahui role
+berdasarkan role existing user.
+
+Contoh:
+
+ADMIN:
+
+Selamat datang, Andhika!
+Akses Admin Desa Anda telah disiapkan.
+
+NAKES:
+
+Selamat datang, Andhika!
+Akses Tenaga Kesehatan Anda telah disiapkan.
+
+WARGA:
+
+Selamat datang, Andhika!
+Akun kesehatan warga Anda telah disiapkan.
+
+Jangan membuat role baru.
+
+Gunakan role system yang sudah ada.
+
+==================================================
+PROGRESS CHECKLIST
+==================================================
+
+Tampilkan proses secara bertahap.
+
+Step 1:
+
+✓ Undangan diterima
+
+Step 2:
+
+✓ Akun dikonfirmasi
+
+Step 3:
+
+✓ Akses [ROLE] disiapkan
+
+Contoh Nakes:
+
+✓ Undangan diterima
+✓ Akun dikonfirmasi
+✓ Akses Nakes disiapkan
+
+Animasi checklist:
+
+Step muncul satu per satu.
+
+Gunakan:
+
+fade
++
+small slide-up
+
+Durasi ringan.
+
+Jangan membuat user menunggu terlalu lama.
+
+==================================================
+TIMING
+==================================================
+
+Target total transition:
+
+sekitar 1.5 – 2.0 detik.
+
+Contoh:
+
+0ms
+Logo mulai muncul
+
+300ms
+Welcome message muncul
+
+700ms
+Step 1 muncul
+
+1000ms
+Step 2 muncul
+
+1300ms
+Step 3 muncul
+
+1500ms
+"Membuka portal..."
+
+1800ms
+Redirect dashboard
+
+JANGAN menggunakan delay 3–5 detik.
+
+User sudah menunggu dari proses invitation.
+
+==================================================
+LOADING INDICATOR
+==================================================
+
+Gunakan indicator yang subtle.
+
+Contoh:
+
+animated dots:
+
+●
+●
+●
+
+atau progress line kecil.
+
+JANGAN menggunakan spinner besar
+yang terlihat seperti loading API.
+
+Transition ini bukan fake loading.
+
+Tujuannya adalah memberikan UX
+feedback setelah invitation diterima.
+
+==================================================
+FINAL MESSAGE
+==================================================
+
+Sebelum redirect:
+
+"Membuka portal..."
+
+atau:
+
+"Menyiapkan portal Anda..."
+
+Gunakan teks yang singkat.
+
+==================================================
+REDIRECT
+==================================================
+
+Setelah transition selesai:
+
+redirect menggunakan EXISTING routing logic.
+
+Contoh:
+
+Admin
+→ existing admin dashboard
+
+Nakes
+→ existing nakes dashboard
+
+Warga
+→ existing warga dashboard
+
+JANGAN hardcode semua user
+ke satu dashboard.
+
+Gunakan role-based routing
+yang sudah ada.
+
+==================================================
+IMPORTANT — NORMAL LOGIN
+==================================================
+
+Transition ini HANYA berlaku untuk:
+
+INVITATION ACCEPTANCE.
+
+Jangan tampilkan transition ini
+setiap kali user login.
+
+Contoh:
+
+FIRST INVITATION:
+
+Email
+→ Accept Invitation
+→ Welcome Transition
+→ Dashboard
+
+LOGIN NORMAL:
+
+Login
+→ Dashboard
+
+Jangan:
+
+Login
+→ Welcome Animation
+→ Dashboard
+
+karena akan memperlambat login biasa.
+
+==================================================
+INVITATION STATE
+==================================================
+
+Jika invitation sudah pernah diterima:
+
+Jangan tampilkan welcome transition
+lagi hanya karena user membuka
+URL invitation lama.
+
+Gunakan existing invitation state/token.
+
+Jika token sudah:
+
+expired
+used
+invalid
+
+gunakan existing behavior.
+
+Jangan bypass security.
+
+==================================================
+BACK BUTTON
+==================================================
+
+Pastikan browser back button
+tidak menyebabkan invitation
+diterima ulang secara tidak sengaja.
+
+Jangan melakukan duplicate acceptance.
+
+Gunakan existing invitation
+processing logic.
+
+==================================================
+MOBILE FIRST
+==================================================
+
+Transition harus dibuat mobile-first.
+
+Test:
+
+320px
+360px
+375px
+390px
+412px
+430px
+
+Desktop:
+
+1280px
+1366px
+1440px
+1600px
+
+Pada mobile:
+
+- logo tidak terlalu besar
+- text tidak overflow
+- checklist tidak keluar layar
+- animation tetap smooth
+- semua content center
+- tidak ada horizontal scrollbar
+
+==================================================
+ACCESSIBILITY
+==================================================
+
+Pastikan:
+
+- semantic HTML
+- accessible text
+- sufficient contrast
+- reduced motion support
+
+Jika user mengaktifkan:
+
+prefers-reduced-motion
+
+kurangi / nonaktifkan animasi kompleks.
+
+Flow functionality tetap sama.
+
+==================================================
+NO FAKE DATA
+==================================================
+
+JANGAN menggunakan:
+
+Andhika Pratama
+Budi
+demo-citizen-001
+demo-user
+dummy role
+
+kecuali data tersebut benar-benar
+berasal dari existing database/session.
+
+Gunakan data invitation sebenarnya.
+
+==================================================
+ERROR HANDLING
+==================================================
+
+Jika invitation validation gagal:
+
+JANGAN tampilkan:
+
+"Selamat datang!"
+
+Tampilkan existing error state.
+
+Contoh:
+
+Undangan tidak valid
+Undangan sudah digunakan
+Undangan telah kedaluwarsa
+
+Gunakan existing error UI jika tersedia.
+
+Jangan membuat sistem error baru
+jika existing sudah tersedia.
+
+==================================================
+ARCHITECTURE
+==================================================
+
+SEBELUM CODING:
+
+inspect:
+
+- invitation route
+- invitation acceptance handler
+- authentication flow
+- session handling
+- role detection
+- existing router
+- existing dashboard routes
+- existing animation library
+- existing design system
+- existing logo asset
+
+Cari titik paling aman untuk
+menyisipkan transition.
+
+JANGAN rewrite authentication.
+
+JANGAN rewrite invitation system.
+
+==================================================
+IMPLEMENTATION STRATEGY
+==================================================
+
+PHASE 1
+Audit existing invitation acceptance flow.
+
+PHASE 2
+Identifikasi titik setelah invitation
+berhasil divalidasi.
+
+PHASE 3
+Buat reusable WelcomeTransition component/page.
+
+PHASE 4
+Hubungkan component dengan
+existing invitation acceptance flow.
+
+PHASE 5
+Implement role-aware message.
+
+PHASE 6
+Implement checklist animation.
+
+PHASE 7
+Implement smooth redirect.
+
+PHASE 8
+Implement mobile responsive.
+
+PHASE 9
+Implement prefers-reduced-motion.
+
+PHASE 10
+Regression test authentication
+dan invitation.
+
+==================================================
+DO NOT CHANGE
+==================================================
+
+Jangan ubah:
+
+DATABASE
+API
+AUTH
+GOOGLE LOGIN
+INVITATION EMAIL
+EMAIL TEMPLATE
+TOKEN SYSTEM
+ROLE SYSTEM
+PERMISSION
+DASHBOARD
+NAVBAR
+AI
+QR CODE
+HEALTH DATA
+
+Semua existing functionality
+harus tetap sama.
+
+==================================================
+TEST SCENARIO
+==================================================
+
+TEST 1 — ADMIN INVITATION
+
+Admin mengirim invitation
+↓
+Email diterima
+↓
+Klik Terima Undangan
+↓
+Token valid
+↓
+Welcome transition
+↓
+Nama user muncul
+↓
+Role Admin muncul
+↓
+Redirect ke existing Admin Dashboard
+
+==================================================
+
+TEST 2 — NAKES INVITATION
+
+Admin mengirim invitation Nakes
+↓
+Email diterima
+↓
+Klik Terima Undangan
+↓
+Token valid
+↓
+Welcome transition
+↓
+Role Nakes muncul
+↓
+Redirect ke existing Nakes Dashboard
+
+==================================================
+
+TEST 3 — INVALID TOKEN
+
+Invalid token
+↓
+Jangan tampilkan welcome transition
+↓
+Existing error page
+
+==================================================
+
+TEST 4 — EXPIRED TOKEN
+
+Expired token
+↓
+Jangan tampilkan welcome transition
+↓
+Existing expired invitation handling
+
+==================================================
+
+TEST 5 — NORMAL LOGIN
+
+Normal login
+↓
+JANGAN tampilkan welcome transition
+↓
+Dashboard langsung
+
+==================================================
+
+TEST 6 — MOBILE
+
+Accept invitation menggunakan HP
+↓
+Welcome transition responsive
+↓
+Tidak overflow
+↓
+Animation smooth
+↓
+Dashboard
+
+==================================================
+FINAL QUALITY REQUIREMENT
+==================================================
+
+Hasil akhir harus memberikan kesan:
+
+"Undangan saya berhasil diterima
+dan sistem sedang menyiapkan akses saya."
+
+Bukan:
+
+"Website sedang loading."
+
+Transition harus terasa seperti:
+
+WELCOME EXPERIENCE
+
+bukan:
+
+LOADING SCREEN.
+
+==================================================
+FINAL REPORT
+==================================================
+
+Setelah selesai implementasi, jelaskan:
+
+1. File yang diubah.
+2. Component/page yang ditambahkan.
+3. Di mana transition disisipkan.
+4. Bagaimana token validation tetap aman.
+5. Bagaimana role detection dilakukan.
+6. Bagaimana redirect dilakukan.
+7. Berapa durasi transition.
+8. Bagaimana responsive mobile dibuat.
+9. Apakah authentication berubah.
+10. Apakah database/API berubah.
+11. Hasil testing invitation.
+12. Hasil testing normal login.
+
+Jika menemukan perubahan yang sebenarnya
+berisiko terhadap authentication atau
+invitation system, JANGAN langsung mengubahnya.
+
+Laporkan terlebih dahulu dan gunakan
+solusi paling minimal.

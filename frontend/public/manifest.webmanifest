@@ -1,0 +1,13 @@
+{
+  "name": "Desa Sehat Kenanga",
+  "short_name": "Sehat Kenanga",
+  "description": "Portal kesehatan demo warga Desa Sehat Kenanga.",
+  "lang": "id-ID",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5faf8",
+  "theme_color": "#0f766e",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

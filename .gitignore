@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+.vercel/
+.turbo/
+
+# Env & secrets - JANGAN DI-PUSH
+.env
+.env.*
+!.env.example
+*.env.local
+*.env.production.local
+
+# Supabase temp & local
+supabase/.temp/
+backend/supabase/.temp/
+backend/supabase/supabase/.temp/
+.supabase/
+supabase/.branches/
+supabase/.temp/
+
+# Logs & OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Large files - keep but allow (logo 1MB is ok, but exclude if >50MB)
+# !logo.png allowed
