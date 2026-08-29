@@ -43,7 +43,7 @@ export function Topbar() {
 
   return <header className="topbar"><div className="container nav">
     <Link to="/"><Brand /></Link>
-    <nav className={`nav-links${open ? ' nav-open' : ''}`} aria-label="Navigasi utama">
+    <nav id="main-nav" className={`nav-links${open ? ' nav-open' : ''}`} aria-label="Navigasi utama">
       <NavAnchor hash="#tentang" onClick={() => setOpen(false)}>Tentang</NavAnchor>
       <NavAnchor hash="#layanan" onClick={() => setOpen(false)}>Layanan</NavAnchor>
       <NavAnchor hash="#nakes" onClick={() => setOpen(false)}>Tim kesehatan</NavAnchor>
@@ -56,7 +56,7 @@ export function Topbar() {
     <div className="nav-actions">
       <Link className="btn btn-ghost" to="/login">Masuk</Link>
       <Link className="btn btn-primary" to="/login">Mulai sekarang <ArrowRight size={16} /></Link>
-      <button className="nav-toggle" onClick={() => setOpen(!open)} aria-label="Menu">
+      <button className="nav-toggle" onClick={() => setOpen(!open)} aria-label={open ? 'Tutup menu' : 'Buka menu'} aria-expanded={open} aria-controls="main-nav">
         {open ? <X size={22} /> : <Menu size={22} />}
       </button>
     </div>

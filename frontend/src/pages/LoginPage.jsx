@@ -51,18 +51,31 @@ export function LoginPage() {
   }, [access, authLoading, isInvitationParam])
 
   const isInvitation = isInvitationParam || (metadataChecked && isInvitedViaMetadata)
-  // Show welcome for ALL logins (via Google or invitation) — user request: every login gets animation
-  // Read sessionStorage once to know if the current visit is post-OAuth Google login
-  const welcomeLoginFlag = (() => { try { const f = sessionStorage.getItem('welcome_login') === '1'; sessionStorage.removeItem('welcome_login'); return f } catch { return false } })()
-  // Show welcome ONLY after access validated AND (welcome param OR invited metadata OR normal login flag)
-  const showWelcome = (isInvitation && Boolean(access) && !authLoading && (isInvitationParam || metadataChecked)) ||
-    (welcomeLoginFlag && Boolean(access) && !authLoading)
+
+  // Welcome for ALL roles: flag set when user clicks "Masuk dengan Google"
+  // Keep flag in state so it survives until access is ready (don't consume too early)
+  const [hasLoginFlag, setHasLoginFlag] = useState(() => {
+    try { return sessionStorage.getItem('welcome_login') === '1' } catch { return false }
+  })
+  // Sync if flag is set after mount (e.g. after OAuth redirect)
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('welcome_login') === '1') setHasLoginFlag(true)
+    } catch {}
+  }, [authLoading, access])
+
+  const isWelcomeLogin = hasLoginFlag && Boolean(access) && !authLoading
+  const showWelcome = (isInvitation && Boolean(access) && !authLoading && (isInvitationParam || metadataChecked)) || isWelcomeLogin
+  // Jika undangan, pakai teks undangan; jika login biasa, pakai teks "Masuk berhasil"
+  const welcomeIsInvitation = isInvitation
 
   const redirectByRole = (role, citizenId) => {
     // Mark welcome as shown for this user to prevent re-show on normal login
     try {
       if (access?.user_id) localStorage.setItem(`welcome_invitation_shown_${access.user_id}`, '1')
       sessionStorage.removeItem('pending_welcome')
+      sessionStorage.removeItem('welcome_login')
+      setHasLoginFlag(false)
       // Clear welcome param from URL to prevent back-button replay
       const url = new URL(window.location.href)
       if (url.searchParams.has('welcome')) {
@@ -78,26 +91,28 @@ export function LoginPage() {
 
   useEffect(() => {
     if (!access) return
-    // CRITICAL: invitation welcome takes precedence – do NOT auto-redirect, let transition handle it
+    // CRITICAL: welcome takes precedence – do NOT auto-redirect, let transition handle it
     if (showWelcome) return
     // While we are still checking invited metadata (fallback without welcome param), don't redirect yet
-    if (!isInvitationParam && !metadataChecked && !authLoading) return
+    // but don't block if hasLoginFlag is pending – welcome will handle it
+    if (!isInvitationParam && !metadataChecked && !authLoading && !hasLoginFlag) return
     if (access.role === 'warga') navigate(access.citizen_id ? '/warga' : '/registrasi', { replace: true })
     if (access.role === 'nakes') navigate('/nakes', { replace: true })
     if (access.role === 'admin') navigate('/admin', { replace: true })
-  }, [access, navigate, showWelcome, isInvitationParam, metadataChecked, authLoading])
+  }, [access, navigate, showWelcome, isInvitationParam, metadataChecked, authLoading, hasLoginFlag])
   const useGoogle = async () => {
-    // Tandai login biasa supaya WelcomeTransition muncul setelah OAuth selesai
-    try { sessionStorage.setItem('welcome_login', '1') } catch {}
+    // Tandai login biasa supaya WelcomeTransition muncul setelah OAuth selesai (untuk semua role)
+    try { sessionStorage.setItem('welcome_login', '1'); setHasLoginFlag(true) } catch {}
     setLoading(true); setMessage('')
     try { await signInWithGoogle() } catch (err) { setMessage(err.message || 'Gagal masuk dengan Google.') } finally { setLoading(false) }
   }
 
-  // INVITATION WELCOME TRANSITION - only after token validated (access exists)
+  // WELCOME TRANSITION - for ALL roles (invitation & normal login)
   if (showWelcome) {
     return (
       <WelcomeTransition
         access={access}
+        isInvitation={welcomeIsInvitation}
         onComplete={(role) => redirectByRole(role, access?.citizen_id)}
       />
     )

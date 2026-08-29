@@ -20,11 +20,12 @@ const ROLE_CONFIG = {
 }
 
 /**
- * Full-screen welcome transition shown ONLY after invitation token
- * has been validated (access exists + welcome=invitation param).
- * Does NOT handle validation itself – caller must ensure access is truthy.
+ * Full-screen welcome transition shown after login – for BOTH invitation
+ * and normal Google login (user request: semua role dapat animasi kedatangan).
+ * Caller must ensure access is truthy. When isInvitation=true, checklist
+ * shows invitation-specific text; otherwise generic login text.
  */
-export function WelcomeTransition({ access, onComplete }) {
+export function WelcomeTransition({ access, onComplete, isInvitation = false }) {
   const [step, setStep] = useState(0)
   const [showFinal, setShowFinal] = useState(false)
 
@@ -102,13 +103,13 @@ export function WelcomeTransition({ access, onComplete }) {
             <span className="welcome-check-icon" aria-hidden="true">
               <CheckCircle2 size={18} />
             </span>
-            <span>Undangan diterima</span>
+            <span>{isInvitation ? 'Undangan diterima' : 'Masuk berhasil'}</span>
           </li>
           <li className={`welcome-check-item ${step >= 2 ? 'visible' : ''}`}>
             <span className="welcome-check-icon" aria-hidden="true">
               <CheckCircle2 size={18} />
             </span>
-            <span>Akun dikonfirmasi</span>
+            <span>{isInvitation ? 'Akun dikonfirmasi' : 'Akses diverifikasi'}</span>
           </li>
           <li className={`welcome-check-item ${step >= 3 ? 'visible' : ''}`}>
             <span className="welcome-check-icon" aria-hidden="true">
