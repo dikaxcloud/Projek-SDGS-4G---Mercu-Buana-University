@@ -29,6 +29,7 @@ import { ArticlesPage } from '../pages/ArticlesPage'
 import { ArticleDetailPage } from '../pages/ArticleDetailPage'
 import { HealthTeamPage } from '../pages/HealthTeamPage'
 import { NakesProfilePage } from '../pages/NakesProfilePage'
+import { NakesPublicProfilePage } from '../pages/NakesPublicProfilePage'
 import { ProtectedRoute, RoleRoute, CitizenRoute } from '../features/auth/ProtectedRoute'
 
 export function App() {
@@ -41,6 +42,7 @@ export function App() {
       <Route path="/tentang" element={<LandingPage />} />
       <Route path="/layanan" element={<LandingPage />} />
       <Route path="/tim-kesehatan" element={<HealthTeamPage />} />
+      <Route path="/tim-kesehatan/:id" element={<NakesPublicProfilePage />} />
       <Route path="/informasi-kesehatan" element={<ArticlesPage />} />
       <Route path="/artikel" element={<ArticlesPage />} />
       <Route path="/artikel/:slug" element={<ArticleDetailPage />} />

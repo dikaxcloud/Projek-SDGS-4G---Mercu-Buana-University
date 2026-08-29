@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Activity, AlertTriangle, BellRing, ClipboardList, Search, Users, ArrowRight, RefreshCw, Sparkles, UserPlus, CalendarClock, UserCheck, UserX, History } from 'lucide-react'
+import { Activity, AlertTriangle, BellRing, ClipboardList, Search, Users, ArrowRight, RefreshCw, Sparkles, UserPlus, CalendarClock, UserCheck, UserX, History, Radio, Power } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getNakesSummary, getNakesDashboard, searchCitizens } from '../features/health/healthService'
 import { subscribeToCitizenInserts, subscribeToHealthChanges } from '../lib/realtime'
+import { getMyNakesProfile, updateMyNakesProfile } from '../features/nakes/nakesProfileService'
+import { supabase } from '../lib/supabase'
 
 export function NakesDashboard() {
   const [summary, setSummary] = useState(null)
@@ -13,6 +15,29 @@ export function NakesDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [liveAlert, setLiveAlert] = useState(null)
+  const [nakesProfile, setNakesProfile] = useState(null)
+  const [statusSaving, setStatusSaving] = useState(false)
+
+  const loadNakesProfile = async () => {
+    try { const p = await getMyNakesProfile(); setNakesProfile(p) } catch {}
+  }
+  useEffect(() => { void loadNakesProfile() }, [])
+
+  const setWorkStatus = async (work_status, is_siaga) => {
+    setStatusSaving(true)
+    try {
+      const payload = {}
+      if (work_status !== undefined) payload.work_status = work_status
+      if (is_siaga !== undefined) payload.is_siaga = is_siaga
+      // also keep is_online in sync: if Sedang bertugas -> online true
+      if (work_status === 'Sedang bertugas' || work_status === 'Sedang menangani warga') payload.is_online = true
+      else if (work_status === 'Tidak sedang bertugas' || work_status === 'Tidak tersedia') payload.is_online = false
+      await updateMyNakesProfile({ ...nakesProfile, ...payload, work_status: payload.work_status ?? nakesProfile?.work_status, is_siaga: payload.is_siaga ?? nakesProfile?.is_siaga })
+      // touch presence for realtime
+      try { await supabase.rpc('touch_my_nakes_presence') } catch {}
+      await loadNakesProfile()
+    } catch (e) { setError(e.message) } finally { setStatusSaving(false) }
+  }
 
   const load = async () => {
     setLoading(true)
@@ -67,6 +92,35 @@ export function NakesDashboard() {
         </div>
         {liveAlert && <div className="staff-alert" role="status" style={{ background: '#f0f7ff', borderColor: '#bfdcff', color: '#1d4ed8' }}><BellRing size={17} /><span><strong>Warga baru masuk:</strong> {liveAlert.name}. Daftar warga diperbarui otomatis ({liveAlert.at.toLocaleTimeString('id-ID')}).</span><button className="btn btn-ghost" onClick={() => setLiveAlert(null)}>Tutup</button></div>}
         {error && <div className="staff-alert"><AlertTriangle size={17} />{error}<button onClick={load} className="btn btn-ghost"><RefreshCw size={15} /> Coba lagi</button></div>}
+
+        {/* REALTIME STATUS TOGGLE - Nakes */}
+        <section className="staff-panel" style={{borderColor: nakesProfile?.is_siaga ? '#fed7aa' : undefined, background: nakesProfile?.is_siaga ? '#fff7ed' : undefined}}>
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, flexWrap:'wrap'}}>
+            <div>
+              <h2 style={{display:'flex', alignItems:'center', gap:8, fontSize:16}}><Radio size={16} color={nakesProfile?.is_siaga ? '#16a34a' : 'var(--muted)'}/> Status Real-time Saya</h2>
+              <p className="muted-text" style={{margin:'4px 0 0', fontSize:12}}>Ubah status agar warga melihat Anda di <Link to="/tim-kesehatan" style={{color:'var(--teal)', fontWeight:700}}>Tim Kesehatan</Link> secara real-time.</p>
+              {nakesProfile && <div style={{marginTop:8, display:'flex', gap:6, flexWrap:'wrap', alignItems:'center'}}>
+                <span style={{padding:'4px 8px', borderRadius:999, background: nakesProfile.work_status==='Sedang bertugas' ? '#f0fdf4' : nakesProfile.work_status==='Sedang menangani warga' ? '#fff7ed' : '#f9fafb', color: nakesProfile.work_status==='Sedang bertugas' ? '#15803d' : nakesProfile.work_status==='Sedang menangani warga' ? '#ea580c' : '#6b7280', border:'1px solid #e3eeeb', fontSize:11, fontWeight:700}}>{nakesProfile.work_status || (nakesProfile.is_online ? 'Sedang bertugas' : 'Tidak sedang bertugas')}</span>
+                {nakesProfile.is_siaga && <span style={{padding:'4px 8px', borderRadius:999, background:'#16a34a', color:'white', fontSize:11, fontWeight:700}}>● Siaga</span>}
+                <span style={{fontSize:11, color:'var(--muted)'}}>• {nakesProfile.full_name || dash?.examinerName || 'Nakes'}</span>
+              </div>}
+            </div>
+            <Link to="/nakes/profil" className="btn btn-ghost" style={{minHeight:40, fontSize:12}}>Edit Profil & Foto</Link>
+          </div>
+          <div style={{marginTop:14, display:'grid', gap:10}}>
+            <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
+              {['Sedang bertugas','Sedang menangani warga','Tidak sedang bertugas','Tidak tersedia'].map(s => (
+                <button key={s} disabled={statusSaving} onClick={()=>setWorkStatus(s, undefined)} className="btn" style={{minHeight:38, padding:'0 12px', fontSize:12, background: nakesProfile?.work_status===s ? 'var(--teal)' : 'white', color: nakesProfile?.work_status===s ? 'white' : 'var(--muted)', border:'1px solid var(--line)', fontWeight:700, opacity: statusSaving ? .6 : 1}}>{s}</button>
+              ))}
+            </div>
+            <label className="check-row" style={{margin:0}}><input type="checkbox" checked={Boolean(nakesProfile?.is_siaga)} disabled={statusSaving} onChange={e=>setWorkStatus(undefined, e.target.checked)}/> <span>Petugas Siaga <small>Aktifkan agar tampil di section "Petugas Siaga Saat Ini" di /tim-kesehatan (real-time)</small></span></label>
+            <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
+              <button disabled={statusSaving} onClick={()=>setWorkStatus('Sedang bertugas', true)} className="btn btn-primary" style={{minHeight:40, fontSize:12, opacity: statusSaving? .6:1}}><Power size={14}/> Siaga & Bertugas (Live)</button>
+              <button disabled={statusSaving} onClick={()=>setWorkStatus('Tidak sedang bertugas', false)} className="btn btn-ghost" style={{minHeight:40, fontSize:12}}>Off Duty</button>
+            </div>
+            <small className="muted-text" style={{fontSize:11}}>Perubahan disimpan ke database dan langsung terlihat warga tanpa refresh (realtime channel health_workers).</small>
+          </div>
+        </section>
 
         {/* Angka kerja nyata milik nakes */}
         <div className="staff-kpis">

@@ -1,287 +1,309 @@
-# UPDATE FITUR — HALAMAN TIM KESEHATAN DESA
+# FEATURE UPDATE — PROFIL TENAGA KESEHATAN DESA
 
-Saya ingin melakukan PENAMBAHAN dan PENYEMPURNAAN fitur pada halaman:
+Saya ingin menambahkan fitur baru ke website "Desa Sehat Kenanga".
+
+Website ini SUDAH BERJALAN, SUDAH TERHUBUNG DATABASE, SUDAH DI-HOSTING, dan fitur existing sudah berfungsi.
+
+Fitur yang ingin ditambahkan:
+
+"Profil Tenaga Kesehatan"
+
+Tujuannya agar warga tidak hanya melihat nama dan status nakes, tetapi dapat melihat profil profesional sederhana dari tenaga kesehatan yang bertugas di desa.
+
+==================================================
+ATURAN UTAMA — WAJIB DIPATUHI
+==================================================
+
+1. JANGAN menghapus fitur existing.
+2. JANGAN melakukan rewrite besar-besaran.
+3. JANGAN mengganti framework/tech stack.
+4. JANGAN mengganti database yang sudah digunakan.
+5. JANGAN mengubah sistem autentikasi existing.
+6. JANGAN merusak Google Login.
+7. JANGAN mengubah role system yang sudah berjalan.
+8. JANGAN mengubah fitur pemeriksaan kesehatan.
+9. JANGAN mengubah AI kesehatan yang sudah ada.
+10. JANGAN mengubah QR warga.
+11. JANGAN mengubah halaman yang tidak berkaitan kecuali diperlukan.
+12. Gunakan component, API, database model, utility, dan design system existing.
+13. Semua data profil harus berasal dari database.
+14. Jangan hardcode data nakes.
+15. Jangan membuat akun demo baru.
+16. Jangan menggunakan data pribadi sensitif pada profil publik.
+17. Semua fitur harus mobile-first.
+18. Desktop juga harus tetap responsive.
+19. Setelah implementasi lakukan build dan pastikan tidak ada regression.
+
+==================================================
+LANGKAH 1 — ANALISIS PROJECT TERLEBIH DAHULU
+==================================================
+
+Sebelum melakukan coding, periksa:
+
+- struktur folder
+- framework frontend
+- backend
+- database
+- tabel/model nakes
+- API nakes
+- sistem role
+- authentication
+- authorization
+- halaman /tim-kesehatan
+- card nakes existing
+- halaman Admin
+- sistem kontak nakes jika sudah tersedia
+- sistem layanan nakes jika sudah tersedia
+- sistem jadwal nakes jika sudah tersedia
+
+Cari apakah data berikut sudah tersedia:
+
+- nama
+- foto/avatar
+- role
+- status
+- nomor telepon
+- WhatsApp
+- layanan
+- jadwal
+- wilayah
+- tempat bertugas
+
+Jika sudah tersedia, REUSE.
+
+Jangan membuat tabel/field duplikat.
+
+Setelah analisis, tampilkan ringkasan:
+
+1. file yang akan diubah
+2. database/table yang digunakan
+3. API yang digunakan
+4. field yang sudah tersedia
+5. field yang masih diperlukan
+6. migration yang diperlukan atau tidak
+7. permission yang diperlukan
+
+Kemudian lanjutkan implementasi.
+
+==================================================
+FITUR 1 — TOMBOL "LIHAT PROFIL"
+==================================================
+
+Pada halaman:
 
 /tim-kesehatan
 
-Website ini adalah website kesehatan warga Desa Sehat Kenanga yang SUDAH BERJALAN, SUDAH TERHUBUNG KE DATABASE, SUDAH DI-HOSTING, dan fitur-fitur utama sudah berfungsi.
+dan section tim kesehatan di halaman utama,
+
+tambahkan tombol:
+
+"Lihat profil"
+
+Contoh card:
+
+┌─────────────────────────────────────┐
+│                                     │
+│  A2       Alan 2                    │
+│           Tenaga Kesehatan Desa     │
+│                                     │
+│  🟢 Sedang bertugas                 │
+│                                     │
+│  Pemeriksaan umum                   │
+│  Tekanan darah                      │
+│                                     │
+│  [ Lihat profil ]                   │
+└─────────────────────────────────────┘
+
+Klik "Lihat profil" menuju halaman detail nakes.
+
+Gunakan route dinamis, contoh:
+
+/tim-kesehatan/:id
+
+atau mengikuti routing convention project existing.
+
+Jangan menggunakan nama sebagai identifier jika project sudah mempunyai ID unik.
 
 ==================================================
-ATURAN PALING PENTING
+FITUR 2 — HALAMAN DETAIL PROFIL NAKES
 ==================================================
 
-1. JANGAN menghapus fitur yang sudah ada.
-2. JANGAN mengubah alur autentikasi yang sudah berjalan.
-3. JANGAN mengubah struktur halaman lain yang tidak berkaitan.
-4. JANGAN merusak role Admin, Nakes, maupun Warga.
-5. Jangan membuat data dummy baru jika data tersebut seharusnya berasal dari database.
-6. Gunakan database yang sudah tersedia.
-7. Sebelum melakukan perubahan, analisis terlebih dahulu struktur project, database/schema, API, routing, component, dan sistem role yang sudah ada.
-8. Reuse component, API, utility, design system, dan struktur yang sudah ada apabila memungkinkan.
-9. Jangan melakukan rewrite besar-besaran terhadap project.
-10. Semua fitur baru harus responsive dan mobile-first.
-11. Pastikan desktop dan mobile sama-sama rapi.
-12. Setelah selesai, lakukan pengecekan agar tidak ada regression pada fitur lama.
+Buat halaman profil sederhana dan profesional.
 
-==================================================
-TUJUAN UTAMA
-==================================================
+Contoh:
 
-Saya ingin halaman "Tim Kesehatan" terasa seperti halaman layanan kesehatan desa sungguhan, bukan sekadar daftar nama nakes.
-
-Halaman harus membantu warga mengetahui:
-
-- siapa tenaga kesehatan yang tersedia
-- siapa yang sedang bertugas
-- siapa yang sedang tidak bertugas
-- layanan apa yang dapat diberikan
-- kapan jadwal pelayanan
-- bagaimana cara menghubungi petugas
-- siapa petugas yang sedang siaga
-
-Tetap gunakan desain website yang sudah ada sebagai dasar.
-
-Jangan membuat desain baru yang bertentangan dengan design system existing.
-
-==================================================
-1. BAGIAN HEADER HALAMAN
-==================================================
-
-Pertahankan struktur header halaman yang sudah ada:
+← Kembali ke Tim Kesehatan
 
 TIM KESEHATAN DESA
 
-Tenaga kesehatan yang siap membantu warga desa.
+┌────────────────────────────────────────┐
+│                                        │
+│               [ FOTO ]                 │
+│                                        │
+│              Alan 2                    │
+│       Tenaga Kesehatan Desa            │
+│                                        │
+│       🟢 Sedang bertugas               │
+│                                        │
+│    [ 📞 Hubungi ] [ 💬 WhatsApp ]      │
+└────────────────────────────────────────┘
 
-Namun tambahkan informasi singkat yang lebih informatif.
+PROFIL SINGKAT
 
-Contoh:
+"Tenaga kesehatan yang membantu pelayanan
+kesehatan warga Desa Sehat Kenanga."
 
-"Temukan tenaga kesehatan desa yang tersedia dan hubungi petugas yang sesuai dengan kebutuhan Anda."
+INFORMASI PROFESIONAL
 
-Jangan membuat teks terlalu panjang.
+📍 Wilayah pelayanan
+   Desa Sehat Kenanga
 
-==================================================
-2. TAMBAHKAN SUMMARY / QUICK STATS
-==================================================
+🏥 Tempat bertugas
+   Pos Kesehatan Desa
 
-Di bawah header tambahkan summary cards kecil.
+🩺 Fokus pelayanan
+   Pemeriksaan kesehatan warga
 
-Contoh:
+🕐 Jadwal pelayanan
+   Senin - Jumat
+   08.00 - 15.00
 
-┌─────────────────┐
-│       5         │
-│  Total Petugas  │
-└─────────────────┘
+📅 Bergabung sejak
+   2026
 
-┌─────────────────┐
-│       2         │
-│ Sedang Bertugas │
-└─────────────────┘
+LAYANAN YANG DAPAT DIBANTU
 
-┌─────────────────┐
-│       1         │
-│   Petugas Siaga │
-└─────────────────┘
+[ Pemeriksaan umum ]
+[ Tekanan darah ]
+[ Gula darah ]
+[ Pemeriksaan suhu ]
+[ Konsultasi kesehatan ]
 
-Data harus berasal dari database secara real-time/dinamis.
+--------------------------------
 
-JANGAN hardcode angka.
+BUTUH BANTUAN?
 
-Summary harus otomatis berubah ketika status atau data nakes berubah.
+Jika warga membutuhkan bantuan kesehatan,
+warga dapat menghubungi petugas.
 
-==================================================
-3. FITUR "PETUGAS SIAGA SAAT INI"
-==================================================
-
-Tambahkan section khusus sebelum daftar seluruh tenaga kesehatan.
-
-Judul:
-
-"Petugas Siaga Saat Ini"
-
-Deskripsi:
-
-"Petugas yang dapat dihubungi untuk membantu kebutuhan kesehatan warga."
-
-Jika ada petugas yang sedang siaga, tampilkan card yang lebih menonjol.
-
-Contoh:
-
-┌────────────────────────────────────────────┐
-│ 🟢 PETUGAS SIAGA                          │
-│                                            │
-│ A2   Alan 2                                │
-│      Tenaga Kesehatan Desa                 │
-│                                            │
-│      Pemeriksaan umum                      │
-│      Tekanan darah                         │
-│      Gula darah                            │
-│                                            │
-│      [ 📞 Telepon ] [ 💬 WhatsApp ]       │
-└────────────────────────────────────────────┘
-
-Jika tidak ada petugas siaga:
-
-"Belum ada petugas yang sedang siaga."
-
-Tetap berikan informasi kontak yang tersedia.
+[ Hubungi Petugas ]
 
 ==================================================
-4. STATUS TENAGA KESEHATAN
+FITUR 3 — DATA PROFIL
 ==================================================
 
-Setiap nakes harus memiliki status.
+Profil nakes dapat memiliki:
 
-Gunakan status yang jelas:
-
-🟢 Sedang bertugas
-🟠 Sedang menangani warga
-⚪ Tidak sedang bertugas
-🔴 Tidak tersedia
-
-Status harus berasal dari database.
-
-Jangan menggunakan status random.
-
-Jika sistem existing sudah memiliki sistem online/offline,
-gunakan sistem tersebut dan jangan membuat sistem status baru yang
-bertentangan.
-
-Jika belum ada status bertugas, tambahkan field/status yang diperlukan
-secara aman pada database.
-
-==================================================
-5. CARD TENAGA KESEHATAN
-==================================================
-
-Perbaiki card nakes agar lebih informatif tetapi tetap minimalis.
-
-Contoh:
-
-┌──────────────────────────────────────────┐
-│                                          │
-│  A2     alan 2                           │
-│         Tenaga Kesehatan Desa            │
-│                                          │
-│  🟢 Sedang bertugas                      │
-│                                          │
-│  🩺 Pemeriksaan umum                     │
-│  🩺 Tekanan darah                        │
-│  🩺 Gula darah                           │
-│                                          │
-│  [ Hubungi ]                             │
-└──────────────────────────────────────────┘
-
-Informasi yang dapat ditampilkan:
-
-- foto/avatar/inisial
-- nama
+- id
+- nama lengkap
+- foto/avatar
 - jabatan
-- status
-- layanan/keahlian
-- jadwal pelayanan
-- tombol hubungi
+- deskripsi singkat
+- wilayah pelayanan
+- tempat bertugas
+- tahun bergabung
+- nomor telepon
+- nomor WhatsApp
+- status bertugas
+- layanan
+- jadwal
+- status aktif
 
-Jangan menampilkan terlalu banyak informasi dalam card.
+Tetapi:
 
-==================================================
-6. NOMOR TELEPON DAN WHATSAPP
-==================================================
+JANGAN tampilkan data sensitif seperti:
 
-Tambahkan data kontak untuk setiap nakes.
+- NIK
+- nomor KK
+- alamat rumah
+- tanggal lahir
+- data keluarga
+- informasi kesehatan pribadi
+- email pribadi
+- data autentikasi
 
-Field yang diperlukan:
-
-- phone_number
-- whatsapp_number
-
-Jika database existing sudah memiliki field kontak,
-gunakan field tersebut.
-
-Jika belum ada, buat migration/database update yang aman.
-
-Jangan menampilkan nomor telepon secara besar di card.
-
-Gunakan tombol:
-
-"Hubungi"
-
-Ketika diklik tampilkan modal/dialog:
-
-----------------------------------
-
-Hubungi Alan 2
-
-Tenaga Kesehatan Desa
-
-Status:
-🟢 Sedang bertugas
-
-Nomor kontak:
-08xxxxxxxxxx
-
-[ 📞 Telepon ]
-
-[ 💬 WhatsApp ]
-
-----------------------------------
-
-Tombol Telepon harus menggunakan:
-
-tel:
-
-Tombol WhatsApp menggunakan:
-
-https://wa.me/
-
-Nomor harus diformat dengan benar.
-
-Jangan membuat nomor dummy.
-
-Jika nomor belum tersedia:
-
-"Nomor kontak belum tersedia."
-
-Jangan menampilkan tombol yang tidak dapat digunakan.
+Profil ini adalah PROFIL PROFESIONAL.
 
 ==================================================
-7. KONTAK DARURAT
+FITUR 4 — ADMIN CRUD PROFIL NAKES
 ==================================================
 
-Tambahkan section kecil yang mudah ditemukan:
+Role Admin harus dapat mengelola profil nakes.
 
-"🚨 Butuh pertolongan?"
+Pada halaman Admin/Nakes management tambahkan kemampuan:
 
-Deskripsi:
+CREATE
 
-"Jika Anda membutuhkan bantuan kesehatan segera, hubungi petugas yang tersedia."
+Admin dapat:
 
-Tambahkan tombol:
+- menambahkan informasi profil
+- upload foto/avatar
+- jabatan
+- deskripsi
+- wilayah pelayanan
+- tempat bertugas
+- tahun bergabung
+- nomor telepon
+- WhatsApp
+- layanan
+- jadwal
 
-"Hubungi Petugas"
+READ
 
-Tombol tersebut mengarah ke daftar petugas aktif/siaga.
+Admin dapat melihat profil lengkap.
 
-Jika sistem sudah mempunyai nomor darurat desa/admin,
-gunakan data tersebut.
+UPDATE
 
-JANGAN mengarang nomor darurat.
+Admin dapat mengubah informasi profil.
 
-PENTING:
+DELETE / DEACTIVATE
 
-Website harus memberikan disclaimer bahwa kondisi yang mengancam nyawa
-tetap membutuhkan layanan darurat/IGD setempat.
+Jangan langsung hard delete jika data tersebut memiliki relasi
+dengan pemeriksaan kesehatan atau audit log.
 
-Jangan membuat website seolah-olah menggantikan layanan medis darurat.
+Lebih baik gunakan:
+
+is_active = false
+
+atau mekanisme soft delete existing.
+
+Jangan merusak histori pemeriksaan.
 
 ==================================================
-8. LAYANAN / KEAHLIAN NAKES
+FITUR 5 — NAKES MENGELOLA PROFIL SENDIRI
 ==================================================
 
-Admin harus dapat mengatur layanan yang dimiliki setiap nakes.
+Jika sistem permission existing memungkinkan:
 
-Contoh layanan:
+Role Nakes dapat mengubah:
+
+- foto
+- deskripsi
+- nomor telepon
+- WhatsApp
+- informasi layanan
+- jadwal
+
+Tetapi Nakes TIDAK boleh:
+
+- mengubah role dirinya
+- mengubah role nakes lain
+- mengubah permission
+- mengubah data nakes lain
+- mengubah data warga
+- mengubah data Admin
+
+Validasi harus dilakukan di BACKEND.
+
+Jangan hanya mengandalkan hidden button di frontend.
+
+==================================================
+FITUR 6 — LAYANAN NAKES
+==================================================
+
+Profil dapat menampilkan layanan yang dapat diberikan.
+
+Contoh:
 
 - Pemeriksaan umum
 - Tekanan darah
@@ -289,381 +311,541 @@ Contoh layanan:
 - Pemeriksaan suhu
 - Konsultasi kesehatan
 - Pemantauan lansia
-- Pemeriksaan kesehatan keluarga
+- Pemantauan kesehatan keluarga
 
-Jangan hardcode layanan jika sistem existing sudah memiliki tabel/struktur
-layanan.
+Jika project sudah mempunyai tabel layanan:
 
-Jika belum ada, buat struktur database sederhana yang memungkinkan:
+REUSE.
+
+Jika belum ada:
+
+buat struktur sederhana.
+
+Relasi:
 
 Nakes
   ↓
-Layanan
+Nakes Services
+  ↓
+Services
 
-Satu nakes dapat memiliki beberapa layanan.
+Satu nakes dapat memiliki banyak layanan.
+
+Admin dapat memilih layanan yang tersedia untuk masing-masing nakes.
 
 ==================================================
-9. JADWAL PELAYANAN
+FITUR 7 — JADWAL
 ==================================================
 
-Tambahkan informasi:
-
-"Jadwal Pelayanan"
+Profil menampilkan jadwal pelayanan.
 
 Contoh:
 
-Senin - Jumat
+Senin
 08.00 - 15.00
 
-Namun data harus dapat dikelola oleh Admin.
+Selasa
+08.00 - 15.00
 
-Admin dapat mengatur:
+Rabu
+08.00 - 15.00
 
-- hari
-- jam mulai
-- jam selesai
-- status aktif/nonaktif
+dan seterusnya.
 
-Jika belum tersedia di database, buat struktur yang sesuai.
+Admin dapat mengubah jadwal.
 
-Jangan membuat sistem jadwal yang terlalu kompleks.
+Jangan membuat sistem appointment/booking jika belum diperlukan.
 
-==================================================
-10. ADMIN HARUS BISA MENGELOLA DATA NAKES
-==================================================
-
-Integrasikan dengan role Admin yang sudah ada.
-
-Admin dapat:
-
-- menambahkan nomor telepon
-- menambahkan nomor WhatsApp
-- mengubah status bertugas
-- mengubah layanan/keahlian
-- mengubah jadwal
-- mengaktifkan/nonaktifkan profil
-- mengubah informasi profil
-
-Semua perubahan harus tersimpan ke database.
-
-Warga hanya dapat melihat informasi.
-
-Warga TIDAK boleh mengubah data nakes.
+Fokus hanya pada informasi jadwal pelayanan.
 
 ==================================================
-11. ROLE NAKES
+FITUR 8 — KONTAK
 ==================================================
 
-Nakes hanya dapat mengubah data profilnya sendiri jika sistem permission
-existing memang mengizinkannya.
+Pada profil tambahkan:
 
-Nakes tidak boleh mengubah profil nakes lain.
+[ Telepon ]
 
-Nakes tetap dapat melakukan fungsi pemeriksaan kesehatan seperti sebelumnya.
+dan
 
-Jangan mengubah permission pemeriksaan kesehatan yang sudah berjalan.
+[ WhatsApp ]
 
-==================================================
-12. FILTER PETUGAS
-==================================================
+Telepon:
 
-Jika jumlah nakes semakin banyak, tambahkan filter sederhana:
+tel:+62xxxxxxxxxx
 
-[ Semua ]
-[ Sedang Bertugas ]
-[ Siaga ]
-[ Tidak Bertugas ]
+WhatsApp:
 
-Filter harus bekerja berdasarkan data database.
+https://wa.me/62xxxxxxxxxx
 
-Tambahkan search jika memang diperlukan.
+Nomor harus diambil dari database.
 
-Jangan membuat UI terlalu kompleks.
+Jika nomor tidak tersedia:
+
+"Kontak belum tersedia."
+
+Jangan menampilkan tombol yang tidak memiliki tujuan.
 
 ==================================================
-13. RESPONSIVE DESIGN
+FITUR 9 — STATUS NAKES
 ==================================================
 
-HALAMAN INI WAJIB MOBILE-FIRST.
+Tampilkan status:
 
-Pada HP:
+🟢 Sedang bertugas
 
-- card menjadi 1 kolom
+🟠 Sedang menangani warga
+
+⚪ Tidak sedang bertugas
+
+🔴 Tidak tersedia
+
+Gunakan sistem status existing jika sudah ada.
+
+Jangan membuat status online/offline baru jika sebenarnya project
+sudah memiliki sistem status.
+
+Status pada profil harus konsisten dengan halaman:
+
+/tim-kesehatan
+
+==================================================
+FITUR 10 — DARI HOMEPAGE
+==================================================
+
+Pada section homepage:
+
+"Tim Kesehatan Desa"
+
+Contoh:
+
+Ada yang siap membantu.
+
+[ Alan 2 ]
+Tenaga Kesehatan Desa
+🟢 Sedang bertugas
+
+Pemeriksaan umum · Tekanan darah
+
+[ Lihat profil ]
+
+[ Nasir 2 ]
+...
+
+Tombol:
+
+"Lihat semua"
+
+tetap menuju:
+
+/tim-kesehatan
+
+Jangan membuat halaman baru jika route tersebut sudah ada.
+
+==================================================
+FITUR 11 — PETUGAS SIAGA
+==================================================
+
+Jika status existing mendukung:
+
+Tambahkan section:
+
+"Petugas Siaga Saat Ini"
+
+Tampilkan nakes yang:
+
+- aktif
+- tersedia
+- sedang bertugas
+
+Contoh:
+
+PETUGAS SIAGA
+
+Alan 2
+Tenaga Kesehatan Desa
+
+🟢 Sedang bertugas
+
+[ Lihat profil ]
+
+[ Hubungi ]
+
+Jika tidak ada:
+
+"Belum ada petugas yang sedang siaga."
+
+Jangan menggunakan data dummy.
+
+==================================================
+FITUR 12 — RESPONSIVE
+==================================================
+
+WAJIB MOBILE-FIRST.
+
+Mobile:
+
+- profil menjadi single column
+- foto berada di tengah
+- tombol kontak full-width jika diperlukan
+- card tidak terlalu tinggi
+- text tidak overflow
+- tidak ada horizontal scroll
+- spacing nyaman
 - tombol mudah ditekan
-- nomor telepon tidak overflow
-- modal tidak keluar layar
-- teks tidak terpotong
-- tidak ada horizontal scrolling
-- spacing tetap nyaman
-- tombol minimal memiliki area klik yang nyaman
-- status mudah dibaca
 
 Tablet:
 
-2 kolom jika ruang cukup.
+2 kolom jika sesuai.
 
 Desktop:
 
-3 atau 4 kolom sesuai lebar layar.
+Gunakan layout maksimal sekitar 1100–1200px.
 
-Jangan memaksakan 4 card jika membuat card terlalu kecil.
+Profil dapat menggunakan:
 
-==================================================
-14. VISUAL DESIGN
-==================================================
+kiri:
+foto + identitas
 
-Pertahankan design system website yang sudah ada.
+kanan:
+informasi profesional
 
-Gunakan color palette existing.
-
-Jangan mengganti seluruh warna website.
-
-Untuk status gunakan visual yang mudah dipahami:
-
-Hijau = aktif/bertugas
-Oranye = sedang menangani
-Abu-abu = tidak bertugas
-Merah = tidak tersedia/darurat
-
-Gunakan warna secukupnya.
-
-Card harus memiliki:
-
-- spacing konsisten
-- border-radius konsisten
-- border/shadow yang halus
-- hierarchy typography yang jelas
-
-Hindari terlalu banyak shadow.
-
-Hindari gradient berlebihan.
+Namun jangan memaksakan dua kolom jika menyebabkan tampilan sempit.
 
 ==================================================
-15. ANIMASI
+FITUR 13 — VISUAL
 ==================================================
 
-Tambahkan animasi ringan agar halaman tidak terasa statis.
+Gunakan design system existing website.
 
-Contoh:
+Pertahankan:
 
-- fade-in saat halaman dibuka
-- card muncul secara staggered
-- hover ringan pada desktop
-- button press feedback
-- modal transition
-- status indicator yang sangat halus
+- warna utama
+- typography
+- border radius
+- button style
+- icon style
+- spacing
 
-Jangan menggunakan animasi berat.
+Jangan membuat desain yang terlihat seperti aplikasi berbeda.
 
-Jangan membuat animasi yang mengganggu warga lanjut usia.
+Profil harus terasa sebagai bagian dari:
+
+"Desa Sehat Kenanga"
+
+Gunakan visual yang:
+
+- bersih
+- ramah
+- profesional
+- mudah dipahami
+- tidak terlalu formal
+- cocok untuk warga umum
+- cocok untuk warga yang belum terbiasa menggunakan teknologi
+
+==================================================
+FITUR 14 — ANIMASI
+==================================================
+
+Tambahkan animasi ringan:
+
+- page fade-in
+- profile card entrance
+- button hover
+- button press
+- subtle image transition
+
+Jangan berlebihan.
 
 Hormati:
 
 prefers-reduced-motion
 
 ==================================================
-16. DATA DAN BACKEND
+FITUR 15 — EMPTY STATE
 ==================================================
 
-Semua data berikut harus berasal dari database:
+Jika profil tidak mempunyai foto:
 
-- nama nakes
-- avatar
-- status
-- nomor telepon
-- WhatsApp
-- layanan
-- jadwal
-- status aktif/nonaktif
+Gunakan avatar/inisial otomatis.
 
-Jangan hardcode.
+Contoh:
 
-Pastikan API yang digunakan memiliki authorization.
+A2
 
-Jangan sampai warga dapat mengubah data hanya dengan memanggil endpoint
-secara manual.
+Jika layanan belum tersedia:
 
-Validasi permission di backend, bukan hanya frontend.
+"Informasi layanan belum tersedia."
+
+Jika jadwal belum tersedia:
+
+"Jadwal pelayanan belum tersedia."
+
+Jika deskripsi kosong:
+
+jangan tampilkan section kosong.
 
 ==================================================
-17. LOADING STATE
+FITUR 16 — ERROR & LOADING
 ==================================================
 
 Tambahkan:
 
-- skeleton loading
-- empty state
+- loading state
+- skeleton
 - error state
+- retry
 
-Contoh empty state:
+Jika profil tidak ditemukan:
 
-"Belum ada tenaga kesehatan yang tersedia."
+"Profil tenaga kesehatan tidak ditemukan."
 
-Error:
+Berikan:
 
-"Data tenaga kesehatan tidak dapat dimuat.
-Silakan coba lagi."
-
-Tambahkan tombol:
-
-"Coba lagi"
+[ Kembali ke Tim Kesehatan ]
 
 ==================================================
-18. REAL-TIME STATUS
-==================================================
-
-Jika project sudah memiliki realtime mechanism,
-gunakan mekanisme tersebut.
-
-Jika belum ada, jangan menambahkan teknologi realtime baru hanya untuk
-fitur ini kecuali benar-benar diperlukan.
-
-Minimal status harus diperbarui ketika halaman direfresh.
-
-Jika memungkinkan menggunakan polling ringan, gunakan interval yang
-efisien dan jangan membebani server/database.
-
-==================================================
-19. KEAMANAN
+FITUR 17 — SECURITY
 ==================================================
 
 Pastikan:
 
-- nomor kontak tidak dapat dimanipulasi oleh warga
-- endpoint admin terlindungi
-- role-based access tetap berjalan
-- input nomor telepon divalidasi
-- WhatsApp number divalidasi
-- XSS prevention
-- authorization backend
-- jangan expose data sensitif nakes
+- warga hanya dapat READ profil
+- warga tidak dapat UPDATE
+- warga tidak dapat CREATE
+- warga tidak dapat DELETE
+- nakes hanya dapat mengubah profil sendiri
+- admin dapat mengelola profil sesuai permission
+- backend melakukan authorization
+- validasi input dilakukan backend
+- upload foto divalidasi
+- ukuran file dibatasi
+- tipe file dibatasi
+- jangan expose data sensitif
 
 ==================================================
-20. SEO / ACCESSIBILITY
+FITUR 18 — AUDIT LOG
 ==================================================
 
-Pastikan:
+Jika project sudah memiliki audit log:
 
-- heading hierarchy benar
-- button memiliki label jelas
-- icon memiliki aria-label jika diperlukan
-- contrast warna cukup
-- keyboard navigation tetap berfungsi
-- modal dapat ditutup dengan ESC
-- focus management pada modal
-- teks mudah dibaca warga lanjut usia
+Setiap perubahan profil nakes oleh Admin harus tercatat.
 
-==================================================
-21. JANGAN MENGUBAH HALAMAN LAIN
-==================================================
+Contoh:
 
-Perubahan utama hanya:
+Admin mengubah nomor WhatsApp
+Admin mengubah layanan
+Admin mengubah status
 
-/tim-kesehatan
-
-dan bagian Admin yang diperlukan untuk mengelola data nakes.
-
-Jangan mengubah:
-
-- dashboard warga
-- dashboard nakes
-- pemeriksaan kesehatan
-- AI kesehatan
-- autentikasi
-- Google Login
-- QR warga
-- halaman admin lainnya
-- database warga
-- riwayat pemeriksaan
-
-kecuali memang diperlukan agar fitur Tim Kesehatan dapat bekerja.
-
-Jika menemukan dependency terhadap fitur lain,
-gunakan implementasi yang kompatibel dengan sistem existing.
+Jangan membuat audit system baru jika existing sudah tersedia.
 
 ==================================================
-22. TESTING
+FITUR 19 — DATABASE
 ==================================================
 
-Setelah implementasi:
+Sebelum membuat migration:
 
-1. Jalankan lint.
-2. Jalankan build.
-3. Periksa error console.
-4. Periksa API.
-5. Periksa permission role.
-6. Test sebagai Admin.
-7. Test sebagai Nakes.
-8. Test sebagai Warga.
-9. Test desktop.
-10. Test mobile.
-11. Test empty state.
-12. Test error state.
-13. Test tombol Telepon.
-14. Test tombol WhatsApp.
-15. Test modal.
-16. Test perubahan status nakes.
-17. Test perubahan nomor kontak.
-18. Test perubahan layanan.
-19. Test perubahan jadwal.
+PERIKSA DATABASE TERLEBIH DAHULU.
 
-Pastikan fitur existing tetap bekerja.
+Jika field sudah ada:
+
+REUSE.
+
+Jika field belum ada:
+
+buat migration minimal.
+
+Jangan membuat tabel duplicate seperti:
+
+nakes_profiles
+
+jika sebenarnya sudah ada:
+
+health_workers
+
+atau struktur lain yang memiliki fungsi sama.
+
+Pastikan migration aman untuk database production.
+
+Jangan menghapus data existing.
 
 ==================================================
-HASIL AKHIR YANG DIINGINKAN
+FITUR 20 — SEO / ACCESSIBILITY
 ==================================================
 
-Halaman /tim-kesehatan harus terasa seperti portal kesehatan desa
-yang benar-benar digunakan warga.
+Gunakan:
 
-Struktur visual kira-kira:
+- semantic HTML
+- heading hierarchy
+- accessible button
+- aria-label untuk icon button
+- keyboard navigation
+- focus state
+- alt text foto nakes
+- contrast yang baik
 
-HEADER
+Judul halaman harus dinamis:
 
-"Tenaga kesehatan"
-"Petugas aktif yang siap membantu warga desa."
+"Profil Alan 2 — Desa Sehat Kenanga"
 
+==================================================
+FITUR 21 — INTEGRASI DENGAN FITUR EXISTING
+==================================================
+
+Profil nakes harus terhubung dengan:
+
+1. Tim Kesehatan
+2. Admin
+3. Role Nakes
+4. Role Warga
+5. Sistem pemeriksaan kesehatan
+6. Sistem kontak jika tersedia
+7. Sistem status jika tersedia
+
+Jangan membuat data nakes terpisah dari data nakes existing.
+
+Satu nakes harus mempunyai satu identity record.
+
+==================================================
+FITUR 22 — JANGAN MEMBUAT DUPLIKASI DATA
+==================================================
+
+Ini SANGAT PENTING.
+
+Jika database saat ini sudah mempunyai:
+
+health worker
+nakes
+user
+profile
+
+Cari hubungan yang sudah ada.
+
+Jangan membuat:
+
+User Nakes A
++
+Profile Nakes A
++
+Health Worker A
+
+tanpa relasi yang benar.
+
+Gunakan relasi existing.
+
+Tujuannya:
+
+1 User
+    ↓
+1 Nakes Profile
+
+dan seluruh pemeriksaan tetap menggunakan ID nakes yang sama.
+
+==================================================
+HASIL AKHIR
+==================================================
+
+Saya ingin flow akhirnya menjadi:
+
+HOMEPAGE
+   ↓
+Tim Kesehatan Desa
+   ↓
+Card Nakes
+   ↓
+"Lihat Profil"
+   ↓
+Profil Nakes
+   ↓
+┌────────────────────────────┐
+│ Foto                        │
+│ Nama                        │
+│ Jabatan                     │
+│ Status                      │
+│                            │
+│ Profil singkat              │
+│ Wilayah                     │
+│ Tempat bertugas             │
+│ Layanan                     │
+│ Jadwal                      │
+│                            │
+│ [Telepon] [WhatsApp]        │
+└────────────────────────────┘
+
+Admin:
+
+Admin
+ ↓
+Kelola Nakes
+ ↓
+Edit Profil
+ ↓
+Data tersimpan ke database
+ ↓
+Profil publik otomatis berubah
+
+Nakes:
+
+Nakes
+ ↓
+Profil Saya
+ ↓
+Edit informasi yang diizinkan
+ ↓
+Simpan
+ ↓
+Profil publik diperbarui
+
+Warga:
+
+Warga
+ ↓
+Tim Kesehatan
+ ↓
+Lihat Profil
+ ↓
+Lihat informasi
+ ↓
+Hubungi Petugas
+
+==================================================
+FINAL REQUIREMENT
+==================================================
+
+Jangan hanya membuat UI.
+
+Fitur harus benar-benar bekerja dari:
+
+DATABASE
 ↓
-QUICK STATS
-
-[ Total Petugas ] [ Sedang Bertugas ] [ Petugas Siaga ]
-
+BACKEND/API
 ↓
-PETUGAS SIAGA SAAT INI
-
-[ Card Petugas Siaga ]
-
+AUTHORIZATION
 ↓
-SEMUA TENAGA KESEHATAN
-
-[ Card ] [ Card ] [ Card ]
-
+FRONTEND
 ↓
-LAYANAN KESEHATAN
+RESPONSIVE UI
 
-Informasi layanan yang tersedia.
+Pastikan data benar-benar tersimpan dan ditampilkan dari database.
 
-↓
-BUTUH PERTOLONGAN?
+Jalankan:
 
-[ Hubungi Petugas ]
+- lint
+- build
+- test jika tersedia
 
-Gunakan desain existing website sebagai fondasi.
+Periksa browser console.
 
-Fokus utama:
-SIMPLE + FRIENDLY + PROFESSIONAL + REALISTIC + MOBILE-FIRST.
+Periksa network/API.
 
-Jangan overengineering.
+Periksa authorization.
 
-Sebelum coding, analisis project existing dan jelaskan secara singkat:
+Periksa mobile viewport.
 
-1. file/component yang akan diubah
-2. database/table yang akan digunakan
-3. API yang akan digunakan/ditambahkan
-4. permission yang akan diterapkan
-5. apakah ada migration yang diperlukan
+Periksa desktop viewport.
 
-Setelah itu baru implementasikan.
+Pastikan seluruh fitur existing tetap berjalan.
 
-Jangan berhenti hanya pada analisis.
-Lanjutkan sampai fitur benar-benar terimplementasi dan build berhasil.
+JANGAN melakukan perubahan yang tidak berhubungan dengan fitur ini.
+
+Implementasikan fitur sampai selesai, bukan hanya membuat mockup.

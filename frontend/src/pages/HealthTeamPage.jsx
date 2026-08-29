@@ -7,7 +7,8 @@ import { getWorkerAvatarUrl } from '../features/nakes/nakesProfileService'
 
 function normalizeWorkers(raw) {
   return (raw || []).map(w => ({
-    id: w.health_worker_id || w.name,
+    id: w.health_worker_id || w.user_id || w.name,
+    health_worker_id: w.health_worker_id || null,
     name: w.full_name || w.name,
     role: w.position || w.role || 'Tenaga Kesehatan Desa',
     specialty: w.specialty || w.services || '',
@@ -90,7 +91,16 @@ export function HealthTeamPage() {
     } catch (e) { setError(e.message || 'Gagal memuat') } finally { setLoading(false) }
   }
 
-  useEffect(() => { void load(); const t = setInterval(load, 30000); return () => clearInterval(t) }, [])
+  useEffect(() => {
+    void load();
+    const t = setInterval(load, 30000);
+    // realtime subscription for health_workers
+    let channel = null
+    if (isSupabaseConfigured && supabase) {
+      channel = supabase.channel('health-team-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'health_workers' }, () => void load()).subscribe()
+    }
+    return () => { clearInterval(t); if (channel) supabase.removeChannel(channel) }
+  }, [])
   // ESC to close modal
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') setSelected(null) }
@@ -160,7 +170,11 @@ export function HealthTeamPage() {
             <div style={{marginTop:12, display:'flex', flexWrap:'wrap', gap:6}}>
               {(w.services.length? w.services : ['Pemeriksaan umum']).slice(0,3).map(s=> <span key={s} style={{padding:'4px 8px', borderRadius:999, background:'white', border:'1px solid #fed7aa', fontSize:11, color:'#9a3412', fontWeight:600}}>🩺 {s}</span>)}
             </div>
-            <div style={{marginTop:12, paddingTop:10, borderTop:'1px solid #fed7aa', display:'flex', gap:8}}>
+            <div style={{marginTop:12, display:'flex', gap:8}}>
+              <Link to={`/tim-kesehatan/${w.health_worker_id || w.id}`} className="btn btn-ghost" style={{flex:1, minHeight:40, fontSize:13, background:'white', borderColor:'var(--teal)', color:'var(--teal)'}}>Lihat profil</Link>
+              <button className="btn btn-ghost" style={{flex:1, minHeight:40, fontSize:13, background:'white'}} onClick={()=>setSelected(w)}>Hubungi</button>
+            </div>
+            <div style={{marginTop:8, display:'flex', gap:8}}>
               <a href={`tel:${formatPhone(w.phone)}`} className="btn btn-primary" style={{flex:1, minHeight:40, fontSize:13}}><Phone size={14}/> Telepon</a>
               {waUrl(w.whatsapp) && <a href={waUrl(w.whatsapp)} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{flex:1, minHeight:40, fontSize:13, background:'white'}}><MessageCircle size={14}/> WhatsApp</a>}
             </div>
@@ -197,7 +211,10 @@ export function HealthTeamPage() {
               {(w.services.slice(0,3).length? w.services.slice(0,3): ['Pemeriksaan umum']).map(s=> <span key={s} style={{padding:'3px 7px', borderRadius:999, background:'#f0faf7', border:'1px solid var(--line)', fontSize:11, color:'var(--teal-dark)'}}>{s}</span>)}
             </div>
             <div style={{display:'flex', alignItems:'center', gap:6, fontSize:11, color:'var(--muted)'}}><Clock size={11}/> {w.schedule}</div>
-            <button className="btn btn-ghost" style={{width:'100%', minHeight:40, borderColor:'var(--teal)', color:'var(--teal)', fontWeight:700}} onClick={()=>setSelected(w)}>Hubungi</button>
+            <div style={{display:'flex', gap:8}}>
+              <Link to={`/tim-kesehatan/${w.health_worker_id || w.id}`} className="btn btn-ghost" style={{flex:1, minHeight:38, fontSize:12, borderColor:'#e3eeeb'}}>Lihat profil</Link>
+              <button className="btn btn-ghost" style={{flex:1, minHeight:38, fontSize:12, borderColor:'var(--teal)', color:'var(--teal)', fontWeight:700}} onClick={()=>setSelected(w)}>Hubungi</button>
+            </div>
           </div>
         })}
       </div>}
