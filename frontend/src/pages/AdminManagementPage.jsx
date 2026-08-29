@@ -390,12 +390,6 @@ export function AdminManagementPage({ resource }) {
         {(callerTier <= 3) && (
           <form className="admin-form" onSubmit={submitInvite} style={{ marginBottom: 14 }}>
             <h2>Undang pengguna baru (via email)</h2>
-            <p className="muted-text" style={{ marginTop: -6 }}>
-              Kirim undangan lewat email. User klik link → login Google → nama dan role otomatis diset. Tidak perlu user login dulu.
-              {callerTier === 1 && ' Sebagai Owner/Developer (Tier 1), Anda dapat mengundang Senior Admin (Tier 2), Junior Admin (Tier 3), Nakes (Tier 4), dan Warga (Tier 5) dalam 1 kotak ini.'}
-              {callerTier === 2 && ' Sebagai Senior Admin (Tier 2), Anda dapat mengundang Junior Admin (Tier 3), Nakes (Tier 4), dan Warga (Tier 5).'}
-              {callerTier === 3 && ' Sebagai Junior Admin (Tier 3), Anda dapat mengundang Nakes (Tier 4) dan Warga (Tier 5).'}
-            </p>
             <div className="field-grid">
               <label>Nama lengkap<input required placeholder="Contoh: Putri Imelda" value={inviteName} onChange={(event) => setInviteName(event.target.value)} /></label>
               <label>Email Google target<input required type="email" placeholder="nama@gmail.com" value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} /></label>

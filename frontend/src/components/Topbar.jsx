@@ -44,6 +44,7 @@ export function Topbar() {
   return <header className="topbar"><div className="container nav">
     <Link to="/"><Brand /></Link>
     <nav id="main-nav" className={`nav-links${open ? ' nav-open' : ''}`} aria-label="Navigasi utama">
+      <Link to="/" onClick={() => { setOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Beranda</Link>
       <NavAnchor hash="#tentang" onClick={() => setOpen(false)}>Tentang</NavAnchor>
       <NavAnchor hash="#layanan" onClick={() => setOpen(false)}>Layanan</NavAnchor>
       <NavAnchor hash="#nakes" onClick={() => setOpen(false)}>Tim kesehatan</NavAnchor>
