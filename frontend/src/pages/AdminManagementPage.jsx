@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, ChevronDown, ChevronUp, Download, KeyRound, Plus, Printer, RefreshCw, Save, Search, ShieldCheck, Trash2, UserX, UserCheck, UserX as UserXIcon, Wifi, WifiOff, Shield } from 'lucide-react'
 import { deleteAdminResource, getDemoAdminRows, getTier, isAppOwner, inviteUser, listAdmin, moveAdminContact, saveAdmin, setAdminTier, setUserRoleByEmail, tierLabel } from '../features/admin/adminService'
@@ -121,6 +121,8 @@ export function AdminManagementPage({ resource }) {
   const [statusFilter, setStatusFilter] = useState('')
   const [rtFilter, setRtFilter] = useState('')
   const [rts, setRts] = useState([])
+  // Profiles tier filter
+  const [accountTierFilter, setAccountTierFilter] = useState('')
   // Household creation / members & RT editing state
   const [kkForm, setKkForm] = useState(null); const [kkSaving, setKkSaving] = useState(false); const [members, setMembers] = useState(null)
   const [rtForm, setRtForm] = useState(null); const [rtSaving, setRtSaving] = useState(false)
@@ -153,6 +155,21 @@ export function AdminManagementPage({ resource }) {
   useEffect(() => { void load() }, [resource])
   useEffect(() => { const timer = setTimeout(() => void load(), 250); return () => clearTimeout(timer) }, [query, statusFilter, rtFilter])
   useEffect(() => resource === 'citizens' ? subscribeToCitizenChanges(() => void load()) : undefined, [resource, query, rtFilter, statusFilter])
+
+  const filteredRows = useMemo(() => {
+    if (resource !== 'profiles') return rows
+    let filtered = rows
+    // Tier-aware visibility: Tier2 tidak lihat Developer (Tier1), Tier3 tidak lihat Tier1 & 2
+    if (callerTier === 2) filtered = filtered.filter(r => getTier(r) !== 1)
+    if (callerTier === 3) filtered = filtered.filter(r => ![1, 2].includes(getTier(r)))
+    if (accountTierFilter === 'tier2') filtered = filtered.filter(r => getTier(r) === 2)
+    else if (accountTierFilter === 'tier3') filtered = filtered.filter(r => getTier(r) === 3)
+    else if (accountTierFilter === 'nakes') filtered = filtered.filter(r => r.role === 'nakes' || getTier(r) === 4)
+    else if (accountTierFilter === 'warga') filtered = filtered.filter(r => r.role === 'warga' || getTier(r) === 5)
+    else if (accountTierFilter === 'tier4') filtered = filtered.filter(r => getTier(r) === 4)
+    else if (accountTierFilter === 'tier5') filtered = filtered.filter(r => getTier(r) === 5)
+    return filtered
+  }, [rows, resource, callerTier, accountTierFilter])
 
   const submit = async (event) => {
     event.preventDefault()
@@ -314,6 +331,16 @@ export function AdminManagementPage({ resource }) {
           <option value="inactive">Tidak aktif</option>
         </select>
       </>}
+      {resource === 'profiles' && (
+        <select value={accountTierFilter} onChange={(event) => setAccountTierFilter(event.target.value)} aria-label="Filter role" style={{ minHeight: 44, padding: '0 10px', border: '1px solid var(--line)', borderRadius: 12, minWidth: 160 }}>
+          <option value="">Semua Role</option>
+          {(callerTier === 1 || callerTier === 2) && <option value="tier2">Senior Admin (Tier 2)</option>}
+          <option value="tier3">Junior Admin (Tier 3)</option>
+          <option value="nakes">Nakes (Tier 4)</option>
+          <option value="warga">Warga (Tier 5)</option>
+          {callerTier === 1 && <option value="tier1">Developer (Tier 1)</option>}
+        </select>
+      )}
     </div>
 
     {/* Inline forms */}
@@ -405,11 +432,11 @@ export function AdminManagementPage({ resource }) {
       </div>
     )}
 
-    {loading ? <p className="muted-text">Memuat data...</p> : rows.length === 0 ? <p className="muted-text">Data belum ditemukan.</p> : (
+    {(() => { const displayRows = resource === 'profiles' ? filteredRows : rows; return displayRows.length === 0 ? (loading ? <p className="muted-text">Memuat data...</p> : <p className="muted-text">Data belum ditemukan.{resource==='profiles' && accountTierFilter ? ' Coba ubah filter atau cari akun lain.' : ''}</p>) : (
       <div className="admin-table-wrap"><table className="admin-table">
         <thead><tr>{meta.columns.map(([, label]) => <th key={label}>{label}</th>)}{(showActions || ['households', 'rts', 'emergency_contacts', 'health_workers', 'profiles'].includes(resource)) && <th>Aksi</th>}</tr></thead>
         <tbody>
-          {rows.map((row) => <tr key={row[Object.keys(row)[0]]}>
+          {displayRows.map((row) => <tr key={row[Object.keys(row)[0]]}>
             {meta.columns.map(([key, label]) => {
               if (meta.roleControl && key === 'role') {
                 const targetTier = getTier(row)
@@ -465,7 +492,7 @@ export function AdminManagementPage({ resource }) {
           </tr>)}
         </tbody>
       </table></div>
-    )}
+    )})()}
 
     {members && (
       <div className="admin-panel" style={{ marginTop: 14 }}>
