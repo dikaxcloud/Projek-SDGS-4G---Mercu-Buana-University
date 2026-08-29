@@ -159,26 +159,22 @@ export function HealthTeamPage() {
     <section style={{marginTop:28}}>
       <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:8}}><h2 className="display" style={{fontSize:22, margin:0}}>Petugas Siaga Saat Ini</h2><span style={{padding:'2px 8px', borderRadius:999, background:'#fef2f2', color:'#b42318', fontSize:11, fontWeight:800, border:'1px solid #fecaca'}}>● LIVE</span></div>
       <p className="muted-text" style={{margin:'0 0 12px'}}>Petugas yang dapat dihubungi untuk membantu kebutuhan kesehatan warga.</p>
-      {siagaWorkers.length === 0 ? <div className="staff-panel" style={{textAlign:'center', padding:20}}><p className="muted-text">Belum ada petugas yang sedang siaga.</p><small className="muted-text">Jika butuh bantuan, lihat daftar tenaga kesehatan di bawah atau hubungi kontak darurat.</small></div> : <div className="team-grid">
+      {siagaWorkers.length === 0 ? <div className="staff-panel" style={{textAlign:'center', padding:20}}><p className="muted-text">Belum ada petugas yang sedang siaga.</p><small className="muted-text">Jika butuh bantuan, lihat daftar tenaga kesehatan di bawah atau hubungi kontak darurat.</small></div> : <div className="team-grid" style={{gridTemplateColumns:'repeat(auto-fill, minmax(280px,1fr))'}}>
         {siagaWorkers.map(w => (
-          <div key={w.id} className="team-card" style={{borderColor:'#fed7aa', background:'#fff7ed', position:'relative', overflow:'hidden'}}>
-            <div style={{position:'absolute', top:10, right:10, padding:'3px 8px', borderRadius:999, background:'#16a34a', color:'white', fontSize:10, fontWeight:800, display:'flex', alignItems:'center', gap:4}}><span style={{width:8,height:8,borderRadius:'50%', background:'white', display:'inline-block'}}/> Siaga</div>
-            <div style={{display:'flex', gap:12, alignItems:'center'}}>
-              {w.avatar_url ? <img src={w.avatar_url} alt={w.name} style={{width:44,height:44,borderRadius:'50%',objectFit:'cover', border:'2px solid white', boxShadow:'0 4px 12px rgba(0,0,0,.1)'}}/> : <div className="avatar" style={{width:44,height:44}}>{w.name.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase()}</div>}
-              <div><h3 style={{margin:0}}>{w.name}</h3><p style={{margin:'2px 0 0', color:'var(--muted)', fontSize:12}}>{w.role}</p></div>
+          <div key={w.id} className="team-card" style={{borderColor:'#fed7aa', background:'#fff7ed', position:'relative', overflow:'hidden', display:'flex', flexDirection:'column', gap:12, paddingTop:18}}>
+            <div style={{position:'absolute', top:10, right:10, padding:'3px 8px', borderRadius:999, background:'#16a34a', color:'white', fontSize:10, fontWeight:800, display:'flex', alignItems:'center', gap:4, zIndex:1}}><span style={{width:8,height:8,borderRadius:'50%', background:'white', display:'inline-block'}}/> Siaga</div>
+            <div style={{display:'flex', gap:12, alignItems:'center', paddingRight:60}}>
+              {w.avatar_url ? <img src={w.avatar_url} alt={w.name} style={{width:44,height:44,borderRadius:'50%',objectFit:'cover', border:'2px solid white', boxShadow:'0 4px 12px rgba(0,0,0,.1)', flex:'0 0 44px'}}/> : <div className="avatar" style={{width:44,height:44, flex:'0 0 44px'}}>{w.name.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase()}</div>}
+              <div style={{minWidth:0, flex:1}}><h3 style={{margin:0, fontSize:15, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{w.name}</h3><p style={{margin:'2px 0 0', color:'var(--muted)', fontSize:12, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{w.role}</p><span style={{marginTop:6, display:'inline-flex', padding:'3px 8px', borderRadius:999, background:'#f0fdf4', color:'#15803d', fontSize:11, fontWeight:700, border:'1px solid #bbf7d0'}}>{statusConfig[w.work_status]?.icon || '🟢'} {w.work_status}</span></div>
             </div>
-            <div style={{marginTop:12, display:'flex', flexWrap:'wrap', gap:6}}>
-              {(w.services.length? w.services : ['Pemeriksaan umum']).slice(0,3).map(s=> <span key={s} style={{padding:'4px 8px', borderRadius:999, background:'white', border:'1px solid #fed7aa', fontSize:11, color:'#9a3412', fontWeight:600}}>🩺 {s}</span>)}
+            <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
+              {(w.services.length? w.services : ['Pemeriksaan umum']).slice(0,3).map(s=> <span key={s} style={{padding:'4px 8px', borderRadius:999, background:'white', border:'1px solid #fed7aa', fontSize:11, color:'#9a3412', fontWeight:600, maxWidth:'100%', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>🩺 {s}</span>)}
             </div>
-            <div style={{marginTop:12, display:'flex', gap:8}}>
-              <Link to={`/tim-kesehatan/${w.health_worker_id || w.id}`} className="btn btn-ghost" style={{flex:1, minHeight:40, fontSize:13, background:'white', borderColor:'var(--teal)', color:'var(--teal)'}}>Lihat profil</Link>
-              <button className="btn btn-ghost" style={{flex:1, minHeight:40, fontSize:13, background:'white'}} onClick={()=>setSelected(w)}>Hubungi</button>
+            <div style={{display:'flex', alignItems:'center', gap:6, fontSize:11, color:'var(--muted)'}}><Clock size={12}/> {w.schedule}</div>
+            <div style={{display:'flex', gap:8, marginTop:'auto'}}>
+              <Link to={`/tim-kesehatan/${w.health_worker_id || w.id}`} className="btn btn-ghost" style={{flex:1, minHeight:40, fontSize:13, background:'white', borderColor:'var(--teal)', color:'var(--teal)', fontWeight:700}}>Lihat profil</Link>
+              <button className="btn btn-primary" style={{flex:1, minHeight:40, fontSize:13}} onClick={()=>setSelected(w)}>Hubungi</button>
             </div>
-            <div style={{marginTop:8, display:'flex', gap:8}}>
-              <a href={`tel:${formatPhone(w.phone)}`} className="btn btn-primary" style={{flex:1, minHeight:40, fontSize:13}}><Phone size={14}/> Telepon</a>
-              {waUrl(w.whatsapp) && <a href={waUrl(w.whatsapp)} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{flex:1, minHeight:40, fontSize:13, background:'white'}}><MessageCircle size={14}/> WhatsApp</a>}
-            </div>
-            <div style={{marginTop:8, display:'flex', alignItems:'center', gap:6, fontSize:11, color:'var(--muted)'}}><Clock size={12}/> {w.schedule}</div>
           </div>
         ))}
       </div>}

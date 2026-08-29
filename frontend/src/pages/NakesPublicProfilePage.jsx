@@ -24,13 +24,45 @@ export function NakesPublicProfilePage() {
         if (!isSupabaseConfigured || !supabase) {
           setError('Database belum terhubung'); setLoading(false); return
         }
-        // Try by health_worker_id first, then by user_id
-        let { data, error: err } = await supabase.from('health_workers').select('*').eq('health_worker_id', id).maybeSingle()
+        // Try public RPC first (works for anon), then fallback to direct select (for backward compat)
+        let data = null
+        try {
+          const { data: rpcData, error: rpcErr } = await supabase.rpc('get_public_nakes_profile', { p_id: id })
+          if (!rpcErr && rpcData) {
+            // rpc returns jsonb, may be object or need parsing
+            data = typeof rpcData === 'string' ? JSON.parse(rpcData) : rpcData
+            // normalize keys: RPC returns snake_case, map to expected fields
+            if (data && data.health_worker_id) {
+              data = {
+                health_worker_id: data.health_worker_id,
+                user_id: data.user_id,
+                full_name: data.full_name,
+                position: data.position,
+                specialty: data.specialty,
+                phone: data.phone,
+                whatsapp_number: data.whatsapp_number,
+                avatar_url: data.avatar_url,
+                work_status: data.work_status,
+                is_siaga: data.is_siaga,
+                is_online: data.is_online,
+                services: data.services,
+                schedule: data.schedule,
+                is_active: data.is_active,
+                created_at: data.created_at,
+              }
+            }
+          }
+        } catch {}
         if (!data) {
-          const { data: byUser } = await supabase.from('health_workers').select('*').eq('user_id', id).maybeSingle()
-          data = byUser
+          // fallback direct select (now allowed for anon via policy)
+          let { data: byId, error: err } = await supabase.from('health_workers').select('*').eq('health_worker_id', id).maybeSingle()
+          if (err) throw err
+          if (!byId) {
+            const { data: byUser } = await supabase.from('health_workers').select('*').eq('user_id', id).maybeSingle()
+            byId = byUser
+          }
+          data = byId
         }
-        if (err) throw err
         if (!data) { setError('Profil tenaga kesehatan tidak ditemukan.'); setLoading(false); return }
         // enrich avatar via local storage
         const avatar = getWorkerAvatarUrl(data)
