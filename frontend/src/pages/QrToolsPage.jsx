@@ -17,9 +17,9 @@ export function QrToolsPage() {
     <div className="admin-page"><div className="container narrow-container">
       <div className="staff-header"><div><div className="eyebrow">Alat desa</div><h1 className="display">QR Akses Website</h1><p>Cetak QR untuk poster, banner, pos kesehatan, atau kantor desa. Warga cukup scan untuk membuka website.</p></div></div>
 
-      <div className="admin-form">
-        <label>Alamat website<input value={url} onChange={(event) => setUrl(event.target.value)} placeholder={window.location.origin} /></label>
-        <button type="button" className="btn btn-primary" onClick={() => void generate()} disabled={busy}><QrCode size={16} /> {busy ? 'Membuat...' : 'Buat QR'}</button>
+      <div className="admin-form" style={{display:'grid', gap:14}}>
+        <label>Alamat website<input value={url} onChange={(event) => setUrl(event.target.value)} placeholder={window.location.origin} style={{marginTop:6}} /></label>
+        <button type="button" className="btn btn-primary" onClick={() => void generate()} disabled={busy} style={{width:'100%', minHeight:46, justifyContent:'center'}}><QrCode size={16} /> {busy ? 'Membuat...' : 'Buat QR'}</button>
       </div>
 
       {qr && (
