@@ -225,8 +225,8 @@ export function AdminManagementPage({ resource }) {
 
   // Role promotion form (profiles page)
   const [promoteEmail, setPromoteEmail] = useState(''); const [promoteRole, setPromoteRole] = useState('nakes'); const [promoteMsg, setPromoteMsg] = useState(null); const [promoting, setPromoting] = useState(false)
-  // Invite user form (profiles page) - new flow
-  const [inviteName, setInviteName] = useState(''); const [inviteEmail, setInviteEmail] = useState(''); const [inviteRole, setInviteRole] = useState('nakes'); const [inviteMsg, setInviteMsg] = useState(null); const [inviting, setInviting] = useState(false)
+  // Invite user form (profiles page) - single box for all tiers (Owner invite tier 2/3/4/5, Senior invite tier 3/4/5, Junior invite 4/5)
+  const [inviteName, setInviteName] = useState(''); const [inviteEmail, setInviteEmail] = useState(''); const [inviteTier, setInviteTier] = useState('tier4'); const [inviteMsg, setInviteMsg] = useState(null); const [inviting, setInviting] = useState(false)
   const submitPromote = async (event) => {
     event.preventDefault(); setPromoting(true); setPromoteMsg(null)
     try {
@@ -237,11 +237,50 @@ export function AdminManagementPage({ resource }) {
     } catch (err) { setPromoteMsg({ ok: false, text: err.message || 'Promosi role belum berhasil.' }) } finally { setPromoting(false) }
   }
 
+  const getInviteOptions = () => {
+    if (callerTier === 1) return [
+      { value: 'tier2', label: 'Senior Admin (Tier 2)' },
+      { value: 'tier3', label: 'Junior Admin (Tier 3)' },
+      { value: 'tier4', label: 'Nakes (Tier 4)' },
+      { value: 'tier5', label: 'Warga (Tier 5)' },
+    ]
+    if (callerTier === 2) return [
+      { value: 'tier3', label: 'Junior Admin (Tier 3)' },
+      { value: 'tier4', label: 'Nakes (Tier 4)' },
+      { value: 'tier5', label: 'Warga (Tier 5)' },
+    ]
+    if (callerTier === 3) return [
+      { value: 'tier4', label: 'Nakes (Tier 4)' },
+      { value: 'tier5', label: 'Warga (Tier 5)' },
+    ]
+    return []
+  }
+  useEffect(() => {
+    const opts = getInviteOptions()
+    if (opts.length && !opts.some(o => o.value === inviteTier)) setInviteTier(opts[0].value)
+  }, [callerTier])
+
   const submitInvite = async (event) => {
     event.preventDefault(); setInviting(true); setInviteMsg(null)
     try {
-      const res = await inviteUser(inviteEmail.trim(), inviteRole, inviteName.trim())
-      setInviteMsg({ ok: true, text: `✅ Undangan terkirim ke ${inviteEmail}. User login via link email → role ${inviteRole} otomatis aktif.` })
+      let role = 'warga'; let tier = null
+      if (inviteTier === 'tier2') { role = 'admin'; tier = 2 }
+      else if (inviteTier === 'tier3') { role = 'admin'; tier = 3 }
+      else if (inviteTier === 'tier4') role = 'nakes'
+      else if (inviteTier === 'tier5') role = 'warga'
+      else role = inviteTier // fallback
+      const res = await inviteUser(inviteEmail.trim(), role, inviteName.trim(), tier)
+      // If Owner invited Senior (tier2), need to set tier 2 explicitly (invite defaults to tier3)
+      if (role === 'admin' && tier === 2) {
+        try {
+          // find user_id by email after invite, then set tier
+          const rows = await listAdmin('profiles', inviteEmail.trim())
+          const target = rows.find(r => (r.email || '').toLowerCase() === inviteEmail.trim().toLowerCase())
+          if (target?.user_id) await setAdminTier(target.user_id, 2)
+        } catch {}
+      }
+      const label = inviteTier === 'tier2' ? 'Senior Admin (Tier 2)' : inviteTier === 'tier3' ? 'Junior Admin (Tier 3)' : inviteTier === 'tier4' ? 'Nakes (Tier 4)' : 'Warga (Tier 5)'
+      setInviteMsg({ ok: true, text: `✅ Undangan terkirim ke ${inviteEmail} sebagai ${label}. User login via link email → role otomatis aktif.` })
       setInviteEmail(''); setInviteName('')
       if (resource === 'profiles') await load()
     } catch (err) { setInviteMsg({ ok: false, text: err.message || 'Undangan gagal dikirim.' }) } finally { setInviting(false) }
@@ -324,26 +363,26 @@ export function AdminManagementPage({ resource }) {
         {(callerTier <= 3) && (
           <form className="admin-form" onSubmit={submitInvite} style={{ marginBottom: 14 }}>
             <h2>Undang pengguna baru (via email)</h2>
-            <p className="muted-text" style={{ marginTop: -6 }}>Kirim undangan lewat email. User klik link → login Google → nama dan role otomatis diset. Tidak perlu user login dulu.{!isTier1 && ' Sebagai admin, Anda dapat mengundang role Nakes dan Warga.'}{isTier1 && ' Sebagai Owner, Anda dapat mengundang semua role termasuk Admin (akan jadi Junior).'}</p>
+            <p className="muted-text" style={{ marginTop: -6 }}>
+              Kirim undangan lewat email. User klik link → login Google → nama dan role otomatis diset. Tidak perlu user login dulu.
+              {callerTier === 1 && ' Sebagai Owner/Developer (Tier 1), Anda dapat mengundang Senior Admin (Tier 2), Junior Admin (Tier 3), Nakes (Tier 4), dan Warga (Tier 5) dalam 1 kotak ini.'}
+              {callerTier === 2 && ' Sebagai Senior Admin (Tier 2), Anda dapat mengundang Junior Admin (Tier 3), Nakes (Tier 4), dan Warga (Tier 5).'}
+              {callerTier === 3 && ' Sebagai Junior Admin (Tier 3), Anda dapat mengundang Nakes (Tier 4) dan Warga (Tier 5).'}
+            </p>
             <div className="field-grid">
               <label>Nama lengkap<input required placeholder="Contoh: Putri Imelda" value={inviteName} onChange={(event) => setInviteName(event.target.value)} /></label>
               <label>Email Google target<input required type="email" placeholder="nama@gmail.com" value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} /></label>
             </div>
             <div className="field-grid" style={{ marginTop: 12 }}>
-              <label>Role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value)}><option value="nakes">Nakes (Tier 4)</option><option value="warga">Warga (Tier 5)</option>{isTier1 && <option value="admin">Admin Junior (Tier 3)</option>}</select></label>
+              <label>Role / Tier<select value={inviteTier} onChange={(event) => setInviteTier(event.target.value)}>
+                {getInviteOptions().map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select></label>
             </div>
             {inviteMsg && <p role="status" style={{ color: inviteMsg.ok ? 'var(--teal-dark)' : '#b42318', fontSize: 13, margin: '12px 0 0' }}>{inviteMsg.text}</p>}
             <div style={{ marginTop: 20 }}>
               <button className="btn btn-primary" disabled={inviting || !inviteEmail.trim()}><ShieldCheck size={16} /> {inviting ? 'Mengirim...' : 'Kirim Undangan'}</button>
             </div>
           </form>
-        )}
-        {isTier1 && (
-          <div className="admin-form" style={{ marginBottom: 14, background: '#fff7ed', borderColor: '#fed7aa' }}>
-            <h2 style={{ color: '#9a3412' }}>Kelola Tier Admin (Owner only)</h2>
-            <p className="muted-text">Promote / demote Admin Senior (Tier 2) ↔ Junior (Tier 3). Hanya Owner yang bisa.</p>
-            <TierManager onDone={load} />
-          </div>
         )}
       </>
     )}

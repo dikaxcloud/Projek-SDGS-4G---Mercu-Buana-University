@@ -31,8 +31,8 @@ export async function setUserRoleByEmail(email, role) {
 }
 
 /** Invite a new user (nakes/admin/warga) via Supabase Auth email invite.
- *  Only owner can invoke. Returns { status: 'invited', user } on success. */
-export async function inviteUser(email, role, fullName = '') {
+ *  Tier-aware: Owner can invite tier 2/3/4/5, Senior can invite tier 3/4/5. */
+export async function inviteUser(email, role, fullName = '', tier = null) {
   if (!supabase) return { status: 'invited', role }
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) throw new Error('Belum login')
@@ -47,7 +47,7 @@ export async function inviteUser(email, role, fullName = '') {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${freshSession.access_token}`,
     },
-    body: JSON.stringify({ email, role, full_name: fullName.trim() || undefined }),
+    body: JSON.stringify({ email, role, full_name: fullName.trim() || undefined, tier: tier || undefined }),
   })
   const json = await res.json().catch(() => ({}))
   if (!res.ok) {

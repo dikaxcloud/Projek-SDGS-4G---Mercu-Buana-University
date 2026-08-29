@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, role, full_name: fullName } = await req.json();
+    const { email, role, full_name: fullName, tier } = await req.json();
     if (!email || !role) {
       return new Response(JSON.stringify({ error: "Email dan role wajib diisi" }), {
         status: 400,
@@ -205,11 +205,44 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!isOwner && role === "admin") {
-      return new Response(JSON.stringify({ error: "Hanya owner yang bisa mengundang admin baru" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Tier-aware invite: Owner tier1 can invite tier2/3/4/5, Senior tier2 can invite tier3/4/5, Junior tier3 can invite 4/5
+    // Fetch caller tier via profiles
+    const { data: callerTierRow } = await supabaseAdmin
+      .from("profiles")
+      .select("admin_tier, role")
+      .eq("user_id", user.id)
+      .single();
+    const callerTier = callerTierRow?.role === 'admin' ? (callerTierRow.admin_tier ?? 3) : callerTierRow?.role === 'nakes' ? 4 : 5;
+
+    if (role === "admin") {
+      const requestedTier = tier === 2 || tier === "2" ? 2 : 3; // default junior
+      if (requestedTier === 2 && callerTier !== 1) {
+        return new Response(JSON.stringify({ error: "Hanya Owner (Tier 1) yang dapat mengundang Senior Admin (Tier 2)" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (requestedTier === 3 && callerTier > 2) {
+        return new Response(JSON.stringify({ error: "Hanya Owner dan Senior Admin yang dapat mengundang Junior Admin (Tier 3)" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Nakes cannot invite admin at all (callerTier 4/5)
+      if (callerTier >= 4) {
+        return new Response(JSON.stringify({ error: "Hanya Owner dan Senior Admin yang dapat mengundang admin" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else if (role === "nakes" || role === "warga") {
+      // Only admin tiers 1-3 can invite nakes/warga, nakes (tier4) cannot
+      if (callerTier > 3) {
+        return new Response(JSON.stringify({ error: "Hanya Admin yang dapat mengundang Nakes/Warga" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Use SITE_URL from env, fallback to request origin for local dev
@@ -218,6 +251,10 @@ Deno.serve(async (req) => {
 
     const userMetadata: Record<string, unknown> = { role, invited_by: user.id };
     if (fullName && String(fullName).trim()) userMetadata.full_name = String(fullName).trim();
+    if (role === "admin" && tier) {
+      const t = tier === 2 || tier === "2" || tier === "tier2" ? 2 : 3;
+      userMetadata.admin_tier = t;
+    }
 
     const friendlyAuthError = (msg: string) =>
       /already|exists|registered/i.test(msg)
