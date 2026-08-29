@@ -51,8 +51,12 @@ export function LoginPage() {
   }, [access, authLoading, isInvitationParam])
 
   const isInvitation = isInvitationParam || (metadataChecked && isInvitedViaMetadata)
-  // Show welcome ONLY after invitation token validated: access exists + not loading + (welcome param OR invited metadata)
-  const showWelcome = isInvitation && Boolean(access) && !authLoading && (isInvitationParam || metadataChecked)
+  // Show welcome for ALL logins (via Google or invitation) — user request: every login gets animation
+  // Read sessionStorage once to know if the current visit is post-OAuth Google login
+  const welcomeLoginFlag = (() => { try { const f = sessionStorage.getItem('welcome_login') === '1'; sessionStorage.removeItem('welcome_login'); return f } catch { return false } })()
+  // Show welcome ONLY after access validated AND (welcome param OR invited metadata OR normal login flag)
+  const showWelcome = (isInvitation && Boolean(access) && !authLoading && (isInvitationParam || metadataChecked)) ||
+    (welcomeLoginFlag && Boolean(access) && !authLoading)
 
   const redirectByRole = (role, citizenId) => {
     // Mark welcome as shown for this user to prevent re-show on normal login
@@ -83,6 +87,8 @@ export function LoginPage() {
     if (access.role === 'admin') navigate('/admin', { replace: true })
   }, [access, navigate, showWelcome, isInvitationParam, metadataChecked, authLoading])
   const useGoogle = async () => {
+    // Tandai login biasa supaya WelcomeTransition muncul setelah OAuth selesai
+    try { sessionStorage.setItem('welcome_login', '1') } catch {}
     setLoading(true); setMessage('')
     try { await signInWithGoogle() } catch (err) { setMessage(err.message || 'Gagal masuk dengan Google.') } finally { setLoading(false) }
   }
