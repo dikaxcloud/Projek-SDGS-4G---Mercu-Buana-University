@@ -170,7 +170,7 @@ export async function saveAdmin(resource, values) {
   }
   const payloads = {
     citizen: { p_citizen_id: values.citizen_id, p_full_name: values.full_name, p_phone: values.phone, p_birth_date: values.birth_date || null, p_gender: values.gender || null, p_blood_type: values.blood_type || null, p_is_active: values.is_active },
-    worker: { p_health_worker_id: values.health_worker_id, p_full_name: values.full_name, p_position: values.position, p_specialty: values.specialty, p_phone: values.phone, p_is_online: values.is_online, p_is_active: values.is_active },
+    worker: { p_health_worker_id: values.health_worker_id, p_full_name: values.full_name, p_position: values.position, p_specialty: values.specialty, p_phone: values.phone, p_is_online: values.is_online, p_is_active: values.is_active, p_avatar_url: values.avatar_url || null, p_whatsapp_number: values.whatsapp_number || values.whatsapp || null, p_work_status: values.work_status || null, p_is_siaga: values.is_siaga ?? null, p_services: values.services || values.specialty || null, p_schedule: values.schedule || null },
     article: values.article_id
       ? { p_article_id: values.article_id, p_title: values.title, p_slug: values.slug, p_summary: values.summary, p_content: values.content, p_is_published: values.is_published, p_category: values.category || null, p_thumbnail_url: values.thumbnail_url || null, p_is_archived: Boolean(values.is_archived) }
       : { p_title: values.title, p_slug: values.slug, p_summary: values.summary, p_content: values.content, p_is_published: values.is_published, p_category: values.category || null, p_thumbnail_url: values.thumbnail_url || null },

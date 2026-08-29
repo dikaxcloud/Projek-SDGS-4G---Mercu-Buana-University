@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Outlet, Link, NavLink } from 'react-router-dom'
-import { BookOpen, ClipboardPlus, History, LayoutDashboard, LogOut, ScanLine, Search, ShieldCheck, UserPlus, Menu } from 'lucide-react'
+import { BookOpen, ClipboardPlus, History, LayoutDashboard, LogOut, ScanLine, Search, ShieldCheck, UserPlus, Menu, User } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { useAuth } from '../features/auth/AuthProvider'
 import { supabase } from '../lib/supabase'
@@ -13,6 +13,7 @@ const navLinks = [
   { to: '/nakes/pemeriksaan/baru', Icon: ClipboardPlus, label: 'Periksa' },
   { to: '/nakes/scan', Icon: ScanLine, label: 'Scan QR' },
   { to: '/nakes/riwayat-saya', Icon: History, label: 'Riwayat' },
+  { to: '/nakes/profil', Icon: User, label: 'Profil Saya' },
   { to: '/admin', Icon: ShieldCheck, label: 'Mode Admin' },
 ]
 
@@ -25,6 +26,7 @@ const mobilePrimary = [
 const moreItems = [
   { to: '/nakes/pemeriksaan/baru', label: 'Catat Pemeriksaan', Icon: ClipboardPlus },
   { to: '/nakes/riwayat-saya', label: 'Riwayat Pemeriksaan', Icon: History },
+  { to: '/nakes/profil', label: 'Profil Saya', Icon: User },
   { to: '/nakes/warga/baru', label: 'Tambah Warga', Icon: UserPlus },
   { to: '/informasi-kesehatan', label: 'Informasi Kesehatan', Icon: BookOpen },
   { to: '/admin', label: 'Mode Admin (Kelola Data)', Icon: ShieldCheck },

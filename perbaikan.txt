@@ -1,790 +1,669 @@
-# TASK: INVITATION ACCEPTANCE WELCOME TRANSITION
-# PROJECT: DESA SEHAT KENANGA
+# UPDATE FITUR — HALAMAN TIM KESEHATAN DESA
 
-Saya ingin menambahkan sebuah UX transition khusus ketika
-user menerima undangan melalui email dan menekan tombol
-"Terima Undangan" / "Masuk ke Portal".
+Saya ingin melakukan PENAMBAHAN dan PENYEMPURNAAN fitur pada halaman:
 
-Saat ini flow sudah berfungsi:
+/tim-kesehatan
 
-EMAIL UNDANGAN
-    ↓
-User klik tombol "Terima Undangan"
-    ↓
-Website terbuka
-    ↓
-User langsung masuk ke dashboard
-
-Secara functionality sudah benar.
-
-Namun UX terasa terlalu tiba-tiba karena user langsung
-dilempar ke dashboard.
-
-Saya ingin menambahkan sebuah halaman / transition screen
-yang terasa profesional, modern, friendly, dan cocok dengan
-identitas website Desa Sehat Kenanga.
+Website ini adalah website kesehatan warga Desa Sehat Kenanga yang SUDAH BERJALAN, SUDAH TERHUBUNG KE DATABASE, SUDAH DI-HOSTING, dan fitur-fitur utama sudah berfungsi.
 
 ==================================================
-CRITICAL RULE — JANGAN MERUSAK EXISTING SYSTEM
+ATURAN PALING PENTING
 ==================================================
 
-Website ini SUDAH BERJALAN.
-
-JANGAN mengubah atau merusak:
-
-- Authentication
-- Google Login
-- Session
-- Invitation token
-- Invitation validation
-- Database
-- API
-- Role system
-- Permission
-- Admin
-- Nakes
-- Warga
-- Dashboard
-- Logout
-- Existing routes
-- Existing invitation email
-- Existing email sending system
-
-JANGAN membuat authentication baru.
-
-JANGAN membuat invitation system baru.
-
-JANGAN mengubah struktur database jika tidak benar-benar
-diperlukan.
-
-JANGAN mengubah flow invitation yang sudah berhasil.
-
-Kita hanya ingin menambahkan TRANSITION UX setelah
-invitation berhasil divalidasi.
+1. JANGAN menghapus fitur yang sudah ada.
+2. JANGAN mengubah alur autentikasi yang sudah berjalan.
+3. JANGAN mengubah struktur halaman lain yang tidak berkaitan.
+4. JANGAN merusak role Admin, Nakes, maupun Warga.
+5. Jangan membuat data dummy baru jika data tersebut seharusnya berasal dari database.
+6. Gunakan database yang sudah tersedia.
+7. Sebelum melakukan perubahan, analisis terlebih dahulu struktur project, database/schema, API, routing, component, dan sistem role yang sudah ada.
+8. Reuse component, API, utility, design system, dan struktur yang sudah ada apabila memungkinkan.
+9. Jangan melakukan rewrite besar-besaran terhadap project.
+10. Semua fitur baru harus responsive dan mobile-first.
+11. Pastikan desktop dan mobile sama-sama rapi.
+12. Setelah selesai, lakukan pengecekan agar tidak ada regression pada fitur lama.
 
 ==================================================
-CURRENT FLOW
+TUJUAN UTAMA
 ==================================================
 
-Saat ini:
+Saya ingin halaman "Tim Kesehatan" terasa seperti halaman layanan kesehatan desa sungguhan, bukan sekadar daftar nama nakes.
 
-Email Invitation
-      ↓
-Klik "Terima Undangan"
-      ↓
-Website
-      ↓
-Langsung Dashboard
+Halaman harus membantu warga mengetahui:
 
-UBAH MENJADI:
+- siapa tenaga kesehatan yang tersedia
+- siapa yang sedang bertugas
+- siapa yang sedang tidak bertugas
+- layanan apa yang dapat diberikan
+- kapan jadwal pelayanan
+- bagaimana cara menghubungi petugas
+- siapa petugas yang sedang siaga
 
-Email Invitation
-      ↓
-Klik "Terima Undangan"
-      ↓
-Validasi invitation existing
-      ↓
-Invitation valid
-      ↓
-WELCOME TRANSITION SCREEN
-      ↓
-User melihat proses persiapan akun
-      ↓
-Redirect ke dashboard sesuai role
+Tetap gunakan desain website yang sudah ada sebagai dasar.
+
+Jangan membuat desain baru yang bertentangan dengan design system existing.
 
 ==================================================
-IMPORTANT SECURITY RULE
+1. BAGIAN HEADER HALAMAN
 ==================================================
 
-JANGAN menampilkan welcome screen sebelum
-invitation/token berhasil divalidasi.
+Pertahankan struktur header halaman yang sudah ada:
 
-Urutan harus:
+TIM KESEHATAN DESA
 
-1. Token diterima
-2. Token divalidasi menggunakan logic existing
-3. Invitation valid
-4. User/session/access disiapkan menggunakan
-   logic existing
-5. Tampilkan transition
-6. Redirect ke dashboard sesuai role
+Tenaga kesehatan yang siap membantu warga desa.
 
-Jangan pernah menganggap token valid hanya karena
-user membuka URL.
-
-Jika token invalid:
-
-gunakan existing error handling.
-
-Jika token expired:
-
-gunakan existing expired invitation handling.
-
-Jangan mengubah security behavior.
-
-==================================================
-WELCOME SCREEN
-==================================================
-
-Setelah invitation berhasil diterima,
-tampilkan sebuah full-screen transition.
-
-Konsep visual:
-
-┌──────────────────────────────────┐
-│                                  │
-│                                  │
-│              🩺                  │
-│                                  │
-│       Desa Sehat Kenanga         │
-│                                  │
-│       Selamat datang! 👋         │
-│                                  │
-│  Akses portal Anda sedang        │
-│  disiapkan.                      │
-│                                  │
-│       ✓ Undangan diterima        │
-│       ✓ Akun dikonfirmasi        │
-│       ✓ Akses disiapkan          │
-│                                  │
-│        ● ● ●                     │
-│                                  │
-│     Membuka portal...            │
-│                                  │
-└──────────────────────────────────┘
-
-Jangan menggunakan emoji jika project sudah memiliki
-icon library.
-
-Gunakan icon library existing.
-
-==================================================
-VISUAL STYLE
-==================================================
-
-Gunakan design system yang sudah digunakan
-website Desa Sehat Kenanga.
-
-Gunakan:
-
-- white
-- very light mint
-- teal
-- dark teal
-- soft green
-
-Style:
-
-clean
-modern
-friendly
-professional
-healthcare
-calm
-
-JANGAN menggunakan:
-
-- cyberpunk
-- neon
-- gradient berlebihan
-- glassmorphism berlebihan
-- particle animation
-- animasi berat
-- loading spinner yang membosankan
-
-==================================================
-LOGO
-==================================================
-
-Gunakan logo Desa Sehat Kenanga yang
-SUDAH ADA di project.
-
-JANGAN membuat logo baru.
-
-Logo harus tampil di tengah.
-
-Animation:
-
-fade-in
-+
-scale ringan
+Namun tambahkan informasi singkat yang lebih informatif.
 
 Contoh:
 
-opacity:
-0 → 1
+"Temukan tenaga kesehatan desa yang tersedia dan hubungi petugas yang sesuai dengan kebutuhan Anda."
 
-scale:
-0.95 → 1
-
-Durasi sekitar:
-
-400–600ms
-
-Gunakan existing animation library
-jika project sudah menggunakannya.
-
-Jika project menggunakan Framer Motion,
-gunakan Framer Motion.
-
-Jangan install library baru jika
-tidak diperlukan.
+Jangan membuat teks terlalu panjang.
 
 ==================================================
-WELCOME MESSAGE
+2. TAMBAHKAN SUMMARY / QUICK STATS
 ==================================================
 
-Gunakan nama user jika data user
-sudah tersedia dari invitation/session.
+Di bawah header tambahkan summary cards kecil.
 
 Contoh:
 
-"Selamat datang, Andhika! 👋"
+┌─────────────────┐
+│       5         │
+│  Total Petugas  │
+└─────────────────┘
 
-Jika nama tidak tersedia:
+┌─────────────────┐
+│       2         │
+│ Sedang Bertugas │
+└─────────────────┘
 
-"Selamat datang di Desa Sehat Kenanga! 👋"
+┌─────────────────┐
+│       1         │
+│   Petugas Siaga │
+└─────────────────┘
 
-Jangan membuat nama dummy.
+Data harus berasal dari database secara real-time/dinamis.
 
-Gunakan data user sebenarnya.
+JANGAN hardcode angka.
+
+Summary harus otomatis berubah ketika status atau data nakes berubah.
 
 ==================================================
-ROLE-AWARE MESSAGE
+3. FITUR "PETUGAS SIAGA SAAT INI"
 ==================================================
 
-Welcome screen harus mengetahui role
-berdasarkan role existing user.
+Tambahkan section khusus sebelum daftar seluruh tenaga kesehatan.
+
+Judul:
+
+"Petugas Siaga Saat Ini"
+
+Deskripsi:
+
+"Petugas yang dapat dihubungi untuk membantu kebutuhan kesehatan warga."
+
+Jika ada petugas yang sedang siaga, tampilkan card yang lebih menonjol.
 
 Contoh:
 
-ADMIN:
+┌────────────────────────────────────────────┐
+│ 🟢 PETUGAS SIAGA                          │
+│                                            │
+│ A2   Alan 2                                │
+│      Tenaga Kesehatan Desa                 │
+│                                            │
+│      Pemeriksaan umum                      │
+│      Tekanan darah                         │
+│      Gula darah                            │
+│                                            │
+│      [ 📞 Telepon ] [ 💬 WhatsApp ]       │
+└────────────────────────────────────────────┘
 
-Selamat datang, Andhika!
-Akses Admin Desa Anda telah disiapkan.
+Jika tidak ada petugas siaga:
 
-NAKES:
+"Belum ada petugas yang sedang siaga."
 
-Selamat datang, Andhika!
-Akses Tenaga Kesehatan Anda telah disiapkan.
-
-WARGA:
-
-Selamat datang, Andhika!
-Akun kesehatan warga Anda telah disiapkan.
-
-Jangan membuat role baru.
-
-Gunakan role system yang sudah ada.
-
-==================================================
-PROGRESS CHECKLIST
-==================================================
-
-Tampilkan proses secara bertahap.
-
-Step 1:
-
-✓ Undangan diterima
-
-Step 2:
-
-✓ Akun dikonfirmasi
-
-Step 3:
-
-✓ Akses [ROLE] disiapkan
-
-Contoh Nakes:
-
-✓ Undangan diterima
-✓ Akun dikonfirmasi
-✓ Akses Nakes disiapkan
-
-Animasi checklist:
-
-Step muncul satu per satu.
-
-Gunakan:
-
-fade
-+
-small slide-up
-
-Durasi ringan.
-
-Jangan membuat user menunggu terlalu lama.
+Tetap berikan informasi kontak yang tersedia.
 
 ==================================================
-TIMING
+4. STATUS TENAGA KESEHATAN
 ==================================================
 
-Target total transition:
+Setiap nakes harus memiliki status.
 
-sekitar 1.5 – 2.0 detik.
+Gunakan status yang jelas:
+
+🟢 Sedang bertugas
+🟠 Sedang menangani warga
+⚪ Tidak sedang bertugas
+🔴 Tidak tersedia
+
+Status harus berasal dari database.
+
+Jangan menggunakan status random.
+
+Jika sistem existing sudah memiliki sistem online/offline,
+gunakan sistem tersebut dan jangan membuat sistem status baru yang
+bertentangan.
+
+Jika belum ada status bertugas, tambahkan field/status yang diperlukan
+secara aman pada database.
+
+==================================================
+5. CARD TENAGA KESEHATAN
+==================================================
+
+Perbaiki card nakes agar lebih informatif tetapi tetap minimalis.
 
 Contoh:
 
-0ms
-Logo mulai muncul
+┌──────────────────────────────────────────┐
+│                                          │
+│  A2     alan 2                           │
+│         Tenaga Kesehatan Desa            │
+│                                          │
+│  🟢 Sedang bertugas                      │
+│                                          │
+│  🩺 Pemeriksaan umum                     │
+│  🩺 Tekanan darah                        │
+│  🩺 Gula darah                           │
+│                                          │
+│  [ Hubungi ]                             │
+└──────────────────────────────────────────┘
 
-300ms
-Welcome message muncul
+Informasi yang dapat ditampilkan:
 
-700ms
-Step 1 muncul
+- foto/avatar/inisial
+- nama
+- jabatan
+- status
+- layanan/keahlian
+- jadwal pelayanan
+- tombol hubungi
 
-1000ms
-Step 2 muncul
-
-1300ms
-Step 3 muncul
-
-1500ms
-"Membuka portal..."
-
-1800ms
-Redirect dashboard
-
-JANGAN menggunakan delay 3–5 detik.
-
-User sudah menunggu dari proses invitation.
-
-==================================================
-LOADING INDICATOR
-==================================================
-
-Gunakan indicator yang subtle.
-
-Contoh:
-
-animated dots:
-
-●
-●
-●
-
-atau progress line kecil.
-
-JANGAN menggunakan spinner besar
-yang terlihat seperti loading API.
-
-Transition ini bukan fake loading.
-
-Tujuannya adalah memberikan UX
-feedback setelah invitation diterima.
+Jangan menampilkan terlalu banyak informasi dalam card.
 
 ==================================================
-FINAL MESSAGE
+6. NOMOR TELEPON DAN WHATSAPP
 ==================================================
 
-Sebelum redirect:
+Tambahkan data kontak untuk setiap nakes.
 
-"Membuka portal..."
+Field yang diperlukan:
 
-atau:
+- phone_number
+- whatsapp_number
 
-"Menyiapkan portal Anda..."
+Jika database existing sudah memiliki field kontak,
+gunakan field tersebut.
 
-Gunakan teks yang singkat.
+Jika belum ada, buat migration/database update yang aman.
+
+Jangan menampilkan nomor telepon secara besar di card.
+
+Gunakan tombol:
+
+"Hubungi"
+
+Ketika diklik tampilkan modal/dialog:
+
+----------------------------------
+
+Hubungi Alan 2
+
+Tenaga Kesehatan Desa
+
+Status:
+🟢 Sedang bertugas
+
+Nomor kontak:
+08xxxxxxxxxx
+
+[ 📞 Telepon ]
+
+[ 💬 WhatsApp ]
+
+----------------------------------
+
+Tombol Telepon harus menggunakan:
+
+tel:
+
+Tombol WhatsApp menggunakan:
+
+https://wa.me/
+
+Nomor harus diformat dengan benar.
+
+Jangan membuat nomor dummy.
+
+Jika nomor belum tersedia:
+
+"Nomor kontak belum tersedia."
+
+Jangan menampilkan tombol yang tidak dapat digunakan.
 
 ==================================================
-REDIRECT
+7. KONTAK DARURAT
 ==================================================
 
-Setelah transition selesai:
+Tambahkan section kecil yang mudah ditemukan:
 
-redirect menggunakan EXISTING routing logic.
+"🚨 Butuh pertolongan?"
 
-Contoh:
+Deskripsi:
 
-Admin
-→ existing admin dashboard
+"Jika Anda membutuhkan bantuan kesehatan segera, hubungi petugas yang tersedia."
+
+Tambahkan tombol:
+
+"Hubungi Petugas"
+
+Tombol tersebut mengarah ke daftar petugas aktif/siaga.
+
+Jika sistem sudah mempunyai nomor darurat desa/admin,
+gunakan data tersebut.
+
+JANGAN mengarang nomor darurat.
+
+PENTING:
+
+Website harus memberikan disclaimer bahwa kondisi yang mengancam nyawa
+tetap membutuhkan layanan darurat/IGD setempat.
+
+Jangan membuat website seolah-olah menggantikan layanan medis darurat.
+
+==================================================
+8. LAYANAN / KEAHLIAN NAKES
+==================================================
+
+Admin harus dapat mengatur layanan yang dimiliki setiap nakes.
+
+Contoh layanan:
+
+- Pemeriksaan umum
+- Tekanan darah
+- Gula darah
+- Pemeriksaan suhu
+- Konsultasi kesehatan
+- Pemantauan lansia
+- Pemeriksaan kesehatan keluarga
+
+Jangan hardcode layanan jika sistem existing sudah memiliki tabel/struktur
+layanan.
+
+Jika belum ada, buat struktur database sederhana yang memungkinkan:
 
 Nakes
-→ existing nakes dashboard
+  ↓
+Layanan
 
-Warga
-→ existing warga dashboard
-
-JANGAN hardcode semua user
-ke satu dashboard.
-
-Gunakan role-based routing
-yang sudah ada.
+Satu nakes dapat memiliki beberapa layanan.
 
 ==================================================
-IMPORTANT — NORMAL LOGIN
+9. JADWAL PELAYANAN
 ==================================================
 
-Transition ini HANYA berlaku untuk:
+Tambahkan informasi:
 
-INVITATION ACCEPTANCE.
-
-Jangan tampilkan transition ini
-setiap kali user login.
+"Jadwal Pelayanan"
 
 Contoh:
 
-FIRST INVITATION:
+Senin - Jumat
+08.00 - 15.00
 
-Email
-→ Accept Invitation
-→ Welcome Transition
-→ Dashboard
+Namun data harus dapat dikelola oleh Admin.
 
-LOGIN NORMAL:
+Admin dapat mengatur:
 
-Login
-→ Dashboard
+- hari
+- jam mulai
+- jam selesai
+- status aktif/nonaktif
 
-Jangan:
+Jika belum tersedia di database, buat struktur yang sesuai.
 
-Login
-→ Welcome Animation
-→ Dashboard
-
-karena akan memperlambat login biasa.
+Jangan membuat sistem jadwal yang terlalu kompleks.
 
 ==================================================
-INVITATION STATE
+10. ADMIN HARUS BISA MENGELOLA DATA NAKES
 ==================================================
 
-Jika invitation sudah pernah diterima:
+Integrasikan dengan role Admin yang sudah ada.
 
-Jangan tampilkan welcome transition
-lagi hanya karena user membuka
-URL invitation lama.
+Admin dapat:
 
-Gunakan existing invitation state/token.
+- menambahkan nomor telepon
+- menambahkan nomor WhatsApp
+- mengubah status bertugas
+- mengubah layanan/keahlian
+- mengubah jadwal
+- mengaktifkan/nonaktifkan profil
+- mengubah informasi profil
 
-Jika token sudah:
+Semua perubahan harus tersimpan ke database.
 
-expired
-used
-invalid
+Warga hanya dapat melihat informasi.
 
-gunakan existing behavior.
-
-Jangan bypass security.
-
-==================================================
-BACK BUTTON
-==================================================
-
-Pastikan browser back button
-tidak menyebabkan invitation
-diterima ulang secara tidak sengaja.
-
-Jangan melakukan duplicate acceptance.
-
-Gunakan existing invitation
-processing logic.
+Warga TIDAK boleh mengubah data nakes.
 
 ==================================================
-MOBILE FIRST
+11. ROLE NAKES
 ==================================================
 
-Transition harus dibuat mobile-first.
+Nakes hanya dapat mengubah data profilnya sendiri jika sistem permission
+existing memang mengizinkannya.
 
-Test:
+Nakes tidak boleh mengubah profil nakes lain.
 
-320px
-360px
-375px
-390px
-412px
-430px
+Nakes tetap dapat melakukan fungsi pemeriksaan kesehatan seperti sebelumnya.
+
+Jangan mengubah permission pemeriksaan kesehatan yang sudah berjalan.
+
+==================================================
+12. FILTER PETUGAS
+==================================================
+
+Jika jumlah nakes semakin banyak, tambahkan filter sederhana:
+
+[ Semua ]
+[ Sedang Bertugas ]
+[ Siaga ]
+[ Tidak Bertugas ]
+
+Filter harus bekerja berdasarkan data database.
+
+Tambahkan search jika memang diperlukan.
+
+Jangan membuat UI terlalu kompleks.
+
+==================================================
+13. RESPONSIVE DESIGN
+==================================================
+
+HALAMAN INI WAJIB MOBILE-FIRST.
+
+Pada HP:
+
+- card menjadi 1 kolom
+- tombol mudah ditekan
+- nomor telepon tidak overflow
+- modal tidak keluar layar
+- teks tidak terpotong
+- tidak ada horizontal scrolling
+- spacing tetap nyaman
+- tombol minimal memiliki area klik yang nyaman
+- status mudah dibaca
+
+Tablet:
+
+2 kolom jika ruang cukup.
 
 Desktop:
 
-1280px
-1366px
-1440px
-1600px
+3 atau 4 kolom sesuai lebar layar.
 
-Pada mobile:
-
-- logo tidak terlalu besar
-- text tidak overflow
-- checklist tidak keluar layar
-- animation tetap smooth
-- semua content center
-- tidak ada horizontal scrollbar
+Jangan memaksakan 4 card jika membuat card terlalu kecil.
 
 ==================================================
-ACCESSIBILITY
+14. VISUAL DESIGN
+==================================================
+
+Pertahankan design system website yang sudah ada.
+
+Gunakan color palette existing.
+
+Jangan mengganti seluruh warna website.
+
+Untuk status gunakan visual yang mudah dipahami:
+
+Hijau = aktif/bertugas
+Oranye = sedang menangani
+Abu-abu = tidak bertugas
+Merah = tidak tersedia/darurat
+
+Gunakan warna secukupnya.
+
+Card harus memiliki:
+
+- spacing konsisten
+- border-radius konsisten
+- border/shadow yang halus
+- hierarchy typography yang jelas
+
+Hindari terlalu banyak shadow.
+
+Hindari gradient berlebihan.
+
+==================================================
+15. ANIMASI
+==================================================
+
+Tambahkan animasi ringan agar halaman tidak terasa statis.
+
+Contoh:
+
+- fade-in saat halaman dibuka
+- card muncul secara staggered
+- hover ringan pada desktop
+- button press feedback
+- modal transition
+- status indicator yang sangat halus
+
+Jangan menggunakan animasi berat.
+
+Jangan membuat animasi yang mengganggu warga lanjut usia.
+
+Hormati:
+
+prefers-reduced-motion
+
+==================================================
+16. DATA DAN BACKEND
+==================================================
+
+Semua data berikut harus berasal dari database:
+
+- nama nakes
+- avatar
+- status
+- nomor telepon
+- WhatsApp
+- layanan
+- jadwal
+- status aktif/nonaktif
+
+Jangan hardcode.
+
+Pastikan API yang digunakan memiliki authorization.
+
+Jangan sampai warga dapat mengubah data hanya dengan memanggil endpoint
+secara manual.
+
+Validasi permission di backend, bukan hanya frontend.
+
+==================================================
+17. LOADING STATE
+==================================================
+
+Tambahkan:
+
+- skeleton loading
+- empty state
+- error state
+
+Contoh empty state:
+
+"Belum ada tenaga kesehatan yang tersedia."
+
+Error:
+
+"Data tenaga kesehatan tidak dapat dimuat.
+Silakan coba lagi."
+
+Tambahkan tombol:
+
+"Coba lagi"
+
+==================================================
+18. REAL-TIME STATUS
+==================================================
+
+Jika project sudah memiliki realtime mechanism,
+gunakan mekanisme tersebut.
+
+Jika belum ada, jangan menambahkan teknologi realtime baru hanya untuk
+fitur ini kecuali benar-benar diperlukan.
+
+Minimal status harus diperbarui ketika halaman direfresh.
+
+Jika memungkinkan menggunakan polling ringan, gunakan interval yang
+efisien dan jangan membebani server/database.
+
+==================================================
+19. KEAMANAN
 ==================================================
 
 Pastikan:
 
-- semantic HTML
-- accessible text
-- sufficient contrast
-- reduced motion support
-
-Jika user mengaktifkan:
-
-prefers-reduced-motion
-
-kurangi / nonaktifkan animasi kompleks.
-
-Flow functionality tetap sama.
+- nomor kontak tidak dapat dimanipulasi oleh warga
+- endpoint admin terlindungi
+- role-based access tetap berjalan
+- input nomor telepon divalidasi
+- WhatsApp number divalidasi
+- XSS prevention
+- authorization backend
+- jangan expose data sensitif nakes
 
 ==================================================
-NO FAKE DATA
+20. SEO / ACCESSIBILITY
 ==================================================
 
-JANGAN menggunakan:
+Pastikan:
 
-Andhika Pratama
-Budi
-demo-citizen-001
-demo-user
-dummy role
-
-kecuali data tersebut benar-benar
-berasal dari existing database/session.
-
-Gunakan data invitation sebenarnya.
+- heading hierarchy benar
+- button memiliki label jelas
+- icon memiliki aria-label jika diperlukan
+- contrast warna cukup
+- keyboard navigation tetap berfungsi
+- modal dapat ditutup dengan ESC
+- focus management pada modal
+- teks mudah dibaca warga lanjut usia
 
 ==================================================
-ERROR HANDLING
+21. JANGAN MENGUBAH HALAMAN LAIN
 ==================================================
 
-Jika invitation validation gagal:
+Perubahan utama hanya:
 
-JANGAN tampilkan:
+/tim-kesehatan
 
-"Selamat datang!"
+dan bagian Admin yang diperlukan untuk mengelola data nakes.
 
-Tampilkan existing error state.
+Jangan mengubah:
 
-Contoh:
+- dashboard warga
+- dashboard nakes
+- pemeriksaan kesehatan
+- AI kesehatan
+- autentikasi
+- Google Login
+- QR warga
+- halaman admin lainnya
+- database warga
+- riwayat pemeriksaan
 
-Undangan tidak valid
-Undangan sudah digunakan
-Undangan telah kedaluwarsa
+kecuali memang diperlukan agar fitur Tim Kesehatan dapat bekerja.
 
-Gunakan existing error UI jika tersedia.
-
-Jangan membuat sistem error baru
-jika existing sudah tersedia.
-
-==================================================
-ARCHITECTURE
-==================================================
-
-SEBELUM CODING:
-
-inspect:
-
-- invitation route
-- invitation acceptance handler
-- authentication flow
-- session handling
-- role detection
-- existing router
-- existing dashboard routes
-- existing animation library
-- existing design system
-- existing logo asset
-
-Cari titik paling aman untuk
-menyisipkan transition.
-
-JANGAN rewrite authentication.
-
-JANGAN rewrite invitation system.
+Jika menemukan dependency terhadap fitur lain,
+gunakan implementasi yang kompatibel dengan sistem existing.
 
 ==================================================
-IMPLEMENTATION STRATEGY
+22. TESTING
 ==================================================
 
-PHASE 1
-Audit existing invitation acceptance flow.
+Setelah implementasi:
 
-PHASE 2
-Identifikasi titik setelah invitation
-berhasil divalidasi.
+1. Jalankan lint.
+2. Jalankan build.
+3. Periksa error console.
+4. Periksa API.
+5. Periksa permission role.
+6. Test sebagai Admin.
+7. Test sebagai Nakes.
+8. Test sebagai Warga.
+9. Test desktop.
+10. Test mobile.
+11. Test empty state.
+12. Test error state.
+13. Test tombol Telepon.
+14. Test tombol WhatsApp.
+15. Test modal.
+16. Test perubahan status nakes.
+17. Test perubahan nomor kontak.
+18. Test perubahan layanan.
+19. Test perubahan jadwal.
 
-PHASE 3
-Buat reusable WelcomeTransition component/page.
-
-PHASE 4
-Hubungkan component dengan
-existing invitation acceptance flow.
-
-PHASE 5
-Implement role-aware message.
-
-PHASE 6
-Implement checklist animation.
-
-PHASE 7
-Implement smooth redirect.
-
-PHASE 8
-Implement mobile responsive.
-
-PHASE 9
-Implement prefers-reduced-motion.
-
-PHASE 10
-Regression test authentication
-dan invitation.
+Pastikan fitur existing tetap bekerja.
 
 ==================================================
-DO NOT CHANGE
+HASIL AKHIR YANG DIINGINKAN
 ==================================================
 
-Jangan ubah:
+Halaman /tim-kesehatan harus terasa seperti portal kesehatan desa
+yang benar-benar digunakan warga.
 
-DATABASE
-API
-AUTH
-GOOGLE LOGIN
-INVITATION EMAIL
-EMAIL TEMPLATE
-TOKEN SYSTEM
-ROLE SYSTEM
-PERMISSION
-DASHBOARD
-NAVBAR
-AI
-QR CODE
-HEALTH DATA
+Struktur visual kira-kira:
 
-Semua existing functionality
-harus tetap sama.
+HEADER
 
-==================================================
-TEST SCENARIO
-==================================================
+"Tenaga kesehatan"
+"Petugas aktif yang siap membantu warga desa."
 
-TEST 1 — ADMIN INVITATION
-
-Admin mengirim invitation
 ↓
-Email diterima
+QUICK STATS
+
+[ Total Petugas ] [ Sedang Bertugas ] [ Petugas Siaga ]
+
 ↓
-Klik Terima Undangan
+PETUGAS SIAGA SAAT INI
+
+[ Card Petugas Siaga ]
+
 ↓
-Token valid
+SEMUA TENAGA KESEHATAN
+
+[ Card ] [ Card ] [ Card ]
+
 ↓
-Welcome transition
+LAYANAN KESEHATAN
+
+Informasi layanan yang tersedia.
+
 ↓
-Nama user muncul
-↓
-Role Admin muncul
-↓
-Redirect ke existing Admin Dashboard
+BUTUH PERTOLONGAN?
 
-==================================================
+[ Hubungi Petugas ]
 
-TEST 2 — NAKES INVITATION
+Gunakan desain existing website sebagai fondasi.
 
-Admin mengirim invitation Nakes
-↓
-Email diterima
-↓
-Klik Terima Undangan
-↓
-Token valid
-↓
-Welcome transition
-↓
-Role Nakes muncul
-↓
-Redirect ke existing Nakes Dashboard
+Fokus utama:
+SIMPLE + FRIENDLY + PROFESSIONAL + REALISTIC + MOBILE-FIRST.
 
-==================================================
+Jangan overengineering.
 
-TEST 3 — INVALID TOKEN
+Sebelum coding, analisis project existing dan jelaskan secara singkat:
 
-Invalid token
-↓
-Jangan tampilkan welcome transition
-↓
-Existing error page
+1. file/component yang akan diubah
+2. database/table yang akan digunakan
+3. API yang akan digunakan/ditambahkan
+4. permission yang akan diterapkan
+5. apakah ada migration yang diperlukan
 
-==================================================
+Setelah itu baru implementasikan.
 
-TEST 4 — EXPIRED TOKEN
-
-Expired token
-↓
-Jangan tampilkan welcome transition
-↓
-Existing expired invitation handling
-
-==================================================
-
-TEST 5 — NORMAL LOGIN
-
-Normal login
-↓
-JANGAN tampilkan welcome transition
-↓
-Dashboard langsung
-
-==================================================
-
-TEST 6 — MOBILE
-
-Accept invitation menggunakan HP
-↓
-Welcome transition responsive
-↓
-Tidak overflow
-↓
-Animation smooth
-↓
-Dashboard
-
-==================================================
-FINAL QUALITY REQUIREMENT
-==================================================
-
-Hasil akhir harus memberikan kesan:
-
-"Undangan saya berhasil diterima
-dan sistem sedang menyiapkan akses saya."
-
-Bukan:
-
-"Website sedang loading."
-
-Transition harus terasa seperti:
-
-WELCOME EXPERIENCE
-
-bukan:
-
-LOADING SCREEN.
-
-==================================================
-FINAL REPORT
-==================================================
-
-Setelah selesai implementasi, jelaskan:
-
-1. File yang diubah.
-2. Component/page yang ditambahkan.
-3. Di mana transition disisipkan.
-4. Bagaimana token validation tetap aman.
-5. Bagaimana role detection dilakukan.
-6. Bagaimana redirect dilakukan.
-7. Berapa durasi transition.
-8. Bagaimana responsive mobile dibuat.
-9. Apakah authentication berubah.
-10. Apakah database/API berubah.
-11. Hasil testing invitation.
-12. Hasil testing normal login.
-
-Jika menemukan perubahan yang sebenarnya
-berisiko terhadap authentication atau
-invitation system, JANGAN langsung mengubahnya.
-
-Laporkan terlebih dahulu dan gunakan
-solusi paling minimal.
+Jangan berhenti hanya pada analisis.
+Lanjutkan sampai fitur benar-benar terimplementasi dan build berhasil.

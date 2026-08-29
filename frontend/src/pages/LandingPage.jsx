@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { ArrowRight, BookOpen, Check, ChevronRight, CircleHelp, HeartHandshake, ShieldCheck, Siren, Stethoscope } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { demoArticles, demoStats, demoWorkers } from '../services/demoData'
-import { isSupabaseConfigured } from '../lib/supabase'
+import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import { getPublicLandingData } from '../features/health/healthService'
-import { supabase } from '../lib/supabase'
+import { getWorkerAvatarUrl } from '../features/nakes/nakesProfileService'
 
 const fallbackStats = [
   { value: '—', label: 'RT terlayani' },
@@ -20,14 +20,30 @@ export function LandingPage() {
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
-    const load = () => getPublicLandingData()
-      .then((data) => {
+    const load = async () => {
+      try {
+        const data = await getPublicLandingData()
         if (!data) return
         if (Array.isArray(data.stats) && data.stats.length) setStats(data.stats)
-        setWorkers((data.workers ?? []).map((w) => ({ name: w.name, role: w.role, specialty: w.specialty, initials: (w.name || '?').split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase(), online: Boolean(w.is_online) })))
+        let list = (data.workers ?? []).map((w) => ({ name: w.name, role: w.role, specialty: w.specialty, initials: (w.name || '?').split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase(), online: Boolean(w.is_online), avatar_url: w.avatar_url || null, user_id: w.user_id || null }))
+        // enrich with avatar from health_workers
+        try {
+          const { data: full } = await supabase.from('health_workers').select('full_name, avatar_url, user_id').eq('is_active', true)
+          if (full) {
+            const map = new Map(full.map(f => [f.full_name?.toLowerCase(), f]))
+            list = list.map(w => {
+              const extra = map.get(w.name?.toLowerCase())
+              const avatar = extra?.avatar_url ? extra.avatar_url : getWorkerAvatarUrl({ ...w, user_id: extra?.user_id || w.user_id, avatar_url: extra?.avatar_url || w.avatar_url })
+              return { ...w, avatar_url: avatar || w.avatar_url, user_id: extra?.user_id || w.user_id }
+            })
+          } else {
+            list = list.map(w => ({ ...w, avatar_url: getWorkerAvatarUrl(w) || w.avatar_url }))
+          }
+        } catch { list = list.map(w => ({ ...w, avatar_url: getWorkerAvatarUrl(w) || w.avatar_url })) }
+        setWorkers(list)
         setArticles((data.articles ?? []).map((a) => ({ category: 'Informasi kesehatan', title: a.title, text: a.summary, slug: a.slug })))
-      })
-      .catch(() => {})
+      } catch {}
+    }
     void load()
     const timer = window.setInterval(load, 30000)
     return () => window.clearInterval(timer)
@@ -57,7 +73,7 @@ export function LandingPage() {
 
       <section className="section"><div className="container"><div className="section-head"><div><div className="eyebrow">Cara menggunakan</div><h2 className="display">Mulai dalam beberapa langkah.</h2></div></div><div className="step-list"><Step number="1" title="Daftar dengan identitas" text="Isi data identitas warga. Satu NIK hanya untuk satu profil warga." /><Step number="2" title="Hubungkan akun Google" text="Google dipakai untuk masuk, bukan sebagai identitas utama warga." /><Step number="3" title="Pantau kesehatan" text="Lihat riwayat dan hubungi petugas kapan pun dari HP." /></div></div></section>
 
-      <section className="section" id="nakes"><div className="container"><div className="section-head"><div><div className="eyebrow">Tim kesehatan desa</div><h2 className="display">Ada yang siap membantu.</h2></div><Link to="/tim-kesehatan" className="btn btn-soft">Lihat semua <ChevronRight size={16} /></Link></div>{workers.length === 0 ? <p className="muted-text">Belum ada data tenaga kesehatan.</p> : <div className="team-grid">{workers.map((worker) => <div className="team-card" key={worker.name}><div className="avatar">{worker.initials}</div><div><h3>{worker.name}</h3><p>{worker.role} · {worker.specialty}</p><span className="online" style={{ color: worker.online ? '#15803d' : 'var(--muted)' }}>{worker.online ? 'Sedang online' : 'Tidak sedang online'}</span></div></div>)}</div>}</div></section>
+      <section className="section" id="nakes"><div className="container"><div className="section-head"><div><div className="eyebrow">Tim kesehatan desa</div><h2 className="display">Ada yang siap membantu.</h2></div><Link to="/tim-kesehatan" className="btn btn-soft">Lihat semua <ChevronRight size={16} /></Link></div>{workers.length === 0 ? <p className="muted-text">Belum ada data tenaga kesehatan.</p> : <div className="team-grid">{workers.map((worker) => <div className="team-card" key={worker.name}>{worker.avatar_url ? <img src={worker.avatar_url} alt={worker.name} style={{width:40,height:40,borderRadius:'50%',objectFit:'cover', flex:'0 0 40px'}} onError={e=>{e.currentTarget.style.display='none'; e.currentTarget.nextSibling.style.display='grid'}}/> : null}<div className="avatar" style={{display: worker.avatar_url?'none':'grid'}}>{worker.initials}</div><div><h3>{worker.name}</h3><p>{worker.role} · {worker.specialty}</p><span className="online" style={{ color: worker.online ? '#15803d' : 'var(--muted)' }}>{worker.online ? 'Sedang online' : 'Tidak sedang online'}</span></div></div>)}</div>}</div></section>
 
       <section className="section" id="informasi"><div className="container"><div className="section-head"><div><div className="eyebrow">Informasi kesehatan</div><h2 className="display">Baca sedikit, lakukan setiap hari.</h2></div><Link to="/informasi-kesehatan" className="btn btn-soft">Lihat semua artikel <ChevronRight size={16} /></Link></div>{articles.length === 0 ? <p className="muted-text">Belum ada artikel kesehatan.</p> : <div className="article-grid">{articles.map((article) => <Link key={article.slug || article.title} to={`/artikel/${article.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}><article className="article-card"><small>{article.category}</small><h3>{article.title}</h3><p>{article.text}</p><span style={{ color: 'var(--teal)', fontWeight: 800, fontSize: 13 }}>Baca selengkapnya →</span></article></Link>)}</div>}</div></section>
 

@@ -507,6 +507,25 @@ function formatCell(key, value) {
 
 function EditForm({ resource, values, setValues, submit, cancel }) {
   const fields = resource === 'worker' ? [['full_name', 'Nama'], ['position', 'Jabatan'], ['specialty', 'Bidang'], ['phone', 'Kontak']] : resource === 'article' ? [['title', 'Judul'], ['slug', 'Slug (contoh: memahami-tekanan-darah)'], ['summary', 'Ringkasan'], ['content', 'Isi artikel (pisahkan paragraf dengan baris kosong)']] : resource === 'contact' ? [['officer_name', 'Nama petugas'], ['label', 'Label'], ['phone', 'Nomor telepon / WhatsApp']] : [['full_name', 'Nama'], ['phone', 'Kontak']]
+  if (resource === 'worker') {
+    return <form className="admin-form" onSubmit={submit}>
+      <h2>{values.health_worker_id ? 'Ubah data nakes' : 'Tambah nakes'}</h2>
+      <div className="field-grid">{fields.map(([key, label]) => <label key={key}>{label}<input required={['full_name','position'].includes(key)} value={values[key] ?? ''} onChange={e=>setValues({...values, [key]: e.target.value})}/></label>)}</div>
+      <div className="field-grid">
+        <label>WhatsApp<input inputMode="tel" placeholder="08xxxxxxxxxx" value={values.whatsapp_number ?? values.whatsapp ?? ''} onChange={e=>setValues({...values, whatsapp_number: e.target.value})}/></label>
+        <label>Avatar URL<input placeholder="https://... atau upload via profil nakes" value={values.avatar_url ?? ''} onChange={e=>setValues({...values, avatar_url: e.target.value})}/></label>
+      </div>
+      <div className="field-grid">
+        <label>Status<select value={values.work_status ?? (values.is_online?'Sedang bertugas':'Tidak sedang bertugas')} onChange={e=>setValues({...values, work_status: e.target.value})}><option>Sedang bertugas</option><option>Sedang menangani warga</option><option>Tidak sedang bertugas</option><option>Tidak tersedia</option></select></label>
+        <label>Layanan (koma)<input placeholder="Pemeriksaan umum, Tekanan darah" value={values.services ?? values.specialty ?? ''} onChange={e=>setValues({...values, services: e.target.value, specialty: e.target.value})}/></label>
+      </div>
+      <label>Jadwal<input placeholder="Senin - Jumat, 08.00 - 15.00" value={values.schedule ?? ''} onChange={e=>setValues({...values, schedule: e.target.value})}/></label>
+      <label className="check-row"><input type="checkbox" checked={Boolean(values.is_siaga)} onChange={e=>setValues({...values, is_siaga: e.target.checked})}/> <span>Petugas Siaga <small>Tampilkan di section Siaga</small></span></label>
+      <label className="check-row"><input type="checkbox" checked={Boolean(values.is_active)} onChange={e=>setValues({...values, is_active: e.target.checked})}/> <span>Data aktif</span></label>
+      <p className="muted-text" style={{fontSize:12}}>Foto nakes akan tampil di Landing Page & Tim Kesehatan setelah disimpan. Nakes juga bisa update foto sendiri via menu Profil Saya.</p>
+      <div className="form-actions"><button type="button" className="btn btn-ghost" onClick={cancel}>Batal</button><button className="btn btn-primary"><Save size={16}/> Simpan</button></div>
+    </form>
+  }
   return <form className="admin-form" onSubmit={submit}>
     <h2>{values[`${resource}_id`] || values.citizen_id ? 'Ubah data' : 'Tambah data'}</h2>
     <div className="field-grid">{fields.map(([key, label]) => <label key={key}>{label}{key === 'content' ? <textarea required rows={6} value={values[key] ?? ''} onChange={(event) => setValues({ ...values, [key]: event.target.value })} /> : <input required={['full_name', 'position', 'title', 'slug', 'label'].includes(key) || (resource === 'contact' && key === 'phone')} inputMode={resource === 'contact' && key === 'phone' ? 'tel' : undefined} value={values[key] ?? ''} onChange={(event) => setValues({ ...values, [key]: event.target.value })} />}</label>)}</div>

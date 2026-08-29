@@ -28,6 +28,7 @@ import { ExaminationDetailPage } from '../pages/ExaminationDetailPage'
 import { ArticlesPage } from '../pages/ArticlesPage'
 import { ArticleDetailPage } from '../pages/ArticleDetailPage'
 import { HealthTeamPage } from '../pages/HealthTeamPage'
+import { NakesProfilePage } from '../pages/NakesProfilePage'
 import { ProtectedRoute, RoleRoute, CitizenRoute } from '../features/auth/ProtectedRoute'
 
 export function App() {
@@ -71,6 +72,7 @@ export function App() {
           <Route path="/nakes/riwayat-saya" element={<MyExaminationsPage />} />
           <Route path="/nakes/scan" element={<NakesScanPage />} />
           <Route path="/nakes/pemeriksaan/baru" element={<ExaminationPage />} />
+          <Route path="/nakes/profil" element={<NakesProfilePage />} />
           <Route path="/nakes/*" element={<NakesDashboard />} />
         </Route>
       </Route>
