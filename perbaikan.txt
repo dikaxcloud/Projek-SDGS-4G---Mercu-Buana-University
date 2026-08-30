@@ -1,851 +1,702 @@
-# FEATURE UPDATE — PROFIL TENAGA KESEHATAN DESA
+# PROMPT OPENCODE — IMPROVEMENT UI/UX
+# INVITE VIA EMAIL + DELETE ACCOUNT
+# Desa Sehat Kenanga
 
-Saya ingin menambahkan fitur baru ke website "Desa Sehat Kenanga".
+Saya ingin melakukan PENAMBAHAN DAN PERBAIKAN UI/UX pada project yang sudah berjalan.
 
-Website ini SUDAH BERJALAN, SUDAH TERHUBUNG DATABASE, SUDAH DI-HOSTING, dan fitur existing sudah berfungsi.
-
-Fitur yang ingin ditambahkan:
-
-"Profil Tenaga Kesehatan"
-
-Tujuannya agar warga tidak hanya melihat nama dan status nakes, tetapi dapat melihat profil profesional sederhana dari tenaga kesehatan yang bertugas di desa.
-
-==================================================
-ATURAN UTAMA — WAJIB DIPATUHI
-==================================================
-
-1. JANGAN menghapus fitur existing.
-2. JANGAN melakukan rewrite besar-besaran.
-3. JANGAN mengganti framework/tech stack.
-4. JANGAN mengganti database yang sudah digunakan.
-5. JANGAN mengubah sistem autentikasi existing.
-6. JANGAN merusak Google Login.
-7. JANGAN mengubah role system yang sudah berjalan.
-8. JANGAN mengubah fitur pemeriksaan kesehatan.
-9. JANGAN mengubah AI kesehatan yang sudah ada.
-10. JANGAN mengubah QR warga.
-11. JANGAN mengubah halaman yang tidak berkaitan kecuali diperlukan.
-12. Gunakan component, API, database model, utility, dan design system existing.
-13. Semua data profil harus berasal dari database.
-14. Jangan hardcode data nakes.
-15. Jangan membuat akun demo baru.
-16. Jangan menggunakan data pribadi sensitif pada profil publik.
-17. Semua fitur harus mobile-first.
-18. Desktop juga harus tetap responsive.
-19. Setelah implementasi lakukan build dan pastikan tidak ada regression.
+PENTING:
+- Jangan membuat ulang project.
+- Jangan mengganti tech stack.
+- Jangan mengubah database schema yang sudah ada kecuali benar-benar diperlukan.
+- Jangan mengubah fitur existing yang sudah berjalan.
+- Jangan mengubah routing existing.
+- Jangan mengubah autentikasi existing.
+- Jangan mengubah logic pemeriksaan kesehatan.
+- Jangan mengubah role permission yang sudah ada.
+- Jangan menghapus fitur apa pun.
+- Fokus hanya pada UX untuk proses INVITE VIA EMAIL dan DELETE ACCOUNT.
+- Pertahankan design system, typography, spacing, icon style, dan color grading website yang sekarang.
+- Semua perubahan harus responsive untuk mobile, tablet, dan desktop.
+- Pastikan tidak menyebabkan regresi pada halaman lain.
 
 ==================================================
-LANGKAH 1 — ANALISIS PROJECT TERLEBIH DAHULU
+1. FITUR INVITE USER VIA EMAIL
 ==================================================
 
-Sebelum melakukan coding, periksa:
+Saat Admin mengundang user melalui email, sekarang jangan hanya menampilkan:
 
-- struktur folder
-- framework frontend
-- backend
-- database
-- tabel/model nakes
-- API nakes
-- sistem role
-- authentication
-- authorization
-- halaman /tim-kesehatan
-- card nakes existing
-- halaman Admin
-- sistem kontak nakes jika sudah tersedia
-- sistem layanan nakes jika sudah tersedia
-- sistem jadwal nakes jika sudah tersedia
+" Mengirim... "
 
-Cari apakah data berikut sudah tersedia:
+Saya ingin proses pengiriman terlihat seperti proses yang benar-benar sedang berlangsung.
 
-- nama
-- foto/avatar
-- role
-- status
-- nomor telepon
-- WhatsApp
-- layanan
-- jadwal
-- wilayah
-- tempat bertugas
+Form existing:
 
-Jika sudah tersedia, REUSE.
+- Nama lengkap
+- Email Google target
+- Role / Tier
+- Tombol "Kirim undangan"
 
-Jangan membuat tabel/field duplikat.
+Pertahankan form tersebut.
 
-Setelah analisis, tampilkan ringkasan:
+Tambahkan UX loading yang lebih profesional.
 
-1. file yang akan diubah
-2. database/table yang digunakan
-3. API yang digunakan
-4. field yang sudah tersedia
-5. field yang masih diperlukan
-6. migration yang diperlukan atau tidak
-7. permission yang diperlukan
+--------------------------------------------------
+1.1 BUTTON STATE
+--------------------------------------------------
 
-Kemudian lanjutkan implementasi.
+Saat tombol:
 
-==================================================
-FITUR 1 — TOMBOL "LIHAT PROFIL"
-==================================================
+"Kirim undangan"
 
-Pada halaman:
+ditekan:
 
-/tim-kesehatan
+ubah menjadi:
 
-dan section tim kesehatan di halaman utama,
+"Menyiapkan undangan..."
 
-tambahkan tombol:
+dengan loading spinner.
 
-"Lihat profil"
+Button harus disabled selama proses berjalan.
 
-Contoh card:
+Prevent double submit.
 
-┌─────────────────────────────────────┐
-│                                     │
-│  A2       Alan 2                    │
-│           Tenaga Kesehatan Desa     │
-│                                     │
-│  🟢 Sedang bertugas                 │
-│                                     │
-│  Pemeriksaan umum                   │
-│  Tekanan darah                      │
-│                                     │
-│  [ Lihat profil ]                   │
-└─────────────────────────────────────┘
+User tidak boleh bisa menekan tombol berkali-kali.
 
-Klik "Lihat profil" menuju halaman detail nakes.
+--------------------------------------------------
+1.2 FULL PROCESS LOADING MODAL
+--------------------------------------------------
 
-Gunakan route dinamis, contoh:
-
-/tim-kesehatan/:id
-
-atau mengikuti routing convention project existing.
-
-Jangan menggunakan nama sebagai identifier jika project sudah mempunyai ID unik.
-
-==================================================
-FITUR 2 — HALAMAN DETAIL PROFIL NAKES
-==================================================
-
-Buat halaman profil sederhana dan profesional.
+Setelah submit berhasil dikirim ke backend, tampilkan modal/dialog proses pengiriman.
 
 Contoh:
-
-← Kembali ke Tim Kesehatan
-
-TIM KESEHATAN DESA
-
-┌────────────────────────────────────────┐
-│                                        │
-│               [ FOTO ]                 │
-│                                        │
-│              Alan 2                    │
-│       Tenaga Kesehatan Desa            │
-│                                        │
-│       🟢 Sedang bertugas               │
-│                                        │
-│    [ 📞 Hubungi ] [ 💬 WhatsApp ]      │
-└────────────────────────────────────────┘
-
-PROFIL SINGKAT
-
-"Tenaga kesehatan yang membantu pelayanan
-kesehatan warga Desa Sehat Kenanga."
-
-INFORMASI PROFESIONAL
-
-📍 Wilayah pelayanan
-   Desa Sehat Kenanga
-
-🏥 Tempat bertugas
-   Pos Kesehatan Desa
-
-🩺 Fokus pelayanan
-   Pemeriksaan kesehatan warga
-
-🕐 Jadwal pelayanan
-   Senin - Jumat
-   08.00 - 15.00
-
-📅 Bergabung sejak
-   2026
-
-LAYANAN YANG DAPAT DIBANTU
-
-[ Pemeriksaan umum ]
-[ Tekanan darah ]
-[ Gula darah ]
-[ Pemeriksaan suhu ]
-[ Konsultasi kesehatan ]
 
 --------------------------------
+        ✉
+   Mengirim undangan
 
-BUTUH BANTUAN?
+Mohon tunggu, undangan sedang
+dikirim ke email tujuan.
 
-Jika warga membutuhkan bantuan kesehatan,
-warga dapat menghubungi petugas.
+   ● ─── ○ ─── ○ ─── ○
 
-[ Hubungi Petugas ]
+Menyiapkan
+undangan
 
-==================================================
-FITUR 3 — DATA PROFIL
-==================================================
+Mengirim
+email
 
-Profil nakes dapat memiliki:
+Menunggu
+konfirmasi
 
-- id
-- nama lengkap
-- foto/avatar
-- jabatan
-- deskripsi singkat
-- wilayah pelayanan
-- tempat bertugas
-- tahun bergabung
-- nomor telepon
-- nomor WhatsApp
-- status bertugas
-- layanan
-- jadwal
-- status aktif
+Selesai
+--------------------------------
 
-Tetapi:
+Gunakan animasi yang smooth.
 
-JANGAN tampilkan data sensitif seperti:
+Tidak perlu animasi berlebihan.
 
-- NIK
-- nomor KK
-- alamat rumah
-- tanggal lahir
-- data keluarga
-- informasi kesehatan pribadi
-- email pribadi
-- data autentikasi
+Gunakan:
+- fade
+- scale
+- progress animation
+- spinner
+- icon transition
 
-Profil ini adalah PROFIL PROFESIONAL.
+Durasi animasi harus terasa cepat dan profesional.
 
-==================================================
-FITUR 4 — ADMIN CRUD PROFIL NAKES
-==================================================
+JANGAN membuat loading palsu terlalu lama.
 
-Role Admin harus dapat mengelola profil nakes.
+Status harus mengikuti kondisi request/API sebenarnya.
 
-Pada halaman Admin/Nakes management tambahkan kemampuan:
+--------------------------------------------------
+1.3 STEP PROGRESS
+--------------------------------------------------
 
-CREATE
+Gunakan 4 tahap:
 
-Admin dapat:
+STEP 1
+"Menyiapkan undangan"
 
-- menambahkan informasi profil
-- upload foto/avatar
-- jabatan
-- deskripsi
-- wilayah pelayanan
-- tempat bertugas
-- tahun bergabung
-- nomor telepon
-- WhatsApp
-- layanan
-- jadwal
+STEP 2
+"Mengirim email"
 
-READ
+STEP 3
+"Email berhasil dikirim"
 
-Admin dapat melihat profil lengkap.
+STEP 4
+"Selesai"
 
-UPDATE
+Step yang aktif mempunyai:
+- animated indicator
+- spinner atau pulse
 
-Admin dapat mengubah informasi profil.
+Step yang selesai:
+- check icon
+- transition halus
 
-DELETE / DEACTIVATE
+Step yang belum:
+- icon abu-abu
 
-Jangan langsung hard delete jika data tersebut memiliki relasi
-dengan pemeriksaan kesehatan atau audit log.
+--------------------------------------------------
+1.4 SUCCESS STATE
+--------------------------------------------------
 
-Lebih baik gunakan:
+Jika API berhasil:
 
-is_active = false
+Tampilkan success state:
 
-atau mekanisme soft delete existing.
+✓
 
-Jangan merusak histori pemeriksaan.
+"Undangan berhasil dikirim!"
 
-==================================================
-FITUR 5 — NAKES MENGELOLA PROFIL SENDIRI
-==================================================
+"Undangan telah dikirim ke:
+[email user]"
 
-Jika sistem permission existing memungkinkan:
+Tambahkan informasi:
 
-Role Nakes dapat mengubah:
+"User dapat mengikuti tautan pada email
+untuk bergabung ke Desa Sehat Kenanga."
 
-- foto
-- deskripsi
-- nomor telepon
-- WhatsApp
-- informasi layanan
-- jadwal
+Button:
 
-Tetapi Nakes TIDAK boleh:
+" Selesai "
 
-- mengubah role dirinya
-- mengubah role nakes lain
-- mengubah permission
-- mengubah data nakes lain
-- mengubah data warga
-- mengubah data Admin
+Setelah klik:
+- tutup modal
+- reset form jika memang behavior existing seperti itu
+- refresh daftar user jika diperlukan
+- tampilkan toast success
 
-Validasi harus dilakukan di BACKEND.
+Contoh toast:
 
-Jangan hanya mengandalkan hidden button di frontend.
+"Undangan berhasil dikirim ke email tujuan."
 
-==================================================
-FITUR 6 — LAYANAN NAKES
-==================================================
+--------------------------------------------------
+1.5 ERROR STATE
+--------------------------------------------------
 
-Profil dapat menampilkan layanan yang dapat diberikan.
+Jika API gagal:
+
+Tampilkan:
+
+✕
+
+"Gagal mengirim undangan"
+
+"Undangan tidak dapat dikirim saat ini."
+
+Tampilkan alasan error jika backend memberikan error yang aman ditampilkan.
 
 Contoh:
 
-- Pemeriksaan umum
-- Tekanan darah
-- Gula darah
-- Pemeriksaan suhu
-- Konsultasi kesehatan
-- Pemantauan lansia
-- Pemantauan kesehatan keluarga
+"Terjadi masalah pada layanan email."
 
-Jika project sudah mempunyai tabel layanan:
+Button:
 
-REUSE.
-
-Jika belum ada:
-
-buat struktur sederhana.
-
-Relasi:
-
-Nakes
-  ↓
-Nakes Services
-  ↓
-Services
-
-Satu nakes dapat memiliki banyak layanan.
-
-Admin dapat memilih layanan yang tersedia untuk masing-masing nakes.
-
-==================================================
-FITUR 7 — JADWAL
-==================================================
-
-Profil menampilkan jadwal pelayanan.
-
-Contoh:
-
-Senin
-08.00 - 15.00
-
-Selasa
-08.00 - 15.00
-
-Rabu
-08.00 - 15.00
-
-dan seterusnya.
-
-Admin dapat mengubah jadwal.
-
-Jangan membuat sistem appointment/booking jika belum diperlukan.
-
-Fokus hanya pada informasi jadwal pelayanan.
-
-==================================================
-FITUR 8 — KONTAK
-==================================================
-
-Pada profil tambahkan:
-
-[ Telepon ]
+"Coba lagi"
 
 dan
 
-[ WhatsApp ]
+"Tutup"
 
-Telepon:
+Jika klik "Coba lagi":
+- ulangi request
+- tampilkan loading kembali
 
-tel:+62xxxxxxxxxx
+Jangan reload halaman.
 
-WhatsApp:
+--------------------------------------------------
+1.6 EMAIL SUDAH TERDAFTAR
+--------------------------------------------------
 
-https://wa.me/62xxxxxxxxxx
+Jika backend mengembalikan kondisi email sudah terdaftar:
 
-Nomor harus diambil dari database.
+Tampilkan state khusus:
 
-Jika nomor tidak tersedia:
+⚠
 
-"Kontak belum tersedia."
+"Email sudah terdaftar"
 
-Jangan menampilkan tombol yang tidak memiliki tujuan.
+"Email tersebut sudah memiliki akun
+di Desa Sehat Kenanga."
 
-==================================================
-FITUR 9 — STATUS NAKES
-==================================================
+Berikan opsi:
 
-Tampilkan status:
+"Tutup"
 
-🟢 Sedang bertugas
+Jangan menganggap kondisi ini sebagai server error.
 
-🟠 Sedang menangani warga
+--------------------------------------------------
+1.7 ROLE / TIER VALIDATION
+--------------------------------------------------
 
-⚪ Tidak sedang bertugas
+Sistem memiliki 5 Tier/Role.
 
-🔴 Tidak tersedia
+Tetap pertahankan role system existing.
 
-Gunakan sistem status existing jika sudah ada.
+Untuk fitur:
 
-Jangan membuat status online/offline baru jika sebenarnya project
-sudah memiliki sistem status.
+"Undang pengguna via email"
 
-Status pada profil harus konsisten dengan halaman:
+hanya boleh tersedia untuk:
 
-/tim-kesehatan
+Tier 1
+Tier 2
+Tier 3
 
-==================================================
-FITUR 10 — DARI HOMEPAGE
-==================================================
+Tier 4 dan Tier 5 TIDAK boleh diundang menggunakan fitur email ini.
 
-Pada section homepage:
+Jika user memilih Tier 4 atau Tier 5:
 
-"Tim Kesehatan Desa"
-
-Contoh:
-
-Ada yang siap membantu.
-
-[ Alan 2 ]
-Tenaga Kesehatan Desa
-🟢 Sedang bertugas
-
-Pemeriksaan umum · Tekanan darah
-
-[ Lihat profil ]
-
-[ Nasir 2 ]
-...
-
-Tombol:
-
-"Lihat semua"
-
-tetap menuju:
-
-/tim-kesehatan
-
-Jangan membuat halaman baru jika route tersebut sudah ada.
-
-==================================================
-FITUR 11 — PETUGAS SIAGA
-==================================================
-
-Jika status existing mendukung:
-
-Tambahkan section:
-
-"Petugas Siaga Saat Ini"
-
-Tampilkan nakes yang:
-
-- aktif
-- tersedia
-- sedang bertugas
+- tampilkan warning
+- disable tombol submit
 
 Contoh:
 
-PETUGAS SIAGA
+"Undangan via email hanya tersedia untuk Tier 1–3."
 
-Alan 2
-Tenaga Kesehatan Desa
+Jangan hanya mengandalkan frontend.
 
-🟢 Sedang bertugas
+Backend juga wajib melakukan validation.
 
-[ Lihat profil ]
-
-[ Hubungi ]
-
-Jika tidak ada:
-
-"Belum ada petugas yang sedang siaga."
-
-Jangan menggunakan data dummy.
+Frontend dan backend harus konsisten.
 
 ==================================================
-FITUR 12 — RESPONSIVE
+2. DELETE ACCOUNT UX
 ==================================================
 
-WAJIB MOBILE-FIRST.
+Sekarang fitur hapus akun juga ingin dibuat lebih profesional.
 
-Mobile:
+Jangan langsung:
 
-- profil menjadi single column
-- foto berada di tengah
-- tombol kontak full-width jika diperlukan
-- card tidak terlalu tinggi
-- text tidak overflow
-- tidak ada horizontal scroll
-- spacing nyaman
-- tombol mudah ditekan
+"Hapus → akun hilang → toast"
 
-Tablet:
+Saya ingin ada confirmation + proses loading + success/error state.
 
-2 kolom jika sesuai.
+==================================================
+2.1 DELETE CONFIRMATION MODAL
+==================================================
+
+Ketika Admin menekan:
+
+"Hapus akun"
+
+tampilkan confirmation modal.
+
+Contoh:
+
+--------------------------------
+        🗑
+
+      Hapus Akun?
+
+Apakah Anda yakin ingin menghapus
+akun ini?
+
+Tindakan ini dapat menghapus data
+terkait akun secara permanen dan
+tidak dapat dibatalkan.
+
+Ketik "HAPUS" untuk melanjutkan.
+
+[________________]
+
+[Batal]       [Hapus Akun]
+--------------------------------
+
+Tombol "Hapus Akun" harus disabled
+sebelum user mengetik:
+
+HAPUS
+
+Case-insensitive boleh digunakan.
+
+Contoh:
+hapus
+HAPUS
+Hapus
+
+boleh dianggap valid.
+
+--------------------------------------------------
+2.2 VISUAL WARNING
+--------------------------------------------------
+
+Gunakan warna warning/error secukupnya.
+
+Jangan membuat seluruh halaman merah.
+
+Gunakan:
+- icon trash
+- border ringan
+- warning box
+- tombol destructive
+
+Design tetap mengikuti color system website.
+
+==================================================
+2.3 DELETE PROCESS LOADING
+==================================================
+
+Setelah user melakukan konfirmasi:
+
+Tampilkan modal progress.
+
+Contoh:
+
+--------------------------------
+        🗑
+     Menghapus akun
+
+Mohon tunggu, akun sedang diproses.
+
+✓ Memeriksa data
+
+● Menghapus akun
+
+○ Membersihkan data terkait
+
+○ Selesai
+
+--------------------------------
+
+Gunakan progress animation yang smooth.
+
+Tahapan:
+
+1. "Memeriksa data"
+2. "Menghapus akun"
+3. "Membersihkan data terkait"
+4. "Selesai"
+
+Status harus mencerminkan proses aktual sebanyak mungkin.
+
+Jangan membuat progress palsu yang menunggu terlalu lama.
+
+==================================================
+2.4 DELETE SUCCESS
+==================================================
+
+Jika berhasil:
+
+Tampilkan:
+
+✓
+
+"Akun berhasil dihapus"
+
+"Data akun dan data terkait telah
+dihapus dari sistem."
+
+Button:
+
+"Kembali ke dashboard"
+
+atau
+
+"Selesai"
+
+Jika behavior existing membutuhkan redirect:
+
+gunakan redirect yang sudah ada.
+
+Jangan membuat routing baru jika tidak diperlukan.
+
+==================================================
+2.5 DELETE ERROR
+==================================================
+
+Jika gagal:
+
+✕
+
+"Gagal menghapus akun"
+
+"Terjadi masalah saat menghapus akun."
+
+Button:
+
+"Coba lagi"
+
+dan
+
+"Tutup"
+
+Jangan reload halaman.
+
+Jangan menghapus data dari UI jika backend sebenarnya gagal.
+
+UI harus mengikuti response backend.
+
+==================================================
+3. TOAST NOTIFICATION
+==================================================
+
+Gunakan toast notification yang konsisten.
+
+SUCCESS:
+
+✓
+"Undangan berhasil dikirim."
+
+ERROR:
+
+✕
+"Gagal mengirim undangan."
+
+WARNING:
+
+⚠
+"Email sudah terdaftar."
+
+DELETE SUCCESS:
+
+✓
+"Akun berhasil dihapus."
+
+DELETE ERROR:
+
+✕
+"Gagal menghapus akun."
+
+Toast:
+- muncul dengan slide/fade
+- memiliki duration yang wajar
+- bisa ditutup manual
+- tidak menutupi tombol penting
+- responsive mobile
+
+==================================================
+4. ANIMATION SYSTEM
+==================================================
+
+Gunakan animasi yang subtle dan profesional.
+
+Prioritas:
+
+- opacity
+- translate
+- scale
+- spinner
+- progress
+- icon morph/check
+- skeleton jika memang diperlukan
+
+Hindari:
+- animasi berlebihan
+- bouncing berlebihan
+- animasi yang terlalu lama
+- efek flashy
+- confetti berlebihan
+
+Website adalah portal administrasi kesehatan desa.
+
+Feel yang diinginkan:
+
+"modern"
+"professional"
+"trusted"
+"clean"
+"friendly"
+
+Bukan seperti aplikasi gaming.
+
+==================================================
+5. RESPONSIVE
+==================================================
+
+Semua modal harus responsive.
 
 Desktop:
 
-Gunakan layout maksimal sekitar 1100–1200px.
+Modal sekitar 420–520px.
 
-Profil dapat menggunakan:
+Mobile:
 
-kiri:
-foto + identitas
+Modal hampir full width dengan margin aman.
 
-kanan:
-informasi profesional
-
-Namun jangan memaksakan dua kolom jika menyebabkan tampilan sempit.
-
-==================================================
-FITUR 13 — VISUAL
-==================================================
-
-Gunakan design system existing website.
-
-Pertahankan:
-
-- warna utama
-- typography
-- border radius
-- button style
-- icon style
-- spacing
-
-Jangan membuat desain yang terlihat seperti aplikasi berbeda.
-
-Profil harus terasa sebagai bagian dari:
-
-"Desa Sehat Kenanga"
-
-Gunakan visual yang:
-
-- bersih
-- ramah
-- profesional
-- mudah dipahami
-- tidak terlalu formal
-- cocok untuk warga umum
-- cocok untuk warga yang belum terbiasa menggunakan teknologi
+Pastikan:
+- tidak overflow horizontal
+- tombol tidak keluar layar
+- text tidak terpotong
+- progress step dapat berubah menjadi vertical jika layar kecil
+- toast tidak menutupi bottom navigation
+- input "HAPUS" mudah digunakan di mobile
 
 ==================================================
-FITUR 14 — ANIMASI
-==================================================
-
-Tambahkan animasi ringan:
-
-- page fade-in
-- profile card entrance
-- button hover
-- button press
-- subtle image transition
-
-Jangan berlebihan.
-
-Hormati:
-
-prefers-reduced-motion
-
-==================================================
-FITUR 15 — EMPTY STATE
-==================================================
-
-Jika profil tidak mempunyai foto:
-
-Gunakan avatar/inisial otomatis.
-
-Contoh:
-
-A2
-
-Jika layanan belum tersedia:
-
-"Informasi layanan belum tersedia."
-
-Jika jadwal belum tersedia:
-
-"Jadwal pelayanan belum tersedia."
-
-Jika deskripsi kosong:
-
-jangan tampilkan section kosong.
-
-==================================================
-FITUR 16 — ERROR & LOADING
-==================================================
-
-Tambahkan:
-
-- loading state
-- skeleton
-- error state
-- retry
-
-Jika profil tidak ditemukan:
-
-"Profil tenaga kesehatan tidak ditemukan."
-
-Berikan:
-
-[ Kembali ke Tim Kesehatan ]
-
-==================================================
-FITUR 17 — SECURITY
+6. ACCESSIBILITY
 ==================================================
 
 Pastikan:
 
-- warga hanya dapat READ profil
-- warga tidak dapat UPDATE
-- warga tidak dapat CREATE
-- warga tidak dapat DELETE
-- nakes hanya dapat mengubah profil sendiri
-- admin dapat mengelola profil sesuai permission
-- backend melakukan authorization
-- validasi input dilakukan backend
-- upload foto divalidasi
-- ukuran file dibatasi
-- tipe file dibatasi
-- jangan expose data sensitif
-
-==================================================
-FITUR 18 — AUDIT LOG
-==================================================
-
-Jika project sudah memiliki audit log:
-
-Setiap perubahan profil nakes oleh Admin harus tercatat.
-
-Contoh:
-
-Admin mengubah nomor WhatsApp
-Admin mengubah layanan
-Admin mengubah status
-
-Jangan membuat audit system baru jika existing sudah tersedia.
-
-==================================================
-FITUR 19 — DATABASE
-==================================================
-
-Sebelum membuat migration:
-
-PERIKSA DATABASE TERLEBIH DAHULU.
-
-Jika field sudah ada:
-
-REUSE.
-
-Jika field belum ada:
-
-buat migration minimal.
-
-Jangan membuat tabel duplicate seperti:
-
-nakes_profiles
-
-jika sebenarnya sudah ada:
-
-health_workers
-
-atau struktur lain yang memiliki fungsi sama.
-
-Pastikan migration aman untuk database production.
-
-Jangan menghapus data existing.
-
-==================================================
-FITUR 20 — SEO / ACCESSIBILITY
-==================================================
-
-Gunakan:
-
-- semantic HTML
-- heading hierarchy
-- accessible button
-- aria-label untuk icon button
+- modal menggunakan proper dialog semantics
 - keyboard navigation
-- focus state
-- alt text foto nakes
-- contrast yang baik
-
-Judul halaman harus dinamis:
-
-"Profil Alan 2 — Desa Sehat Kenanga"
-
-==================================================
-FITUR 21 — INTEGRASI DENGAN FITUR EXISTING
-==================================================
-
-Profil nakes harus terhubung dengan:
-
-1. Tim Kesehatan
-2. Admin
-3. Role Nakes
-4. Role Warga
-5. Sistem pemeriksaan kesehatan
-6. Sistem kontak jika tersedia
-7. Sistem status jika tersedia
-
-Jangan membuat data nakes terpisah dari data nakes existing.
-
-Satu nakes harus mempunyai satu identity record.
+- ESC dapat menutup modal jika kondisi memungkinkan
+- focus management
+- button disabled state jelas
+- loading state tidak dapat di-submit dua kali
+- aria-label pada icon-only button
+- contrast tetap bagus pada light dan dark mode
 
 ==================================================
-FITUR 22 — JANGAN MEMBUAT DUPLIKASI DATA
+7. DARK MODE + LIGHT MODE
 ==================================================
 
-Ini SANGAT PENTING.
+Pertahankan light mode dan dark mode existing.
 
-Jika database saat ini sudah mempunyai:
+Pastikan:
 
-health worker
-nakes
-user
-profile
+Light:
+- background tetap bersih
+- card putih
+- border subtle
+- teal sebagai primary
+- destructive menggunakan warna merah secara proporsional
 
-Cari hubungan yang sudah ada.
+Dark:
+- jangan menggunakan pure black jika design system existing tidak menggunakannya
+- gunakan surface dark existing
+- border tetap terlihat
+- text memiliki contrast yang baik
+- modal tetap terlihat jelas
 
-Jangan membuat:
+Jangan membuat dark mode dan light mode terasa seperti dua aplikasi berbeda.
 
-User Nakes A
+==================================================
+8. BACKEND SAFETY
+==================================================
+
+Jangan hanya memperbaiki frontend.
+
+Untuk INVITE:
+- validasi role/tier di backend
+- validasi email
+- prevent duplicate invite jika diperlukan
+- handle email service error
+- return response yang jelas
+
+Untuk DELETE:
+- authorization wajib dilakukan backend
+- user tidak boleh menghapus akun yang bukan kewenangannya
+- pastikan permission role tetap berjalan
+- jangan melakukan delete jika authorization gagal
+- return error response yang jelas
+
+Jangan expose:
+- API key
+- secret
+- token
+- credential
+- internal error detail
+
+==================================================
+9. EXISTING SYSTEM MUST REMAIN INTACT
+==================================================
+
+Sebelum melakukan perubahan:
+
+1. Inspect project structure.
+2. Cari komponen invite user existing.
+3. Cari API/service invite existing.
+4. Cari komponen delete account existing.
+5. Cari API/service delete existing.
+6. Cari design system existing.
+7. Cari implementation dark/light mode.
+8. Cari role/tier permission existing.
+
+Gunakan komponen existing jika memungkinkan.
+
+Jangan membuat duplicate component jika sebenarnya sudah tersedia.
+
+==================================================
+10. IMPLEMENTATION PRINCIPLE
+==================================================
+
+Gunakan prinsip:
+
+EXISTING LOGIC
+      ↓
+IMPROVE UX
+      ↓
+ADD LOADING STATE
+      ↓
+ADD PROGRESS STATE
+      ↓
+ADD SUCCESS / ERROR STATE
+      ↓
+ADD TOAST
+      ↓
+RESPONSIVE
+      ↓
+ACCESSIBILITY
+
+Bukan:
+
+REWRITE EXISTING SYSTEM.
+
+==================================================
+11. FINAL CHECK
+==================================================
+
+Setelah implementasi selesai, lakukan pengecekan:
+
+[ ] Invite Tier 1 berhasil
+[ ] Invite Tier 2 berhasil
+[ ] Invite Tier 3 berhasil
+[ ] Invite Tier 4 ditolak
+[ ] Invite Tier 5 ditolak
+[ ] Email duplicate ditangani
+[ ] Email server error ditangani
+[ ] Loading tidak bisa double submit
+[ ] Success state bekerja
+[ ] Error state bekerja
+[ ] Delete confirmation bekerja
+[ ] DELETE membutuhkan input "HAPUS"
+[ ] Delete loading bekerja
+[ ] Delete success bekerja
+[ ] Delete error bekerja
+[ ] Authorization backend tetap aman
+[ ] Mobile responsive
+[ ] Tablet responsive
+[ ] Desktop responsive
+[ ] Light mode bagus
+[ ] Dark mode bagus
+[ ] Tidak ada horizontal overflow
+[ ] Tidak ada regresi pada fitur existing
+[ ] Tidak ada console error
+[ ] Tidak ada TypeScript/ESLint error jika project menggunakannya
+
+==================================================
+12. OUTPUT YANG SAYA INGINKAN
+==================================================
+
+Setelah selesai:
+
+1. Jelaskan file apa saja yang diubah.
+2. Jelaskan perubahan yang dilakukan.
+3. Jelaskan API/service apa yang digunakan.
+4. Jelaskan apakah ada perubahan database.
+5. Jelaskan validation Tier yang diterapkan.
+6. Jelaskan bagaimana loading state bekerja.
+7. Jelaskan bagaimana error handling bekerja.
+8. Jalankan lint/build/test yang tersedia.
+9. Laporkan jika ada error yang belum dapat diperbaiki.
+
+INGAT:
+
+JANGAN MENGUBAH DESAIN WEBSITE SECARA BESAR-BESARAN.
+
+JANGAN MENGUBAH HALAMAN LAIN.
+
+JANGAN MENGUBAH FITUR EXISTING.
+
+Fokus hanya meningkatkan UX:
+
+INVITE VIA EMAIL
 +
-Profile Nakes A
-+
-Health Worker A
+DELETE ACCOUNT
 
-tanpa relasi yang benar.
-
-Gunakan relasi existing.
-
-Tujuannya:
-
-1 User
-    ↓
-1 Nakes Profile
-
-dan seluruh pemeriksaan tetap menggunakan ID nakes yang sama.
-
-==================================================
-HASIL AKHIR
-==================================================
-
-Saya ingin flow akhirnya menjadi:
-
-HOMEPAGE
-   ↓
-Tim Kesehatan Desa
-   ↓
-Card Nakes
-   ↓
-"Lihat Profil"
-   ↓
-Profil Nakes
-   ↓
-┌────────────────────────────┐
-│ Foto                        │
-│ Nama                        │
-│ Jabatan                     │
-│ Status                      │
-│                            │
-│ Profil singkat              │
-│ Wilayah                     │
-│ Tempat bertugas             │
-│ Layanan                     │
-│ Jadwal                      │
-│                            │
-│ [Telepon] [WhatsApp]        │
-└────────────────────────────┘
-
-Admin:
-
-Admin
- ↓
-Kelola Nakes
- ↓
-Edit Profil
- ↓
-Data tersimpan ke database
- ↓
-Profil publik otomatis berubah
-
-Nakes:
-
-Nakes
- ↓
-Profil Saya
- ↓
-Edit informasi yang diizinkan
- ↓
-Simpan
- ↓
-Profil publik diperbarui
-
-Warga:
-
-Warga
- ↓
-Tim Kesehatan
- ↓
-Lihat Profil
- ↓
-Lihat informasi
- ↓
-Hubungi Petugas
-
-==================================================
-FINAL REQUIREMENT
-==================================================
-
-Jangan hanya membuat UI.
-
-Fitur harus benar-benar bekerja dari:
-
-DATABASE
-↓
-BACKEND/API
-↓
-AUTHORIZATION
-↓
-FRONTEND
-↓
-RESPONSIVE UI
-
-Pastikan data benar-benar tersimpan dan ditampilkan dari database.
-
-Jalankan:
-
-- lint
-- build
-- test jika tersedia
-
-Periksa browser console.
-
-Periksa network/API.
-
-Periksa authorization.
-
-Periksa mobile viewport.
-
-Periksa desktop viewport.
-
-Pastikan seluruh fitur existing tetap berjalan.
-
-JANGAN melakukan perubahan yang tidak berhubungan dengan fitur ini.
-
-Implementasikan fitur sampai selesai, bukan hanya membuat mockup.
+dengan loading animation, progress state,
+confirmation, success/error state, toast,
+responsive design, accessibility,
+dan validasi role/tier.

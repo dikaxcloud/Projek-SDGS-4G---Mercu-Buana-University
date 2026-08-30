@@ -905,3 +905,71 @@ pre { white-space: pre-wrap; word-break: break-word; }
   .user-pill-avatar { width: 28px; height: 28px; flex: 0 0 28px; }
 }
 @media (prefers-reduced-motion: reduce) { .user-pill-dropdown { animation: none; } }
+
+/* ============================================================
+   UX IMPROVEMENT — INVITE & DELETE MODALS + TOAST
+   ============================================================ */
+.toast-stack { position: fixed; right: 16px; bottom: 16px; z-index: 120; display: grid; gap: 8px; max-width: min(420px, calc(100vw - 24px)); }
+.toast { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; line-height: 1.4; box-shadow: 0 10px 28px rgba(15,23,42,.14); border: 1px solid var(--line); animation: toast-in .22s cubic-bezier(.2,.8,.2,1); }
+.toast-success { background: #f0fdf4; color: #14532d; border-color: #bbf7d0; }
+.toast-error { background: #fef2f2; color: #7f1d1d; border-color: #fecaca; }
+.toast-warning { background: #fffbeb; color: #78350f; border-color: #fde68a; }
+.toast button { margin-left: auto; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.spin { animation: spin 0.8s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
+
+.invite-warning { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 12.5px; font-weight: 600; }
+
+.ux-modal-overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: rgba(13,40,37,.48); backdrop-filter: blur(4px); animation: ux-fade .18s ease-out; }
+.ux-modal { width: min(480px, calc(100% - 16px)); max-height: min(86vh, 640px); overflow-y: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 28px 24px 22px; box-shadow: 0 20px 60px rgba(13,40,37,.18); display: grid; justify-items: center; text-align: center; animation: ux-scale .2s cubic-bezier(.2,.8,.2,1); }
+.ux-modal-icon { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 16px; background: var(--mint); color: var(--teal); position: relative; margin-bottom: 14px; }
+.ux-modal-icon.success { background: #dcfce7; color: #15803d; }
+.ux-modal-icon.error { background: #fee2e2; color: #b91c1c; }
+.ux-modal-icon.warning { background: #fef3c7; color: #92400e; }
+.ux-modal-icon-spin { position: absolute; right: -6px; bottom: -6px; width: 22px; height: 22px; display: grid; place-items: center; background: var(--teal); color: white; border-radius: 50%; border: 2px solid white; }
+.ux-modal-title { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 19px; letter-spacing: -.02em; color: var(--ink); }
+.ux-modal-desc { margin: 8px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.6; max-width: 36ch; }
+.ux-modal-desc.small { font-size: 12.5px; margin-top: 6px; }
+.ux-modal-desc strong { color: var(--ink); }
+.ux-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; margin-top: 18px; }
+.ux-steps.vertical { grid-template-columns: 1fr; gap: 10px; text-align: left; justify-items: start; }
+.ux-step { display: grid; justify-items: center; gap: 6px; padding: 10px 4px; border-radius: 12px; border: 1px solid transparent; font-size: 11px; font-weight: 700; color: var(--muted); transition: all .25s; }
+.ux-step.active { background: var(--mint); border-color: #bfe3da; color: var(--teal-dark); }
+.ux-step.done { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+.ux-step.pending { opacity: .65; }
+.ux-steps.vertical .ux-step { grid-template-columns: 28px 1fr; justify-items: start; align-items: center; padding: 8px 10px; }
+.ux-step-icon { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: #f3f4f6; color: var(--muted); flex: 0 0 auto; }
+.ux-step.active .ux-step-icon { background: var(--teal); color: white; }
+.ux-step.done .ux-step-icon { background: #15803d; color: white; }
+.ux-dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+.ux-step-label { line-height: 1.3; }
+.ux-progress-bar { width: 100%; height: 6px; border-radius: 999px; background: #eef2f3; margin-top: 16px; overflow: hidden; }
+.ux-progress-fill { height: 100%; background: var(--teal); border-radius: 999px; transition: width .45s cubic-bezier(.2,.8,.2,1); }
+.ux-progress-fill.danger { background: #dc2626; }
+.ux-warning-box { width: 100%; margin-top: 12px; padding: 12px; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 12.5px; line-height: 1.5; text-align: left; }
+.ux-input-label { display: grid; gap: 8px; width: 100%; margin-top: 16px; text-align: left; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.ux-input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 11px; font-size: 15px; font-weight: 700; letter-spacing: .04em; }
+.ux-input:focus { outline: 0; border-color: #8bcfc2; box-shadow: 0 0 0 3px #e6f7f2; }
+.ux-modal-actions { display: flex; gap: 10px; width: 100%; margin-top: 18px; }
+.ux-modal-actions .btn { flex: 1; }
+.btn-wide { width: 100%; margin-top: 18px; }
+
+@keyframes ux-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ux-scale { from { opacity: 0; transform: scale(.96) translateY(6px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 560px) {
+  .ux-modal { width: calc(100% - 20px); padding: 22px 18px 18px; border-radius: 18px; }
+  .ux-steps { grid-template-columns: 1fr 1fr; }
+  .ux-steps.vertical { grid-template-columns: 1fr; }
+  .toast-stack { right: 10px; left: 10px; bottom: 10px; max-width: none; }
+  .toast { font-size: 12.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin, .ux-modal-overlay, .ux-modal, .toast { animation: none !important; transition: none !important; }
+  .ux-progress-fill { transition: none !important; }
+}
+@media (prefers-color-scheme: dark) {
+  .ux-modal { background: #ffffff; }
+}

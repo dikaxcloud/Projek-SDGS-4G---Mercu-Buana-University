@@ -236,13 +236,12 @@ Deno.serve(async (req) => {
         });
       }
     } else if (role === "nakes" || role === "warga") {
-      // Only admin tiers 1-3 can invite nakes/warga, nakes (tier4) cannot
-      if (callerTier > 3) {
-        return new Response(JSON.stringify({ error: "Hanya Admin yang dapat mengundang Nakes/Warga" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      // NEW UX POLICY: invite via email hanya untuk Tier 1–3. Tier 4/5 TIDAK boleh diundang via email.
+      // Nakes/Warga tetap divalidasi tapi ditolak dengan pesan khusus agar frontend tampil warning.
+      return new Response(JSON.stringify({ error: "Undangan via email hanya tersedia untuk Tier 1–3." }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Use SITE_URL from env, fallback to request origin for local dev

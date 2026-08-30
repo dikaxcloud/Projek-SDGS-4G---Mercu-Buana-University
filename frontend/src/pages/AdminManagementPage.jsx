@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, ChevronDown, ChevronUp, Download, KeyRound, Plus, Printer, RefreshCw, Save, Search, ShieldCheck, Trash2, UserX, UserCheck, UserX as UserXIcon, Wifi, WifiOff, Shield } from 'lucide-react'
+import { AlertTriangle, ChevronDown, ChevronUp, Download, KeyRound, Plus, Printer, RefreshCw, Save, Search, ShieldCheck, Trash2, UserX, UserCheck, UserX as UserXIcon, Wifi, WifiOff, Shield, Mail, Loader2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
 import { deleteAdminResource, getDemoAdminRows, getTier, isAppOwner, inviteUser, listAdmin, moveAdminContact, saveAdmin, setAdminTier, setUserRoleByEmail, tierLabel } from '../features/admin/adminService'
 import { createActivationCode, createStaffHousehold, createAdminRt, listHouseholdMembers, listStaffCitizens, listStaffHouseholds, listStaffRts, updateStaffCitizen, updateAdminRt } from '../features/staff/staffService'
 import { downloadQr, makeQrDataUrl, printQr } from '../utils/qr'
@@ -117,27 +117,28 @@ export function AdminManagementPage({ resource }) {
   const { access } = useAuth()
   const isCallerAdmin = access?.role === 'admin'
   const [rows, setRows] = useState([]); const [query, setQuery] = useState(''); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [editing, setEditing] = useState(null)
-  // Citizen filters
   const [statusFilter, setStatusFilter] = useState('')
   const [rtFilter, setRtFilter] = useState('')
   const [rts, setRts] = useState([])
-  // Profiles tier filter
   const [accountTierFilter, setAccountTierFilter] = useState('')
-  // Household creation / members & RT editing state
   const [kkForm, setKkForm] = useState(null); const [kkSaving, setKkSaving] = useState(false); const [members, setMembers] = useState(null)
   const [rtForm, setRtForm] = useState(null); const [rtSaving, setRtSaving] = useState(false)
-  // Activation code dialog
   const [codeInfo, setCodeInfo] = useState(null)
-  // Emergency contact: reorder + delete (2-step inline confirm)
   const [busyId, setBusyId] = useState(null)
   const [notice, setNotice] = useState('')
   const [deleteId, setDeleteId] = useState(null)
-  // Owner flag: enables the Admin role option on the profiles page
   const [isOwner, setIsOwner] = useState(false)
   useEffect(() => { if (resource === 'profiles') isAppOwner().then(setIsOwner).catch(() => {}) }, [resource])
-  const callerTier = getTier(access) // 1=Owner,2=Senior,3=Junior,4=Nakes,5=Warga
+  const callerTier = getTier(access)
   const isTier1 = callerTier === 1
-  const isSeniorOrOwner = callerTier <= 2
+
+  // Toast state
+  const [toasts, setToasts] = useState([])
+  const pushToast = (type, text) => {
+    const id = Date.now() + Math.random()
+    setToasts(t => [...t, { id, type, text }])
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3800)
+  }
 
   const load = async () => {
     setLoading(true); setError('')
@@ -159,7 +160,6 @@ export function AdminManagementPage({ resource }) {
   const filteredRows = useMemo(() => {
     if (resource !== 'profiles') return rows
     let filtered = rows
-    // Tier-aware visibility: Tier2 tidak lihat Developer (Tier1), Tier3 tidak lihat Tier1 & 2
     if (callerTier === 2) filtered = filtered.filter(r => getTier(r) !== 1)
     if (callerTier === 3) filtered = filtered.filter(r => ![1, 2].includes(getTier(r)))
     if (accountTierFilter === 'tier2') filtered = filtered.filter(r => getTier(r) === 2)
@@ -177,12 +177,13 @@ export function AdminManagementPage({ resource }) {
       if ((meta.form || 'citizen') === 'citizen' && editing?.citizen_id) await updateStaffCitizen(editing)
       else await saveAdmin(meta.form || 'citizen', editing)
       setEditing(null); await load()
+      pushToast('success', 'Perubahan berhasil disimpan.')
     } catch (err) { setError(err.message || 'Perubahan belum tersimpan.') }
   }
 
   const saveKk = async (event) => {
     event.preventDefault(); setKkSaving(true); setError('')
-    try { await createStaffHousehold(kkForm); setKkForm(null); await load() } catch (err) { setError(err.message || 'KK belum tersimpan.') } finally { setKkSaving(false) }
+    try { await createStaffHousehold(kkForm); setKkForm(null); await load(); pushToast('success','KK berhasil disimpan.') } catch (err) { setError(err.message || 'KK belum tersimpan.') } finally { setKkSaving(false) }
   }
 
   const saveRt = async (event) => {
@@ -190,7 +191,7 @@ export function AdminManagementPage({ resource }) {
     try {
       if (rtForm.rt_id) await updateAdminRt(rtForm.rt_id, rtForm.name)
       else await createAdminRt(rtForm.code, rtForm.name)
-      setRtForm(null); await load()
+      setRtForm(null); await load(); pushToast('success','RT berhasil disimpan.')
     } catch (err) { setError(err.message || 'RT belum tersimpan.') } finally { setRtSaving(false) }
   }
 
@@ -210,27 +211,56 @@ export function AdminManagementPage({ resource }) {
     setBusyId(row.emergency_contact_id); setError(''); setNotice('')
     try {
       await moveAdminContact(row.emergency_contact_id, direction)
-      await load()
+      await load(); pushToast('success','Urutan berhasil diubah.')
     } catch (err) { setError(err.message || 'Urutan belum berhasil diubah.'); await load() } finally { setBusyId(null) }
   }
 
-  const removeResource = async (row, withAccount = false) => {
-    setBusyId(rowIdOf(row)); setError(''); setNotice('')
-    try {
-      await deleteAdminResource(resource, row, withAccount)
-      setDeleteId(null)
-      setNotice(withAccount ? `✅ "${rowNameOf(row)}" + akun Google-nya dihapus.` : `✅ "${rowNameOf(row)}" dihapus.`)
-      await load()
-    } catch (err) { setError(err.message || 'Data belum berhasil dihapus.'); await load() } finally { setBusyId(null) }
+  // ===================== DELETE UX STATE =====================
+  const [deleteConfirm, setDeleteConfirm] = useState(null) // { row, resource, input, warning, withAccount? }
+  const [deleteProgress, setDeleteProgress] = useState(null) // { open, step, status, row, errorMsg }
+  const deleteInputValid = deleteConfirm ? deleteConfirm.input.trim().toLowerCase() === 'hapus' : false
+
+  const openDeleteConfirm = (row, warning) => {
+    setDeleteConfirm({ row, warning: warning || '', input: '' })
   }
 
-  // Per-row role control (profiles page): nakes <-> warga via email.
+  const handleDeleteWithProgress = async (row, withAccount=false) => {
+    // Close confirm, open progress
+    const targetRow = row || deleteConfirm?.row
+    if (!targetRow) return
+    setDeleteConfirm(null)
+    setDeleteProgress({ open: true, step: 1, status: 'loading', row: targetRow, errorMsg: '', withAccount })
+    // Step progression tied to real request
+    let stepTimer
+    // Step 1 -> 2 quickly
+    await new Promise(r => { stepTimer = setTimeout(r, 350) })
+    setDeleteProgress(p => p ? { ...p, step: 2 } : p)
+    try {
+      // real delete call
+      setDeleteProgress(p => p ? { ...p, step: 2 } : p)
+      await deleteAdminResource(resource, targetRow, withAccount)
+      setDeleteProgress(p => p ? { ...p, step: 3 } : p)
+      await new Promise(r => setTimeout(r, 350))
+      setDeleteProgress(p => p ? { ...p, step: 4 } : p)
+      await new Promise(r => setTimeout(r, 300))
+      setDeleteProgress(p => p ? { ...p, status: 'success', step: 4 } : p)
+      await load()
+      pushToast('success', 'Akun berhasil dihapus.')
+    } catch (err) {
+      const msg = err.message || 'Data belum berhasil dihapus.'
+      setDeleteProgress(p => p ? { ...p, status: 'error', errorMsg: msg, step: 2 } : p)
+    }
+  }
+
+  const closeDeleteProgress = () => setDeleteProgress(null)
+
   const changeRole = async (row, role) => {
     if (role === row.role) return
     setBusyId(row.user_id); setError(''); setNotice('')
     try {
       await setUserRoleByEmail(row.email, role)
       setNotice(`✅ Role ${row.email} diubah menjadi ${role}.`)
+      pushToast('success', `Role ${row.email} diubah menjadi ${role}.`)
       await load()
     } catch (err) {
       setError(err.message || 'Role belum berhasil diubah.')
@@ -240,19 +270,11 @@ export function AdminManagementPage({ resource }) {
 
   const showActions = resource === 'citizens'
 
-  // Role promotion form (profiles page)
-  const [promoteEmail, setPromoteEmail] = useState(''); const [promoteRole, setPromoteRole] = useState('nakes'); const [promoteMsg, setPromoteMsg] = useState(null); const [promoting, setPromoting] = useState(false)
-  // Invite user form (profiles page) - single box for all tiers (Owner invite tier 2/3/4/5, Senior invite tier 3/4/5, Junior invite 4/5)
-  const [inviteName, setInviteName] = useState(''); const [inviteEmail, setInviteEmail] = useState(''); const [inviteTier, setInviteTier] = useState('tier4'); const [inviteMsg, setInviteMsg] = useState(null); const [inviting, setInviting] = useState(false)
-  const submitPromote = async (event) => {
-    event.preventDefault(); setPromoting(true); setPromoteMsg(null)
-    try {
-      const res = await setUserRoleByEmail(promoteEmail.trim(), promoteRole)
-      setPromoteMsg({ ok: true, text: `Berhasil! ${res.user_id ? 'Akun' : 'Akun'} sekarang ber-role ${res.role}.` })
-      setPromoteEmail('')
-      if (resource === 'profiles') await load()
-    } catch (err) { setPromoteMsg({ ok: false, text: err.message || 'Promosi role belum berhasil.' }) } finally { setPromoting(false) }
-  }
+  // Invite states — upgraded UX
+  const [inviteName, setInviteName] = useState(''); const [inviteEmail, setInviteEmail] = useState(''); const [inviteTier, setInviteTier] = useState('tier2'); const [inviting, setInviting] = useState(false)
+  // invite modal state: { open, step 1-4, status: 'loading'|'success'|'error'|'duplicate', email, errorDetail, tierLabel }
+  const [inviteModal, setInviteModal] = useState(null)
+  const inviteTierBlocked = inviteTier === 'tier4' || inviteTier === 'tier5'
 
   const getInviteOptions = () => {
     if (callerTier === 1) return [
@@ -277,32 +299,96 @@ export function AdminManagementPage({ resource }) {
     if (opts.length && !opts.some(o => o.value === inviteTier)) setInviteTier(opts[0].value)
   }, [callerTier])
 
-  const submitInvite = async (event) => {
-    event.preventDefault(); setInviting(true); setInviteMsg(null)
+  const doInviteRequest = async ({ email, role, tier, fullName, tierLabelStr }) => {
+    // Open modal loading state
+    setInviteModal({ open: true, step: 1, status: 'loading', email, tierLabel: tierLabelStr, errorDetail: '' })
+    setInviting(true)
+    // step 1
+    await new Promise(r => setTimeout(r, 400))
+    setInviteModal(m => m ? { ...m, step: 2 } : m)
     try {
-      let role = 'warga'; let tier = null
-      if (inviteTier === 'tier2') { role = 'admin'; tier = 2 }
-      else if (inviteTier === 'tier3') { role = 'admin'; tier = 3 }
-      else if (inviteTier === 'tier4') role = 'nakes'
-      else if (inviteTier === 'tier5') role = 'warga'
-      else role = inviteTier // fallback
-      const res = await inviteUser(inviteEmail.trim(), role, inviteName.trim(), tier)
-      // If Owner invited Senior (tier2), need to set tier 2 explicitly (invite defaults to tier3)
-      if (role === 'admin' && tier === 2) {
+      let r = role; let t = tier
+      const res = await inviteUser(email.trim(), r, fullName.trim(), t)
+      if (r === 'admin' && t === 2) {
         try {
-          // find user_id by email after invite, then set tier
-          const rows = await listAdmin('profiles', inviteEmail.trim())
-          const target = rows.find(r => (r.email || '').toLowerCase() === inviteEmail.trim().toLowerCase())
+          const rows = await listAdmin('profiles', email.trim())
+          const target = rows.find(x => (x.email || '').toLowerCase() === email.trim().toLowerCase())
           if (target?.user_id) await setAdminTier(target.user_id, 2)
         } catch {}
       }
-      const label = inviteTier === 'tier2' ? 'Senior Admin (Tier 2)' : inviteTier === 'tier3' ? 'Junior Admin (Tier 3)' : inviteTier === 'tier4' ? 'Nakes (Tier 4)' : 'Warga (Tier 5)'
-      setInviteMsg({ ok: true, text: `✅ Undangan terkirim ke ${inviteEmail} sebagai ${label}. User login via link email → role otomatis aktif.` })
-      setInviteEmail(''); setInviteName('')
-      if (resource === 'profiles') await load()
-    } catch (err) { setInviteMsg({ ok: false, text: err.message || 'Undangan gagal dikirim.' }) } finally { setInviting(false) }
+      setInviteModal(m => m ? { ...m, step: 3 } : m)
+      await new Promise(r2 => setTimeout(r2, 450))
+      setInviteModal(m => m ? { ...m, step: 4, status: 'success' } : m)
+      return { ok: true }
+    } catch (err) {
+      const msg = err.message || 'Undangan gagal dikirim.'
+      const isDuplicate = /sudah terdaftar|already|exists|registered/i.test(msg)
+      const isTierBlock = /Tier 1.?3|hanya tersedia untuk Tier/i.test(msg)
+      if (isDuplicate) {
+        setInviteModal(m => m ? { ...m, status: 'duplicate', errorDetail: msg, step: 2 } : m)
+      } else if (isTierBlock) {
+        setInviteModal(m => m ? { ...m, status: 'error', errorDetail: msg, step: 2 } : m)
+      } else {
+        // generic email service error
+        const friendly = /email|resend|smtp|limit|rate/i.test(msg) ? 'Terjadi masalah pada layanan email.' : msg
+        setInviteModal(m => m ? { ...m, status: 'error', errorDetail: friendly, step: 2 } : m)
+      }
+      return { ok: false, duplicate: isDuplicate }
+    } finally {
+      setInviting(false)
+    }
   }
+
+  const submitInvite = async (event) => {
+    event.preventDefault()
+    if (inviteTierBlocked) return
+    if (inviting) return
+    let role = 'warga'; let tier = null
+    if (inviteTier === 'tier2') { role = 'admin'; tier = 2 }
+    else if (inviteTier === 'tier3') { role = 'admin'; tier = 3 }
+    else if (inviteTier === 'tier4') role = 'nakes'
+    else if (inviteTier === 'tier5') role = 'warga'
+    else role = inviteTier
+    const label = inviteTier === 'tier2' ? 'Senior Admin (Tier 2)' : inviteTier === 'tier3' ? 'Junior Admin (Tier 3)' : inviteTier === 'tier4' ? 'Nakes (Tier 4)' : 'Warga (Tier 5)'
+    const result = await doInviteRequest({ email: inviteEmail.trim(), role, tier, fullName: inviteName.trim(), tierLabelStr: label })
+    if (result.ok) {
+      // keep modal open on success, will be closed via button
+    }
+  }
+
+  const handleInviteSuccessClose = async () => {
+    const email = inviteModal?.email
+    setInviteModal(null)
+    setInviteEmail(''); setInviteName('')
+    if (resource === 'profiles') await load()
+    pushToast('success', `Undangan berhasil dikirim ke ${email || 'email tujuan'}.`)
+  }
+
+  const handleInviteRetry = async () => {
+    if (!inviteModal) return
+    let role = 'warga'; let tier = null
+    if (inviteTier === 'tier2') { role = 'admin'; tier = 2 }
+    else if (inviteTier === 'tier3') { role = 'admin'; tier = 3 }
+    else if (inviteTier === 'tier4') role = 'nakes'
+    else if (inviteTier === 'tier5') role = 'warga'
+    const label = inviteModal.tierLabel
+    await doInviteRequest({ email: inviteModal.email, role, tier, fullName: inviteName.trim() || '', tierLabelStr: label })
+  }
+
   return <div className="admin-page"><div className="container">
+    {/* Toast */}
+    <div className="toast-stack" aria-live="polite" aria-atomic="true">
+      {toasts.map(t => (
+        <div key={t.id} className={`toast toast-${t.type}`}>
+          {t.type === 'success' && <CheckCircle2 size={16} />}
+          {t.type === 'error' && <XCircle size={16} />}
+          {t.type === 'warning' && <AlertTriangle size={16} />}
+          <span>{t.text}</span>
+          <button onClick={() => setToasts(x => x.filter(y => y.id !== t.id))} aria-label="Tutup notifikasi" style={{ background:'none', border:0, cursor:'pointer', padding:2, color:'inherit' }}><XCircle size={14} /></button>
+        </div>
+      ))}
+    </div>
+
     <div className="staff-header"><div><div className="eyebrow">Manajemen data</div><h1 className="display">{meta.title}</h1><p>{meta.description}</p></div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {resource === 'citizens' && <button className="btn btn-primary" onClick={() => navigate('/admin/warga/baru')}><Plus size={17} /> Tambah Warga</button>}
@@ -343,7 +429,6 @@ export function AdminManagementPage({ resource }) {
       )}
     </div>
 
-    {/* Inline forms */}
     {kkForm && (
       <form className="admin-form" onSubmit={saveKk}>
         <h2>Tambah Kartu Keluarga</h2>
@@ -399,13 +484,158 @@ export function AdminManagementPage({ resource }) {
                 {getInviteOptions().map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select></label>
             </div>
-            {inviteMsg && <p role="status" style={{ color: inviteMsg.ok ? 'var(--teal-dark)' : '#b42318', fontSize: 13, margin: '12px 0 0' }}>{inviteMsg.text}</p>}
+            {inviteTierBlocked && (
+              <div className="invite-warning" role="alert">
+                <AlertTriangle size={14} /> Undangan via email hanya tersedia untuk Tier 1–3.
+              </div>
+            )}
             <div style={{ marginTop: 20 }}>
-              <button className="btn btn-primary" disabled={inviting || !inviteEmail.trim()}><ShieldCheck size={16} /> {inviting ? 'Mengirim...' : 'Kirim Undangan'}</button>
+              <button className="btn btn-primary" disabled={inviting || !inviteEmail.trim() || !inviteName.trim() || inviteTierBlocked} aria-busy={inviting}>
+                {inviting ? <><Loader2 size={16} className="spin" /> Menyiapkan undangan...</> : <><ShieldCheck size={16} /> Kirim Undangan</>}
+              </button>
             </div>
           </form>
         )}
       </>
+    )}
+
+    {/* Invite Progress Modal */}
+    {inviteModal?.open && (
+      <div className="ux-modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget && inviteModal.status !== 'loading') setInviteModal(null) }}>
+        <div className="ux-modal" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title" onKeyDown={(e) => { if (e.key === 'Escape' && inviteModal.status !== 'loading') setInviteModal(null) }} tabIndex={-1}>
+          {inviteModal.status === 'loading' && (
+            <>
+              <div className="ux-modal-icon"><Mail size={26} /><Loader2 size={14} className="spin ux-modal-icon-spin" /></div>
+              <h3 id="invite-modal-title" className="ux-modal-title">Mengirim undangan</h3>
+              <p className="ux-modal-desc">Mohon tunggu, undangan sedang dikirim ke email tujuan.</p>
+              <div className="ux-steps">
+                {['Menyiapkan undangan','Mengirim email','Email berhasil dikirim','Selesai'].map((label, i) => {
+                  const idx = i+1
+                  const active = inviteModal.step === idx
+                  const done = inviteModal.step > idx
+                  return (
+                    <div key={label} className={`ux-step ${active ? 'active' : ''} ${done ? 'done' : ''} ${!active && !done ? 'pending' : ''}`}>
+                      <span className="ux-step-icon">
+                        {done ? <CheckCircle2 size={16} /> : active ? <Loader2 size={14} className="spin" /> : <span className="ux-dot" />}
+                      </span>
+                      <span className="ux-step-label">{label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="ux-progress-bar"><div className="ux-progress-fill" style={{ width: `${(inviteModal.step/4)*100}%` }} /></div>
+            </>
+          )}
+          {inviteModal.status === 'success' && (
+            <>
+              <div className="ux-modal-icon success"><CheckCircle2 size={28} /></div>
+              <h3 className="ux-modal-title">Undangan berhasil dikirim!</h3>
+              <p className="ux-modal-desc">Undangan telah dikirim ke<br /><strong>{inviteModal.email}</strong></p>
+              <p className="ux-modal-desc small">User dapat mengikuti tautan pada email untuk bergabung ke Desa Sehat Kenanga.</p>
+              <button className="btn btn-primary btn-wide" onClick={handleInviteSuccessClose} autoFocus>Selesai</button>
+            </>
+          )}
+          {inviteModal.status === 'duplicate' && (
+            <>
+              <div className="ux-modal-icon warning"><AlertCircle size={28} /></div>
+              <h3 className="ux-modal-title">Email sudah terdaftar</h3>
+              <p className="ux-modal-desc">Email tersebut sudah memiliki akun di Desa Sehat Kenanga.</p>
+              {inviteModal.errorDetail && <p className="ux-modal-desc small" style={{ color:'#92400e' }}>{inviteModal.errorDetail}</p>}
+              <div className="ux-modal-actions">
+                <button className="btn btn-ghost" onClick={() => setInviteModal(null)}>Tutup</button>
+              </div>
+            </>
+          )}
+          {inviteModal.status === 'error' && (
+            <>
+              <div className="ux-modal-icon error"><XCircle size={28} /></div>
+              <h3 className="ux-modal-title">Gagal mengirim undangan</h3>
+              <p className="ux-modal-desc">Undangan tidak dapat dikirim saat ini.</p>
+              {inviteModal.errorDetail && <p className="ux-modal-desc small" style={{ color:'#b42318' }}>{inviteModal.errorDetail}</p>}
+              <div className="ux-modal-actions">
+                <button className="btn btn-ghost" onClick={() => setInviteModal(null)}>Tutup</button>
+                <button className="btn btn-primary" onClick={handleInviteRetry}>Coba lagi</button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    )}
+
+    {/* Delete Confirm Modal */}
+    {deleteConfirm && (
+      <div className="ux-modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setDeleteConfirm(null) }}>
+        <div className="ux-modal" role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title" tabIndex={-1} onKeyDown={(e)=>{ if(e.key==='Escape') setDeleteConfirm(null)}}>
+          <div className="ux-modal-icon error"><Trash2 size={26} /></div>
+          <h3 id="delete-confirm-title" className="ux-modal-title">Hapus Akun?</h3>
+          <p className="ux-modal-desc">Apakah Anda yakin ingin menghapus akun <strong>{rowNameOf(deleteConfirm.row)}</strong>?</p>
+          <div className="ux-warning-box">
+            Tindakan ini dapat menghapus data terkait akun secara permanen dan tidak dapat dibatalkan.
+            {deleteConfirm.warning && <span style={{ display:'block', marginTop:6, fontSize:12, color:'#9b5148' }}>{deleteConfirm.warning}</span>}
+          </div>
+          <label className="ux-input-label">Ketik <strong>HAPUS</strong> untuk melanjutkan.
+            <input
+              autoFocus
+              placeholder='Ketik "HAPUS"'
+              value={deleteConfirm.input}
+              onChange={e => setDeleteConfirm({ ...deleteConfirm, input: e.target.value })}
+              className="ux-input"
+              aria-label='Ketik HAPUS untuk konfirmasi'
+            />
+          </label>
+          <div className="ux-modal-actions">
+            <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Batal</button>
+            <button className="btn btn-danger" disabled={!deleteInputValid} onClick={() => handleDeleteWithProgress(deleteConfirm.row)}>Hapus Akun</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Delete Progress Modal */}
+    {deleteProgress?.open && (
+      <div className="ux-modal-overlay" role="presentation">
+        <div className="ux-modal" role="dialog" aria-modal="true" aria-labelledby="delete-progress-title" tabIndex={-1}>
+          {deleteProgress.status === 'loading' && (
+            <>
+              <div className="ux-modal-icon error"><Trash2 size={26} /><Loader2 size={14} className="spin ux-modal-icon-spin" /></div>
+              <h3 id="delete-progress-title" className="ux-modal-title">Menghapus akun</h3>
+              <p className="ux-modal-desc">Mohon tunggu, akun sedang diproses.</p>
+              <div className="ux-steps vertical">
+                {['Memeriksa data','Menghapus akun','Membersihkan data terkait','Selesai'].map((label,i)=>{
+                  const idx=i+1; const active=deleteProgress.step===idx; const done=deleteProgress.step>idx
+                  return (
+                    <div key={label} className={`ux-step ${active?'active':''} ${done?'done':''}`}>
+                      <span className="ux-step-icon">{done ? <CheckCircle2 size={14}/> : active ? <Loader2 size={12} className="spin"/> : <span className="ux-dot"/>}</span>
+                      <span className="ux-step-label">{label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="ux-progress-bar"><div className="ux-progress-fill danger" style={{ width: `${(deleteProgress.step/4)*100}%` }} /></div>
+            </>
+          )}
+          {deleteProgress.status === 'success' && (
+            <>
+              <div className="ux-modal-icon success"><CheckCircle2 size={28} /></div>
+              <h3 className="ux-modal-title">Akun berhasil dihapus</h3>
+              <p className="ux-modal-desc">Data akun dan data terkait telah dihapus dari sistem.</p>
+              <button className="btn btn-primary btn-wide" onClick={closeDeleteProgress} autoFocus>Selesai</button>
+            </>
+          )}
+          {deleteProgress.status === 'error' && (
+            <>
+              <div className="ux-modal-icon error"><XCircle size={28} /></div>
+              <h3 className="ux-modal-title">Gagal menghapus akun</h3>
+              <p className="ux-modal-desc">Terjadi masalah saat menghapus akun.</p>
+              {deleteProgress.errorMsg && <p className="ux-modal-desc small" style={{ color:'#b42318' }}>{deleteProgress.errorMsg}</p>}
+              <div className="ux-modal-actions">
+                <button className="btn btn-ghost" onClick={closeDeleteProgress}>Tutup</button>
+                <button className="btn btn-primary" onClick={() => { const r=deleteProgress.row; const w=deleteProgress.withAccount; closeDeleteProgress(); setTimeout(()=>handleDeleteWithProgress(r,w),150)}}>Coba lagi</button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     )}
 
     {codeInfo && (
@@ -460,11 +690,11 @@ export function AdminManagementPage({ resource }) {
               <button className="btn btn-ghost table-action" onClick={() => navigate(`/admin/warga/${row.citizen_id}`)}>Detail</button>
               <button className="btn btn-ghost table-action" onClick={() => setEditing({ ...row })}><Save size={14} /> Ubah</button>
               {row.is_active && <button className="btn btn-ghost table-action" onClick={() => void makeActivationCode(row)}><KeyRound size={14} /> Kode Aktivasi</button>}
-              <DeleteAction row={row} deleteId={deleteId} setDeleteId={setDeleteId} busyId={busyId} onConfirm={() => void removeResource(row)} secondary={row.google_connected ? { label: 'Ya + akun Google', onConfirm: () => void removeResource(row, true) } : null} />
+              <button className="btn btn-danger table-action" disabled={busyId === rowIdOf(row)} onClick={() => openDeleteConfirm(row)}>Hapus</button>
             </td>}
-            {resource === 'households' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi"><button className="btn btn-ghost table-action" onClick={() => void openMembers(row)}>Anggota</button><DeleteAction row={row} deleteId={deleteId} setDeleteId={setDeleteId} busyId={busyId} onConfirm={() => void removeResource(row)} /></td>}
-            {resource === 'rts' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi"><button className="btn btn-ghost table-action" onClick={() => setRtForm({ rt_id: row.rt_id, code: row.code, name: row.name })}>Ubah nama</button><DeleteAction row={row} deleteId={deleteId} setDeleteId={setDeleteId} busyId={busyId} onConfirm={() => void removeResource(row)} /></td>}
-            {resource === 'health_workers' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi"><button className="btn btn-ghost table-action" onClick={() => setEditing({ ...row })}><Save size={14} /> Ubah</button><DeleteAction row={row} deleteId={deleteId} setDeleteId={setDeleteId} busyId={busyId} onConfirm={() => void removeResource(row)} /></td>}
+            {resource === 'households' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi"><button className="btn btn-ghost table-action" onClick={() => void openMembers(row)}>Anggota</button><button className="btn btn-danger table-action" disabled={busyId===rowIdOf(row)} onClick={()=>openDeleteConfirm(row)}>Hapus</button></td>}
+            {resource === 'rts' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi"><button className="btn btn-ghost table-action" onClick={() => setRtForm({ rt_id: row.rt_id, code: row.code, name: row.name })}>Ubah nama</button><button className="btn btn-danger table-action" disabled={busyId===rowIdOf(row)} onClick={()=>openDeleteConfirm(row)}>Hapus</button></td>}
+            {resource === 'health_workers' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi"><button className="btn btn-ghost table-action" onClick={() => setEditing({ ...row })}><Save size={14} /> Ubah</button><button className="btn btn-danger table-action" disabled={busyId===rowIdOf(row)} onClick={()=>openDeleteConfirm(row)}>Hapus</button></td>}
             {resource === 'profiles' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi">{(() => {
               const targetTier = getTier(row)
               const isSelf = row.user_id === access?.user_id
@@ -475,13 +705,13 @@ export function AdminManagementPage({ resource }) {
                 if (callerTier >= targetTier) return <span className="muted-text" style={{ fontSize: 12 }}>Hanya tier lebih tinggi bisa hapus ({tierLabel(callerTier)} Tier {callerTier} → {tierLabel(targetTier)} Tier {targetTier})</span>
                 return <span className="muted-text" style={{ fontSize: 12 }}>—</span>
               }
-              return <DeleteAction row={row} deleteId={deleteId} setDeleteId={setDeleteId} busyId={busyId} onConfirm={() => void removeResource(row)} warning="Akun + semua data terhubung akan dihapus permanen." />
+              return <button className="btn btn-danger table-action" disabled={busyId===row.user_id} onClick={() => openDeleteConfirm(row, 'Akun + semua data terhubung akan dihapus permanen.')}>Hapus</button>
             })()}</td>}
             {resource === 'emergency_contacts' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi">
               <button className="btn btn-ghost table-action" disabled={busyId === row.emergency_contact_id} onClick={() => void moveContact(row, 'up')} aria-label={`Naikkan urutan ${row.label}`}><ChevronUp size={14} /> Naik</button>
               <button className="btn btn-ghost table-action" disabled={busyId === row.emergency_contact_id} onClick={() => void moveContact(row, 'down')} aria-label={`Turunkan urutan ${row.label}`}><ChevronDown size={14} /> Turun</button>
               <button className="btn btn-ghost table-action" onClick={() => setEditing({ ...row })}><Save size={14} /> Ubah</button>
-              <DeleteAction row={row} deleteId={deleteId} setDeleteId={setDeleteId} busyId={busyId} onConfirm={() => void removeResource(row)} />
+              <button className="btn btn-danger table-action" disabled={busyId===row.emergency_contact_id} onClick={()=>openDeleteConfirm(row)}>Hapus</button>
             </td>}
           </tr>)}
         </tbody>
@@ -504,57 +734,6 @@ export function AdminManagementPage({ resource }) {
 
 function rowIdOf(row) { return row.citizen_id || row.household_id || row.rt_id || row.health_worker_id || row.user_id || row.emergency_contact_id || row.audit_log_id }
 function rowNameOf(row) { return row.full_name || row.label || row.household_number || row.code || row.email || row.title || 'data ini' }
-
-function DeleteAction({ row, deleteId, setDeleteId, busyId, onConfirm, secondary, warning }) {
-  const id = rowIdOf(row)
-  if (deleteId !== id) {
-    return <button className="btn btn-danger table-action" disabled={busyId === id} onClick={() => setDeleteId(id)}><Trash2 size={14} /> Hapus</button>
-  }
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: '#b42318' }}>
-        Hapus "{rowNameOf(row)}"?{warning && <small style={{ display: 'block', maxWidth: 260, fontWeight: 500, color: '#9b5148' }}>{warning}</small>}
-      </span>
-      <button className="btn btn-danger table-action" disabled={busyId === id} onClick={onConfirm}><Trash2 size={14} /> Ya, hapus</button>
-      {secondary && <button className="btn btn-danger table-action" disabled={busyId === id} onClick={secondary.onConfirm}><UserX size={14} /> {secondary.label}</button>}
-      <button className="btn btn-ghost table-action" disabled={busyId === id} onClick={() => setDeleteId(null)}>Batal</button>
-    </span>
-  )
-}
-
-function TierManager({ onDone }) {
-  const [email, setEmail] = useState('')
-  const [tier, setTier] = useState('2')
-  const [msg, setMsg] = useState(null)
-  const [saving, setSaving] = useState(false)
-  const submit = async (e) => {
-    e.preventDefault(); setSaving(true); setMsg(null)
-    try {
-      // Need user_id from email -> find via listAdmin then set tier
-      const { supabase } = await import('../lib/supabase')
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Belum login')
-      // Lookup user_id by email via list_admin_profiles
-      const rows = await listAdmin('profiles', email.trim())
-      const target = rows.find(r => (r.email || '').toLowerCase() === email.trim().toLowerCase())
-      if (!target) throw new Error('Email tidak ditemukan di daftar profiles. Pastikan user sudah pernah login.')
-      await setAdminTier(target.user_id, Number(tier))
-      setMsg({ ok: true, text: `✅ ${target.display_name || target.email} sekarang ${tierLabel(Number(tier))} (Tier ${tier})` })
-      setEmail('')
-      if (onDone) await onDone()
-    } catch (err) { setMsg({ ok: false, text: err.message || 'Gagal set tier.' }) } finally { setSaving(false) }
-  }
-  return (
-    <form onSubmit={submit} style={{ marginTop: 12 }}>
-      <div className="field-grid">
-        <label>Email admin target<input required type="email" placeholder="admin@gmail.com" value={email} onChange={e=>setEmail(e.target.value)} /></label>
-        <label>Tier<select value={tier} onChange={e=>setTier(e.target.value)}><option value="2">Tier 2 Senior</option><option value="3">Tier 3 Junior</option></select></label>
-      </div>
-      {msg && <p style={{ color: msg.ok ? 'var(--teal-dark)' : '#b42318', fontSize: 13, margin: '10px 0 0' }}>{msg.text}</p>}
-      <button className="btn btn-primary" style={{ marginTop: 12 }} disabled={saving || !email.trim()}><ShieldCheck size={16} /> {saving ? 'Menyimpan...' : 'Set Tier'}</button>
-    </form>
-  )
-}
 
 function formatCell(key, value) {
   if (key === 'google_connected') return value ? '🟢 Terhubung' : '🟡 Belum terhubung'
