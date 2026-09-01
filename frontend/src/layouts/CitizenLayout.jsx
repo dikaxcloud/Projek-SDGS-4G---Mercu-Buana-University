@@ -7,6 +7,7 @@ import { useAuth } from '../features/auth/AuthProvider'
 import { BottomNav } from '../components/BottomNav'
 import { OfflineIndicator } from '../components/OfflineIndicator'
 import { QrScanner } from '../components/QrScanner'
+import { QrAccessExperience } from '../components/QrAccessExperience'
 import { getCitizenContext } from '../features/citizen/citizenService'
 import { isSupabaseConfigured } from '../lib/supabase'
 
@@ -68,13 +69,13 @@ export function CitizenLayout() {
     try { if (isDemoUser) signOutDemo(); else await signOut() } finally { window.location.href = '/login' }
   }
 
-  // Warga scans the admin's ACTIVATION QR directly inside this gate screen.
+  // Warga scans the admin's ACTIVATION QR — now via polished QR Access Experience
   const [scanMsg, setScanMsg] = useState('')
   const [scanError, setScanError] = useState('')
+  const [qrExpToken, setQrExpToken] = useState(null)
   const handleWargaScan = async (raw) => {
     setScanError(''); setScanMsg('')
     let token = String(raw || '').trim().replace(/^DSK1:/i, '')
-    // QR berisi deep link — ekstrak parameternya (?t= aktivasi, ?code= hubungkan akun).
     if (/^https?:\/\//i.test(token)) {
       try {
         const url = new URL(token)
@@ -82,20 +83,24 @@ export function CitizenLayout() {
       } catch { /* biarkan token apa adanya */ }
     }
     if (!token) return setScanError('Token QR kosong.')
-    try {
-      const { activateMyAccount } = await import('../features/auth/authService')
-      const res = await activateMyAccount(token)
-      if (res?.status === 'activated') { setScanMsg('🎉 Akun berhasil diaktifkan! Memuat dashboard...'); refresh(); setTimeout(refresh, 1200) }
-      else if (res?.status === 'already_active') { setScanMsg('Akun Anda sudah aktif.'); refresh() }
-      else if (res?.status === 'expired') setScanError('Kode aktivasi kedaluwarsa. Minta petugas menampilkan QR yang baru.')
-      else setScanError('QR tidak dikenali. Pastikan Anda scan QR AKTIVASI dari petugas desa.')
-    } catch (err) {
-      setScanError(err.message || 'Aktivasi gagal. Coba lagi.')
-    }
+    // Delegate to polished experience — no fake loading, API is source of truth
+    setQrExpToken(token)
   }
 
   const profile = ctx?.profile
   const vStatus = profile?.verification_status
+
+  // QR Access Experience takes over when token is present — polished transition
+  if (qrExpToken) {
+    return (
+      <QrAccessExperience
+        token={qrExpToken}
+        onSuccess={() => { setQrExpToken(null); refresh(); setTimeout(refresh, 300) }}
+        onRetry={() => setQrExpToken(null)}
+        onClose={() => setQrExpToken(null)}
+      />
+    )
+  }
 
   // Render gate states
   if (!bypass) {

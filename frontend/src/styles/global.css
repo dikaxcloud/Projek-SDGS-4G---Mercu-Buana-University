@@ -839,6 +839,69 @@ pre { white-space: pre-wrap; word-break: break-word; }
 }
 
 /* ============================================================
+   QR ACCESS EXPERIENCE — warga scan transition
+   ============================================================ */
+.qr-access-overlay {
+  position: fixed; inset: 0; z-index: 120; display: grid; place-items: center;
+  padding: 16px; background: radial-gradient(120% 120% at 50% 0%, #eef9f4 0%, #f5faf8 45%, #e8f5ef 100%);
+  animation: qr-access-fade .22s ease-out;
+}
+.qr-access-card {
+  width: min(420px, calc(100% - 24px)); padding: 28px 22px 20px;
+  background: #fff; border: 1px solid var(--line); border-radius: 22px;
+  box-shadow: 0 20px 55px rgba(25,75,70,.12);
+  display: grid; justify-items: center; text-align: center; gap: 0;
+  animation: qr-access-scale .24s cubic-bezier(.2,.8,.2,1);
+}
+.qr-access-icon-wrap {
+  width: 64px; height: 64px; display: grid; place-items: center; border-radius: 16px;
+  background: var(--mint); color: var(--teal); position: relative; margin-bottom: 14px;
+  animation: qr-access-icon-in .38s ease-out;
+}
+.qr-access-icon-wrap.verifying { background: var(--mint); }
+.qr-access-icon-wrap.verified { background: #dcfce7; color: #15803d; }
+.qr-access-icon-wrap.error { background: #fee2e2; color: #b91c1c; }
+.qr-access-icon-wrap.warning { background: #fef3c7; color: #92400e; }
+.qr-access-ring {
+  position: absolute; inset: -6px; border-radius: 18px; border: 2px solid rgba(15,118,110,.18);
+  animation: qr-access-ring 1.6s ease-out infinite;
+}
+.qr-access-icon { animation: qr-access-fade .32s ease-out; }
+.qr-access-title { margin: 6px 0 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 17px; font-weight: 800; color: var(--ink); line-height: 1.3; letter-spacing: -.02em; }
+.qr-access-sub { margin: 6px 0 0; font-size: 13px; color: var(--muted); line-height: 1.55; max-width: 30ch; }
+.qr-access-dots { display: flex; gap: 7px; margin-top: 14px; }
+.qr-access-dots .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); opacity: .28; animation: welcome-dot 1.1s ease-in-out infinite; }
+.qr-access-dots .dot.d2 { animation-delay: .15s; } .qr-access-dots .dot.d3 { animation-delay: .3s; }
+.qr-access-checklist { list-style: none; padding: 0; margin: 16px 0 0; width: 100%; display: grid; gap: 8px; }
+.qr-access-checklist li { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 11px; font-size: 12.5px; font-weight: 700; background: #fbfefd; color: var(--teal-dark); animation: qr-access-item-in .32s ease-out both; }
+.qr-access-checklist li:nth-child(2) { animation-delay: .08s; } .qr-access-checklist li:nth-child(3) { animation-delay: .16s; }
+.qr-access-checklist li.done { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+.qr-access-checklist li.active { background: var(--mint); border-color: #bfe3da; }
+.qr-mini-spinner { width: 14px; height: 14px; border: 2px solid #bfe3da; border-top-color: var(--teal); border-radius: 50%; animation: spin .7s linear infinite; flex: 0 0 auto; }
+.qr-access-avatar { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 16px; background: var(--teal); color: #fff; font-size: 26px; font-weight: 800; margin-bottom: 12px; animation: qr-access-icon-in .4s ease-out; }
+.qr-access-avatar.small { width: 44px; height: 44px; font-size: 18px; border-radius: 12px; }
+.qr-access-progress { width: 100%; height: 4px; border-radius: 999px; background: #eef2f3; margin-top: 16px; overflow: hidden; }
+.qr-access-progress-fill { height: 100%; width: 0; background: var(--teal); border-radius: 999px; animation: qr-access-progress 1.6s ease-out forwards; }
+.qr-access-redirect { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.qr-access-actions { display: flex; gap: 8px; margin-top: 16px; width: 100%; }
+.qr-access-actions .btn { flex: 1; }
+@keyframes qr-access-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes qr-access-scale { from { opacity: 0; transform: scale(.96) translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes qr-access-icon-in { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes qr-access-ring { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.14); } }
+@keyframes qr-access-item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes qr-access-progress { from { width: 0; } to { width: 100%; } }
+@media (max-width: 560px) {
+  .qr-access-card { padding: 22px 16px 18px; border-radius: 18px; }
+  .qr-access-title { font-size: 16px; }
+  .qr-access-sub { font-size: 12.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qr-access-overlay, .qr-access-card, .qr-access-icon-wrap, .qr-access-icon, .qr-access-checklist li, .qr-mini-spinner, .qr-access-avatar, .qr-access-progress-fill { animation: none !important; transition: none !important; }
+  .qr-access-ring { display: none; }
+}
+
+/* ============================================================
    USER PILL - Navbar akun (eror.jpeg style: Nasir 1)
    ============================================================ */
 .user-pill {
