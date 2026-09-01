@@ -54,9 +54,9 @@ export function QrAccessExperience({ token, onSuccess, onRetry, onClose, mode = 
           return
         }
       }
-      // VERIFIED — brief visual
+      // VERIFIED — longer visual so animation feels polished (slowed per request)
       setState('verified')
-      await new Promise(r => { const t = setTimeout(r, 450); timerRef.current.push(t) })
+      await new Promise(r => { const t = setTimeout(r, 700); timerRef.current.push(t) })
       if (!active) return
       // LOADING_CITIZEN
       setState('loading_citizen')
@@ -66,18 +66,18 @@ export function QrAccessExperience({ token, onSuccess, onRetry, onClose, mode = 
         const profile = ctx?.profile
         if (!profile) { setState('citizen_not_found'); return }
         setCitizen(profile)
-        // stagger checklist visual
-        await new Promise(r => { const t = setTimeout(r, 650); timerRef.current.push(t) })
+        // stagger checklist visual — a bit longer
+        await new Promise(r => { const t = setTimeout(r, 900); timerRef.current.push(t) })
         if (!active) return
         setState('citizen_found')
-        await new Promise(r => { const t = setTimeout(r, 300); timerRef.current.push(t) })
+        await new Promise(r => { const t = setTimeout(r, 650); timerRef.current.push(t) })
         if (!active) return
         setState('welcome')
-        // welcome duration then redirect
-        await new Promise(r => { const t = setTimeout(r, 1600); timerRef.current.push(t) })
+        // welcome duration then redirect — extended to feel the welcome
+        await new Promise(r => { const t = setTimeout(r, 2200); timerRef.current.push(t) })
         if (!active) return
         setState('redirecting')
-        await new Promise(r => { const t = setTimeout(r, 280); timerRef.current.push(t) })
+        await new Promise(r => { const t = setTimeout(r, 400); timerRef.current.push(t) })
         if (!active) return
         onSuccess?.(profile)
       } catch (err) {

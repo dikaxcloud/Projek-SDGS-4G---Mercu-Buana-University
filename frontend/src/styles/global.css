@@ -434,11 +434,16 @@ a { color: inherit; text-decoration: none; }
   .footer-copy { order: 1; font-size: 12px; }
   .footer-credits { order: 2; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 6px; font-size: 12px; max-width: 28ch; }
   .footer-sep { display: inline; }
-  .auth-page { place-items: start center; padding: 16px; }
-  .auth-card { width: 100%; padding: 22px; border-radius: 20px; }
-  .auth-card h1 { font-size: 24px; }
-  .registration-actions { flex-wrap: wrap; }
-  .registration-actions .btn { flex: 1 1 140px; }
+  .auth-page { place-items: start center; padding: 12px; }
+  .auth-card { width: 100%; padding: 18px 14px; border-radius: 18px; }
+  .auth-card h1 { font-size: 22px; line-height: 1.2; }
+  .auth-card p { font-size: 13px; line-height: 1.5; }
+  .auth-card .field-grid { grid-template-columns: 1fr; gap: 0; }
+  .auth-card label { gap: 6px; margin-top: 12px; font-size: 12.5px; }
+  .auth-card input, .auth-card select, .auth-card textarea { min-height: 48px; font-size: 16px; padding: 0 12px; border-radius: 12px; max-width: 100%; }
+  .auth-card select { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+  .auth-card .registration-actions { flex-wrap: wrap; gap: 8px; }
+  .auth-card .registration-actions .btn { flex: 1 1 140px; min-height: 48px; font-size: 15px; }
   .staff-page .container { width: min(100% - 48px, 1120px); }
   .staff-page, .admin-page { padding-bottom: 94px; }
 }
@@ -881,7 +886,7 @@ pre { white-space: pre-wrap; word-break: break-word; }
 .qr-access-avatar { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 16px; background: var(--teal); color: #fff; font-size: 26px; font-weight: 800; margin-bottom: 12px; animation: qr-access-icon-in .4s ease-out; }
 .qr-access-avatar.small { width: 44px; height: 44px; font-size: 18px; border-radius: 12px; }
 .qr-access-progress { width: 100%; height: 4px; border-radius: 999px; background: #eef2f3; margin-top: 16px; overflow: hidden; }
-.qr-access-progress-fill { height: 100%; width: 0; background: var(--teal); border-radius: 999px; animation: qr-access-progress 1.6s ease-out forwards; }
+.qr-access-progress-fill { height: 100%; width: 0; background: var(--teal); border-radius: 999px; animation: qr-access-progress 2.2s ease-out forwards; }
 .qr-access-redirect { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); font-weight: 600; }
 .qr-access-actions { display: flex; gap: 8px; margin-top: 16px; width: 100%; }
 .qr-access-actions .btn { flex: 1; }

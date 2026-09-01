@@ -101,7 +101,7 @@ export function CitizenRegistrationPage() {
       <div style={{ marginTop: 24 }}><Brand /></div>
       <h1 className="display">Daftar sebagai Warga</h1>
       <p>Lengkapi identitas Anda sesuai KTP dan Kartu Keluarga. Data akan diverifikasi oleh admin desa sebelum akun aktif.</p>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 22 }}>{[1, 2, 3].map((item) => <span key={item} style={{ height: 5, flex: 1, borderRadius: 8, background: item <= step ? 'var(--teal)' : 'var(--line)' }} />)}</div>
+      <div className="register-progress" style={{ display: 'flex', gap: 6, marginBottom: 22 }}>{[1, 2, 3].map((item) => <span key={item} className={item <= step ? 'active' : ''} style={{ height: 6, flex: 1, borderRadius: 8, background: item <= step ? 'var(--teal)' : 'var(--line)', transition: 'background .25s' }} />)}</div>
 
       <form onSubmit={submit}>
         {step === 1 && <>
