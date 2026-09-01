@@ -58,32 +58,41 @@ export function QrAccessExperience({ token, onSuccess, onRetry, onClose, mode = 
       setState('verified')
       await new Promise(r => { const t = setTimeout(r, 700); timerRef.current.push(t) })
       if (!active) return
-      // LOADING_CITIZEN
+      // LOADING_CITIZEN — fetch citizen but don't block welcome if not found (fallback to generic name)
       setState('loading_citizen')
+      let profile = null
       try {
-        const ctx = await getCitizenContext()
+        const ctx = await getCitizenContext().catch(() => null)
         if (!active) return
-        const profile = ctx?.profile
-        if (!profile) { setState('citizen_not_found'); return }
-        setCitizen(profile)
-        // stagger checklist visual — a bit longer
-        await new Promise(r => { const t = setTimeout(r, 900); timerRef.current.push(t) })
-        if (!active) return
-        setState('citizen_found')
-        await new Promise(r => { const t = setTimeout(r, 650); timerRef.current.push(t) })
-        if (!active) return
-        setState('welcome')
-        // welcome duration then redirect — extended to feel the welcome
-        await new Promise(r => { const t = setTimeout(r, 2200); timerRef.current.push(t) })
-        if (!active) return
-        setState('redirecting')
-        await new Promise(r => { const t = setTimeout(r, 400); timerRef.current.push(t) })
-        if (!active) return
-        onSuccess?.(profile)
+        profile = ctx?.profile || null
       } catch (err) {
-        if (!active) return
-        setState('error'); setDetail(err?.message || '')
+        // non-blocking, use fallback
+        profile = null
       }
+      // Use fallback display name if profile missing (privacy safe, no NIK)
+      if (!profile) {
+        try {
+          const { supabase } = await import('../lib/supabase')
+          const { data: { session } } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }))
+          const fallbackName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || 'Warga'
+          profile = { full_name: fallbackName }
+        } catch { profile = { full_name: 'Warga' } }
+      }
+      setCitizen(profile)
+      // stagger checklist visual — a bit longer
+      await new Promise(r => { const t = setTimeout(r, 900); timerRef.current.push(t) })
+      if (!active) return
+      setState('citizen_found')
+      await new Promise(r => { const t = setTimeout(r, 650); timerRef.current.push(t) })
+      if (!active) return
+      setState('welcome')
+      // welcome duration then redirect — extended to feel the welcome
+      await new Promise(r => { const t = setTimeout(r, 2200); timerRef.current.push(t) })
+      if (!active) return
+      setState('redirecting')
+      await new Promise(r => { const t = setTimeout(r, 400); timerRef.current.push(t) })
+      if (!active) return
+      onSuccess?.(profile)
     }
     run()
     return () => { active = false; clearTimers() }
