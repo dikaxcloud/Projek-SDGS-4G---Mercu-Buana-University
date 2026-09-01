@@ -27,7 +27,7 @@ function NavAnchor({ hash, children, onClick }) {
   return <a href={'/' + hash} onClick={handleClick}>{children}</a>
 }
 
-export function Topbar() {
+export function Topbar({ hideHamburgerOnMobile = false }) {
   const [open, setOpen] = useState(false)
   const location = useLocation()
 
@@ -57,7 +57,7 @@ export function Topbar() {
     <div className="nav-actions">
       <Link className="btn btn-ghost" to="/login">Masuk</Link>
       <Link className="btn btn-primary" to="/login">Mulai sekarang <ArrowRight size={16} /></Link>
-      <button className="nav-toggle" onClick={() => setOpen(!open)} aria-label={open ? 'Tutup menu' : 'Buka menu'} aria-expanded={open} aria-controls="main-nav">
+      <button className={`nav-toggle${hideHamburgerOnMobile ? ' nav-toggle-hidden-mobile' : ''}`} onClick={() => setOpen(!open)} aria-label={open ? 'Tutup menu' : 'Buka menu'} aria-expanded={open} aria-controls="main-nav">
         {open ? <X size={22} /> : <Menu size={22} />}
       </button>
     </div>
