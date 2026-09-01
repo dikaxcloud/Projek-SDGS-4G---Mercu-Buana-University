@@ -123,11 +123,11 @@ export function CitizenRegistrationPage() {
                 {loadingHH ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 400, color: 'var(--muted)', minHeight: 46 }}><RefreshCw size={14} /> Memuat daftar KK...</div>
                 ) : households.length > 0 ? (
-                  <select value={form.household_id} onChange={(e) => set('household_id', e.target.value)} style={{ minHeight: 46, padding: '0 12px', border: '1px solid var(--line)', borderRadius: 13, color: 'var(--ink)', background: '#fff' }}>
+                  <select value={form.household_id} onChange={(e) => set('household_id', e.target.value)} style={{ width: '100%', maxWidth: '100%', minHeight: 48, padding: '0 12px', border: '1px solid var(--line)', borderRadius: 13, color: 'var(--ink)', background: '#fff', boxSizing: 'border-box', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                     <option value="">— Pilih kepala keluarga —</option>
                     {households.map((hh) => (
                       <option key={hh.household_id} value={hh.household_id}>
-                        Kepala: {hh.head_name} · KK ****{hh.kk_last4}{hh.address ? ` · ${hh.address}` : ''}
+                        Kepala: {hh.head_name} · KK ****{hh.kk_last4}
                       </option>
                     ))}
                   </select>
