@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { Outlet, Link, NavLink, useLocation } from 'react-router-dom'
-import { Bell, LogOut, RefreshCw, ScanLine, AlertTriangle, House, HeartPulse, BookOpen, Siren, QrCode } from 'lucide-react'
+import { Bell, LogOut, RefreshCw, ScanLine, AlertTriangle, House, HeartPulse, BookOpen, Siren, QrCode, Sparkles, Users, UserRound, ListChecks, ChevronDown } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { UserPill } from '../components/UserPill'
 import { useAuth } from '../features/auth/AuthProvider'
@@ -10,12 +10,18 @@ import { QrScanner } from '../components/QrScanner'
 import { getCitizenContext } from '../features/citizen/citizenService'
 import { isSupabaseConfigured } from '../lib/supabase'
 
-const citizenNavLinks = [
+const citizenNavPrimary = [
   { to: '/warga', label: 'Beranda', Icon: House, end: true },
   { to: '/warga/kesehatan', label: 'Kesehatan', Icon: HeartPulse },
-  { to: '/warga/riwayat', label: 'Riwayat', Icon: ScanLine },
+  { to: '/warga/riwayat', label: 'Riwayat', Icon: ListChecks },
   { to: '/informasi-kesehatan', label: 'Informasi', Icon: BookOpen },
+]
+const citizenNavMore = [
   { to: '/warga/qr-kesehatan', label: 'QR Saya', Icon: QrCode },
+  { to: '/warga/ai-kesehatan', label: 'AI Kesehatan', Icon: Sparkles },
+  { to: '/warga/keluarga', label: 'Keluarga', Icon: Users },
+  { to: '/warga/profil', label: 'Profil', Icon: UserRound },
+  { to: '/warga/notifikasi', label: 'Notifikasi', Icon: Bell },
   { to: '/warga/bantuan', label: 'Bantuan', Icon: Siren },
 ]
 
@@ -28,6 +34,19 @@ export function CitizenLayout() {
   const location = useLocation()
   const [ctx, setCtx] = useState(null) // null = memuat, { status, profile }
   const [tick, setTick] = useState(0)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreRef = useRef(null)
+  const hasMoreActive = citizenNavMore.some(({ to }) => location.pathname.startsWith(to))
+
+  useEffect(() => { setMoreOpen(false) }, [location.pathname])
+  useEffect(() => {
+    if (!moreOpen) return
+    const h = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false) }
+    const k = (e) => { if (e.key === 'Escape') setMoreOpen(false) }
+    document.addEventListener('mousedown', h)
+    document.addEventListener('keydown', k)
+    return () => { document.removeEventListener('mousedown', h); document.removeEventListener('keydown', k) }
+  }, [moreOpen])
 
   const isDemoUser = Boolean(access?.user_id?.startsWith('demo-'))
   const linked = Boolean(access?.citizen_id)
@@ -163,7 +182,7 @@ export function CitizenLayout() {
   return (
     <div className="app-shell">
       <OfflineIndicator />
-      <header className="topbar"><div className="container nav"><Link to="/warga"><Brand /></Link><nav className="citizen-nav" aria-label="Navigasi warga">{citizenNavLinks.map(({ to, label, Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => (isActive ? 'active' : '')}><Icon size={15} /> {label}</NavLink>)}</nav><div className="nav-actions"><Link className="btn btn-ghost" to="/warga/notifikasi" aria-label="Notifikasi"><Bell size={18} /></Link><UserPill /></div></div></header>
+      <header className="topbar"><div className="container nav"><Link to="/warga"><Brand /></Link><nav className="citizen-nav" aria-label="Navigasi warga">{citizenNavPrimary.map(({ to, label, Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => (isActive ? 'active' : '')}><Icon size={15} /> {label}</NavLink>)}<div className="admin-nav-more" ref={moreRef}><button className={`admin-nav-more-btn${moreOpen ? ' active' : ''}${hasMoreActive ? ' has-active' : ''}`} onClick={() => setMoreOpen(!moreOpen)} aria-expanded={moreOpen} aria-haspopup="true" aria-label="Menu lainnya">Lainnya <ChevronDown size={14} className={`admin-nav-more-icon${moreOpen ? ' rotate' : ''}`} /></button>{moreOpen && <div className="admin-nav-dropdown" role="menu">{citizenNavMore.map(({ to, label, Icon }) => <NavLink key={to} to={to} role="menuitem" onClick={() => setMoreOpen(false)}><Icon size={15} /> {label}</NavLink>)}</div>}</div></nav><div className="nav-actions"><Link className="btn btn-ghost" to="/warga/notifikasi" aria-label="Notifikasi"><Bell size={18} /></Link><UserPill /></div></div></header>
       <main><Outlet /></main>
       <footer className="role-footer"><div className="container" style={{ textAlign: 'center', padding: '20px 0 28px', fontSize: 12.5, color: 'var(--muted)' }}><span>Created by </span><a href="https://projek-sdgs.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>SDGS Projek 4G</a><span> — Develop by </span><a href="https://dikaxcloud.web.id" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>Dika</a></div></footer>
       <BottomNav />
