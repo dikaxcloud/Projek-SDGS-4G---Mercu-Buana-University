@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Bell, LogOut, RefreshCw, ScanLine, AlertTriangle } from 'lucide-react'
+import { Outlet, Link, NavLink, useLocation } from 'react-router-dom'
+import { Bell, LogOut, RefreshCw, ScanLine, AlertTriangle, House, HeartPulse, BookOpen, Siren, QrCode } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { UserPill } from '../components/UserPill'
 import { useAuth } from '../features/auth/AuthProvider'
@@ -9,6 +9,15 @@ import { OfflineIndicator } from '../components/OfflineIndicator'
 import { QrScanner } from '../components/QrScanner'
 import { getCitizenContext } from '../features/citizen/citizenService'
 import { isSupabaseConfigured } from '../lib/supabase'
+
+const citizenNavLinks = [
+  { to: '/warga', label: 'Beranda', Icon: House, end: true },
+  { to: '/warga/kesehatan', label: 'Kesehatan', Icon: HeartPulse },
+  { to: '/warga/riwayat', label: 'Riwayat', Icon: ScanLine },
+  { to: '/informasi-kesehatan', label: 'Informasi', Icon: BookOpen },
+  { to: '/warga/qr-kesehatan', label: 'QR Saya', Icon: QrCode },
+  { to: '/warga/bantuan', label: 'Bantuan', Icon: Siren },
+]
 
 /**
  * Access gate: akun warga terkunci sampai admin verifikasi DAN
@@ -154,7 +163,7 @@ export function CitizenLayout() {
   return (
     <div className="app-shell">
       <OfflineIndicator />
-      <header className="topbar"><div className="container nav"><Link to="/warga"><Brand /></Link><div className="nav-actions"><Link className="btn btn-ghost" to="/warga/notifikasi" aria-label="Notifikasi"><Bell size={18} /></Link><UserPill /></div></div></header>
+      <header className="topbar"><div className="container nav"><Link to="/warga"><Brand /></Link><nav className="citizen-nav" aria-label="Navigasi warga">{citizenNavLinks.map(({ to, label, Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => (isActive ? 'active' : '')}><Icon size={15} /> {label}</NavLink>)}</nav><div className="nav-actions"><Link className="btn btn-ghost" to="/warga/notifikasi" aria-label="Notifikasi"><Bell size={18} /></Link><UserPill /></div></div></header>
       <main><Outlet /></main>
       <footer className="role-footer"><div className="container" style={{ textAlign: 'center', padding: '20px 0 28px', fontSize: 12.5, color: 'var(--muted)' }}><span>Created by </span><a href="https://projek-sdgs.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>SDGS Projek 4G</a><span> — Develop by </span><a href="https://dikaxcloud.web.id" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>Dika</a></div></footer>
       <BottomNav />

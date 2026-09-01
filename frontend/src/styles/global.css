@@ -196,6 +196,11 @@ a { color: inherit; text-decoration: none; }
 .staff-nav { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .staff-nav a { display: inline-flex; align-items: center; gap: 7px; padding: 10px 12px; border-radius: 12px; color: var(--muted); font-size: 13px; font-weight: 700; }
 .staff-nav a.active, .staff-nav a:hover { color: var(--teal); background: var(--mint); }
+
+/* Warga desktop nav — same visual system as staff/admin */
+.citizen-nav { display: flex; align-items: center; gap: 6px; margin-left: auto; margin-right: auto; }
+.citizen-nav a { display: inline-flex; align-items: center; gap: 7px; padding: 10px 12px; border-radius: 12px; color: var(--muted); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.citizen-nav a.active, .citizen-nav a:hover { color: var(--teal); background: var(--mint); }
 .staff-role { color: var(--muted); font-size: 12px; }
 .staff-page { padding: 38px 0 80px; }
 .staff-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
@@ -304,7 +309,7 @@ a { color: inherit; text-decoration: none; }
 .form-error, .form-success { padding: 12px; border-radius: 12px; font-size: 13px; line-height: 1.45; }
 .form-error { background: #fff2f0; color: #b42318; }
 .form-success { background: var(--mint); color: var(--teal-dark); }
-@media (max-width: 800px) { .staff-nav { display: none; } .staff-columns { grid-template-columns: 1fr; } .staff-header { align-items: flex-start; flex-direction: column; } .staff-header .btn { width: 100%; } .staff-role { display: none; } .btn-logout-desktop { display: none; }   .bottom-nav-staff { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 7px 8px calc(7px + env(safe-area-inset-bottom)); background: #ffffff; border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(25,75,70,.10); }
+@media (max-width: 800px) { .staff-nav, .citizen-nav { display: none; } .staff-columns { grid-template-columns: 1fr; } .staff-header { align-items: flex-start; flex-direction: column; } .staff-header .btn { width: 100%; } .staff-role { display: none; } .btn-logout-desktop { display: none; }   .bottom-nav-staff { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 7px 8px calc(7px + env(safe-area-inset-bottom)); background: #ffffff; border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(25,75,70,.10); }
   .bottom-nav-staff a, .bottom-nav-staff button { display: grid; justify-items: center; gap: 3px; padding: 6px 2px; color: var(--muted); font-size: 10px; font-weight: 600; border: 0; background: none; cursor: pointer; border-radius: 12px; }
   .bottom-nav-staff a.active, .bottom-nav-staff button.active { color: var(--teal); background: var(--mint); }
   .staff-page { padding-bottom: 84px; } }
