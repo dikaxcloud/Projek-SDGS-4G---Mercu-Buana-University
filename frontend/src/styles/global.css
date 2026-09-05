@@ -1556,8 +1556,9 @@ pre { white-space: pre-wrap; word-break: break-word; }
   position: relative;
   padding: 28px 28px 24px;
   border-radius: 28px;
-  background: linear-gradient(145deg, #f0fdf7 0%, #e6f5ef 55%, #d6f3e9 100%);
-  border: 1px solid rgba(207,226,221,.7);
+  background: linear-gradient(145deg, #dff5ee 0%, #c7eedc 48%, #a8e8c8 100%);
+  border: 1px solid #8ad8b8;
+  box-shadow: 0 8px 28px rgba(15,118,110,.14), inset 0 1px 0 rgba(255,255,255,.6);
   overflow: hidden;
   min-height: 560px;
   display: flex;
@@ -1592,10 +1593,12 @@ pre { white-space: pre-wrap; word-break: break-word; }
   position: absolute;
   width: 260px;
   height: 260px;
-  background: #d6f3e9;
+  background: #6ee7b7;
+  background: radial-gradient(120% 120% at 30% 30%, #6ee7b7 0%, #34d399 55%, #10b981 100%);
   border-radius: 45% 55% 62% 38% / 43% 40% 60% 57%;
   transform: rotate(8deg);
-  opacity: .9;
+  opacity: .92;
+  box-shadow: 0 12px 28px rgba(16,185,129,.18);
 }
 .login-illustration {
   position: relative;
@@ -1714,14 +1717,14 @@ pre { white-space: pre-wrap; word-break: break-word; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 7px 11px;
   border-radius: 999px;
-  background: rgba(255,255,255,.7);
-  border: 1px solid var(--line);
+  background: #0f766e;
+  border: 1px solid #0f766e;
   font-size: 11px;
   font-weight: 700;
-  color: var(--teal-dark);
-  backdrop-filter: blur(6px);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(15,118,110,.22);
 }
 .login-card-wrap {
   display: grid;
