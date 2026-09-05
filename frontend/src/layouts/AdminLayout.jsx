@@ -137,11 +137,11 @@ export function AdminLayout() {
             </div>
           </nav>
 
-          <div className="nav-actions">
-            <UserPill />
+          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
             <button className="btn btn-ghost nav-toggle-admin" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'} aria-expanded={menuOpen} aria-controls="admin-navigation-drawer">
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
+            <UserPill />
           </div>
         </div>
       </header>

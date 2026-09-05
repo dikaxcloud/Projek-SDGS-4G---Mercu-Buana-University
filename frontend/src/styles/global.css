@@ -1108,25 +1108,30 @@ pre { white-space: pre-wrap; word-break: break-word; }
   overflow-wrap: anywhere;
 }
 
-/* 3. Navbar top nakes — dorong UserPill lebih ke kanan pojok */
+/* 3. Navbar top — dorong UserPill/profile ke pojok kanan atas untuk SEMUA role (mobile) */
 .topbar .nav-actions {
   margin-left: auto;
   justify-self: end;
 }
-.staff-page ~ * .topbar .nav-actions,
-.app-shell .topbar .nav-actions {
-  margin-left: auto;
-}
 
-@media (max-width: 800px) {
-  .app-shell .topbar .nav {
-    width: calc(100% - 20px) !important;
-    gap: 10px;
+/* Semua layout (staff/admin/citizen/public) pakai .topbar yang sama — di mobile harus mepet pojok kanan */
+@media (max-width: 880px) {
+  .topbar .nav {
+    width: calc(100% - 8px) !important;
+    max-width: none !important;
+    padding-left: 4px !important;
+    padding-right: 2px !important;
+    gap: 8px !important;
+    justify-content: space-between !important;
   }
-  .app-shell .topbar .nav-actions {
-    margin-left: auto;
-    margin-right: 0;
-    padding-right: 2px;
+  .topbar .nav-actions {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+    gap: 6px !important;
+  }
+  .topbar .nav-actions .user-pill {
+    margin-right: 0 !important;
   }
 }
 
@@ -1137,13 +1142,26 @@ pre { white-space: pre-wrap; word-break: break-word; }
   }
   .staff-page .staff-panel { padding: 16px !important; border-radius: 18px; }
   .staff-page .staff-kpis { gap: 10px !important; }
-  .app-shell .topbar .nav {
-    width: calc(100% - 16px) !important;
-    min-height: 60px;
+  .topbar .nav {
+    width: calc(100% - 8px) !important;
+    min-height: 60px !important;
+    padding-left: 6px !important;
+    padding-right: 2px !important;
+    gap: 6px !important;
   }
-  .app-shell .topbar .nav .user-pill {
-    margin-right: 2px;
+  .topbar .nav-actions .user-pill {
+    margin-right: 0 !important;
   }
   .staff-page .chart-wrap { min-height: 220px; }
   .staff-page .byday-table { font-size: 12.5px; }
+}
+
+@media (max-width: 380px) {
+  .topbar .nav {
+    width: calc(100% - 8px) !important;
+    padding-left: 4px !important;
+    padding-right: 2px !important;
+  }
+  .brand { gap: 6px !important; }
+  .brand span:last-child { font-size: 13.5px !important; }
 }
