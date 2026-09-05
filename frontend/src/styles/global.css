@@ -1265,3 +1265,138 @@ pre { white-space: pre-wrap; word-break: break-word; }
     max-width: 80px !important;
   }
 }
+
+/* ============================================================
+   FINAL MOBILE WARGA NAVIGATION + BOTTOM NAV CONSISTENCY
+   Unify Warga / Nakes / Admin → satu visual system floating
+   ============================================================ */
+@media (max-width: 800px) {
+  /* Floating container — sama untuk semua role */
+  .bottom-nav,
+  .bottom-nav-staff,
+  .bottom-nav-admin {
+    position: fixed !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 24px) !important;
+    max-width: 440px !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 4px !important;
+    padding: 8px !important;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+    background: rgba(255,255,255,.98) !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 30px rgba(25,75,70,.15) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    z-index: 20 !important;
+    min-height: 68px !important;
+    box-sizing: border-box !important;
+  }
+  /* Item — hilangkan native button look, samakan semua */
+  .bottom-nav a,
+  .bottom-nav button,
+  .bottom-nav-staff a,
+  .bottom-nav-staff button,
+  .bottom-nav-admin a,
+  .bottom-nav-admin button {
+    display: grid !important;
+    justify-items: center !important;
+    align-items: center !important;
+    align-content: center !important;
+    gap: 4px !important;
+    padding: 8px 4px !important;
+    min-height: 52px !important;
+    min-width: 44px !important;
+    color: var(--muted) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.1 !important;
+    border: 0 !important;
+    background: none !important;
+    background-color: transparent !important;
+    cursor: pointer !important;
+    border-radius: 16px !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    transition: background .16s ease, color .16s ease, transform .16s ease !important;
+    flex: 1 1 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+  }
+  .bottom-nav a svg,
+  .bottom-nav button svg,
+  .bottom-nav-staff a svg,
+  .bottom-nav-staff button svg,
+  .bottom-nav-admin a svg,
+  .bottom-nav-admin button svg {
+    width: 22px !important;
+    height: 22px !important;
+    flex: 0 0 22px !important;
+  }
+  .bottom-nav a span,
+  .bottom-nav button span,
+  .bottom-nav-staff a span,
+  .bottom-nav-staff button span,
+  .bottom-nav-admin a span,
+  .bottom-nav-admin button span {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+  /* Active — soft mint, no border, no layout shift */
+  .bottom-nav a.active,
+  .bottom-nav button.active,
+  .bottom-nav-staff a.active,
+  .bottom-nav-staff button.active,
+  .bottom-nav-admin a.active,
+  .bottom-nav-admin button.active {
+    color: var(--teal) !important;
+    background: var(--mint) !important;
+    font-weight: 700 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+  .bottom-nav a:active,
+  .bottom-nav button:active,
+  .bottom-nav-staff a:active,
+  .bottom-nav-staff button:active,
+  .bottom-nav-admin a:active,
+  .bottom-nav-admin button:active {
+    transform: scale(.98) !important;
+  }
+  /* Content tidak tertutup floating nav */
+  .app-shell main {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+  }
+  .dashboard-page,
+  .staff-page,
+  .admin-page {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav, .bottom-nav-staff, .bottom-nav-admin,
+  .bottom-nav a, .bottom-nav button,
+  .bottom-nav-staff a, .bottom-nav-staff button,
+  .bottom-nav-admin a, .bottom-nav-admin button {
+    transition: none !important;
+    animation: none !important;
+  }
+  .bottom-nav a:active, .bottom-nav button:active,
+  .bottom-nav-staff a:active, .bottom-nav-staff button:active,
+  .bottom-nav-admin a:active, .bottom-nav-admin button:active {
+    transform: none !important;
+  }
+}
