@@ -166,14 +166,14 @@ export function NakesDashboard() {
         </section>
 
         <div className="staff-columns">
-          <section className="staff-panel">
-            <div className="staff-panel-head"><div><h2>Pemeriksaan 5 hari terakhir</h2><p>Realtime per hari — reset 00:00 WIB. Hari ini {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}.</p></div></div>
-            <div className="chart-wrap">
+          <section className="staff-panel" style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="staff-panel-head"><div style={{ minWidth: 0 }}><h2>Pemeriksaan 5 hari terakhir</h2><p>Realtime per hari — reset 00:00 WIB. Hari ini {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}.</p></div></div>
+            <div className="chart-wrap" style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden' }}>
               <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={summary?.byDay ?? []} margin={{ top: 10, right: 8, left: -18, bottom: 12 }}>
+                <BarChart data={summary?.byDay ?? []} margin={{ top: 10, right: 8, left: -8, bottom: 12 }}>
                   <CartesianGrid stroke="var(--line)" vertical={false} />
                   <XAxis dataKey="label" tick={{ fill: '#6b8582', fontSize: 10 }} axisLine={false} tickLine={false} interval={0} angle={-18} textAnchor="end" height={36} />
-                  <YAxis allowDecimals={false} tick={{ fill: '#6b8582', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} width={32} tick={{ fill: '#6b8582', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: '#eff9f6' }} contentStyle={{ border: '1px solid #e3eeeb', borderRadius: 12, fontSize: 12 }} />
                   <Bar dataKey="total" name="Pemeriksaan" fill="#0f766e" radius={[7, 7, 0, 0]} />
                 </BarChart>

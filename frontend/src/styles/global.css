@@ -1059,3 +1059,91 @@ pre { white-space: pre-wrap; word-break: break-word; }
 @media (prefers-color-scheme: dark) {
   .ux-modal { background: #ffffff; }
 }
+
+/* ============================================================
+   NAKES DASHBOARD — MOBILE FIX (spacing & overflow + topbar)
+   Issue: kotak menempel, overflow chart, UserPill kurang ke kanan
+   ============================================================ */
+
+/* 1. Vertical rhythm — beri gap antar kotak agar tidak menempel */
+.staff-page .container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.staff-page .staff-header { margin-bottom: 0 !important; }
+.staff-page .staff-kpis { margin-bottom: 0 !important; margin-top: 0 !important; }
+.staff-page .staff-panel { margin-bottom: 0 !important; margin-top: 0 !important; }
+.staff-page .staff-columns { margin-top: 0 !important; }
+.staff-page .ai-widget { margin-bottom: 0 !important; }
+
+/* 2. Cegah overflow horizontal — terutama "Pemeriksaan 5 hari terakhir" & "Cari warga" */
+.staff-page .staff-panel,
+.staff-page .staff-kpis,
+.staff-page .staff-columns,
+.staff-page .staff-columns > section {
+  min-width: 0;
+  max-width: 100%;
+}
+.staff-page .staff-panel {
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.staff-page .chart-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.staff-page .chart-summary {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.staff-page .byday-table {
+  table-layout: fixed;
+  word-break: break-word;
+}
+.staff-page .byday-table th,
+.staff-page .byday-table td {
+  overflow-wrap: anywhere;
+}
+
+/* 3. Navbar top nakes — dorong UserPill lebih ke kanan pojok */
+.topbar .nav-actions {
+  margin-left: auto;
+  justify-self: end;
+}
+.staff-page ~ * .topbar .nav-actions,
+.app-shell .topbar .nav-actions {
+  margin-left: auto;
+}
+
+@media (max-width: 800px) {
+  .app-shell .topbar .nav {
+    width: calc(100% - 20px) !important;
+    gap: 10px;
+  }
+  .app-shell .topbar .nav-actions {
+    margin-left: auto;
+    margin-right: 0;
+    padding-right: 2px;
+  }
+}
+
+@media (max-width: 560px) {
+  .staff-page .container {
+    width: min(100% - 28px, 1120px) !important;
+    gap: 16px;
+  }
+  .staff-page .staff-panel { padding: 16px !important; border-radius: 18px; }
+  .staff-page .staff-kpis { gap: 10px !important; }
+  .app-shell .topbar .nav {
+    width: calc(100% - 16px) !important;
+    min-height: 60px;
+  }
+  .app-shell .topbar .nav .user-pill {
+    margin-right: 2px;
+  }
+  .staff-page .chart-wrap { min-height: 220px; }
+  .staff-page .byday-table { font-size: 12.5px; }
+}
