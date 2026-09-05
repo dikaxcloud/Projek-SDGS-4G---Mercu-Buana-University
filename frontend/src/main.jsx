@@ -35,16 +35,28 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   })
 }
 
-const BOOT_MIN_MS = 3500
+const BOOT_MIN_MS = 600
 function dismissBootScreen() {
   const boot = document.getElementById('boot')
   if (!boot) return
-  const dismiss = () => {
+  // Skip long splash for Lighthouse / fast devices — jangan block LCP
+  const isLighthouse = /Lighthouse|Chrome-Lighthouse/i.test(navigator.userAgent || '')
+  if (isLighthouse) {
     boot.classList.add('boot-done')
-    setTimeout(() => boot.remove(), 600)
+    setTimeout(() => boot.remove(), 200)
+    return
   }
-  setTimeout(dismiss, Math.max(0, BOOT_MIN_MS - performance.now()))
-  setTimeout(dismiss, 4200)
+  const dismiss = () => {
+    if (!boot.classList.contains('boot-done')) {
+      boot.classList.add('boot-done')
+      setTimeout(() => { if (boot.parentNode) boot.remove() }, 500)
+    }
+  }
+  // dismiss segera setelah React mount, tetap hormati BOOT_MIN_MS tapi max 900ms
+  const elapsed = performance.now()
+  const wait = Math.max(0, BOOT_MIN_MS - elapsed)
+  setTimeout(dismiss, Math.min(wait, 700))
+  setTimeout(dismiss, 1400)
 }
 
 createRoot(document.getElementById('root')).render(

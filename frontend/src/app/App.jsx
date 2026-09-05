@@ -1,39 +1,51 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { CitizenLayout } from '../layouts/CitizenLayout'
 import { StaffLayout } from '../layouts/StaffLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
-import { NakesDashboard } from '../pages/NakesDashboard'
-import { NakesWargaPage } from '../pages/NakesWargaPage'
-import { ExaminationPage } from '../pages/ExaminationPage'
 import { LandingPage } from '../pages/LandingPage'
-import { LoginPage } from '../pages/LoginPage'
-import { CitizenDashboard } from '../pages/CitizenDashboard'
-import { PlaceholderPage } from '../pages/PlaceholderPage'
-import { CitizenRegistrationPage } from '../pages/CitizenRegistrationPage'
-import { AccountLinkingPage } from '../pages/AccountLinkingPage'
-import { AdminDashboard } from '../pages/AdminDashboard'
-import { AdminManagementPage } from '../pages/AdminManagementPage'
-import { QrToolsPage } from '../pages/QrToolsPage'
-import { CitizenQrPage } from '../pages/CitizenQrPage'
-import { CitizenVerificationPage } from '../pages/CitizenVerificationPage'
-import { NakesScanPage } from '../pages/NakesScanPage'
-import { WargaAktivasiPage } from '../pages/WargaAktivasiPage'
-import { CitizenHealthPage, CitizenHistoryPage, CitizenProfilePage, CitizenFamilyPage, CitizenNotificationsPage, EmergencyPage } from '../pages/CitizenPages'
-import { CitizenAiPage } from '../pages/CitizenAiPage'
-import { AddCitizenPage } from '../pages/AddCitizenPage'
-import { StaffCitizenDetailPage } from '../pages/NakesCitizenPage'
-import { MyExaminationsPage } from '../pages/MyExaminationsPage'
-import { ExaminationDetailPage } from '../pages/ExaminationDetailPage'
-import { ArticlesPage } from '../pages/ArticlesPage'
-import { ArticleDetailPage } from '../pages/ArticleDetailPage'
-import { HealthTeamPage } from '../pages/HealthTeamPage'
-import { NakesProfilePage } from '../pages/NakesProfilePage'
-import { NakesPublicProfilePage } from '../pages/NakesPublicProfilePage'
 import { ProtectedRoute, RoleRoute, CitizenRoute } from '../features/auth/ProtectedRoute'
 
+// Lazy heavy routes — shrink initial bundle for Lighthouse (was 1.3MB)
+const NakesDashboard = lazy(() => import('../pages/NakesDashboard').then(m => ({ default: m.NakesDashboard })))
+const NakesWargaPage = lazy(() => import('../pages/NakesWargaPage').then(m => ({ default: m.NakesWargaPage })))
+const ExaminationPage = lazy(() => import('../pages/ExaminationPage').then(m => ({ default: m.ExaminationPage })))
+const LoginPage = lazy(() => import('../pages/LoginPage').then(m => ({ default: m.LoginPage })))
+const CitizenDashboard = lazy(() => import('../pages/CitizenDashboard').then(m => ({ default: m.CitizenDashboard })))
+const CitizenRegistrationPage = lazy(() => import('../pages/CitizenRegistrationPage').then(m => ({ default: m.CitizenRegistrationPage })))
+const AccountLinkingPage = lazy(() => import('../pages/AccountLinkingPage').then(m => ({ default: m.AccountLinkingPage })))
+const AdminDashboard = lazy(() => import('../pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })))
+const AdminManagementPage = lazy(() => import('../pages/AdminManagementPage').then(m => ({ default: m.AdminManagementPage })))
+const QrToolsPage = lazy(() => import('../pages/QrToolsPage').then(m => ({ default: m.QrToolsPage })))
+const CitizenQrPage = lazy(() => import('../pages/CitizenQrPage').then(m => ({ default: m.CitizenQrPage })))
+const CitizenVerificationPage = lazy(() => import('../pages/CitizenVerificationPage').then(m => ({ default: m.CitizenVerificationPage })))
+const NakesScanPage = lazy(() => import('../pages/NakesScanPage').then(m => ({ default: m.NakesScanPage })))
+const WargaAktivasiPage = lazy(() => import('../pages/WargaAktivasiPage').then(m => ({ default: m.WargaAktivasiPage })))
+const CitizenAiPage = lazy(() => import('../pages/CitizenAiPage').then(m => ({ default: m.CitizenAiPage })))
+const AddCitizenPage = lazy(() => import('../pages/AddCitizenPage').then(m => ({ default: m.AddCitizenPage })))
+const MyExaminationsPage = lazy(() => import('../pages/MyExaminationsPage').then(m => ({ default: m.MyExaminationsPage })))
+const ExaminationDetailPage = lazy(() => import('../pages/ExaminationDetailPage').then(m => ({ default: m.ExaminationDetailPage })))
+const ArticlesPage = lazy(() => import('../pages/ArticlesPage').then(m => ({ default: m.ArticlesPage })))
+const ArticleDetailPage = lazy(() => import('../pages/ArticleDetailPage').then(m => ({ default: m.ArticleDetailPage })))
+const HealthTeamPage = lazy(() => import('../pages/HealthTeamPage').then(m => ({ default: m.HealthTeamPage })))
+const NakesProfilePage = lazy(() => import('../pages/NakesProfilePage').then(m => ({ default: m.NakesProfilePage })))
+const NakesPublicProfilePage = lazy(() => import('../pages/NakesPublicProfilePage').then(m => ({ default: m.NakesPublicProfilePage })))
+const StaffCitizenDetailPage = lazy(() => import('../pages/NakesCitizenPage').then(m => ({ default: m.StaffCitizenDetailPage })))
+// CitizenPages: multiple named exports — lazy each
+const CitizenHealthPage = lazy(() => import('../pages/CitizenPages').then(m => ({ default: m.CitizenHealthPage })))
+const CitizenHistoryPage = lazy(() => import('../pages/CitizenPages').then(m => ({ default: m.CitizenHistoryPage })))
+const CitizenProfilePage = lazy(() => import('../pages/CitizenPages').then(m => ({ default: m.CitizenProfilePage })))
+const CitizenFamilyPage = lazy(() => import('../pages/CitizenPages').then(m => ({ default: m.CitizenFamilyPage })))
+const CitizenNotificationsPage = lazy(() => import('../pages/CitizenPages').then(m => ({ default: m.CitizenNotificationsPage })))
+const EmergencyPage = lazy(() => import('../pages/CitizenPages').then(m => ({ default: m.EmergencyPage })))
+
+function Fallback() {
+  return <div style={{ padding: '40px 16px', textAlign: 'center', color: '#6b8582', fontSize: 13 }}>Memuat...</div>
+}
+
 export function App() {
-  return <Routes>
+  return <Suspense fallback={<Fallback />}><Routes>
     <Route element={<PublicLayout />}>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
@@ -99,5 +111,5 @@ export function App() {
       </Route>
     </Route>
     <Route path="*" element={<Navigate to="/" replace />} />
-  </Routes>
+  </Routes></Suspense>
 }
