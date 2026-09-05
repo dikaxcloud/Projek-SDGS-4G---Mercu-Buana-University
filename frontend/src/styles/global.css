@@ -1928,31 +1928,31 @@ pre { white-space: pre-wrap; word-break: break-word; }
   .login-card { padding: 20px 16px 16px; }
   .login-card-title { font-size: 18px; }
 }
-@media (prefers-color-scheme: dark) {
-  .login-page { background: radial-gradient(120% 120% at 50% 0%, #0b2e2a 0%, #061c1a 55%, #082522 100%); }
-  .login-visual { background: linear-gradient(145deg, #0e2f2b 0%, #102f2b 55%, #123630 100%); border-color: rgba(255,255,255,.08); }
-  .login-headline { color: #e6f0ee; }
-  .login-sub, .login-desc { color: #9bbab6; }
-  .login-tag { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.1); color: #c8e6e2; }
-  .login-card { background: #102f2b; border-color: rgba(255,255,255,.08); box-shadow: 0 18px 48px rgba(0,0,0,.35); }
-  .login-card-title { color: #e6f0ee; }
-  .login-card-sub { color: #9bbab6; }
-  .login-google { background: #0f2e2a; border-color: rgba(255,255,255,.1); color: #e6f0ee; }
-  .login-google:hover { background: #123630; border-color: rgba(255,255,255,.15); }
-  .login-divider { color: #6b9e99; }
-  .login-divider::before, .login-divider::after { background: rgba(255,255,255,.12); }
-  .login-field { color: #c8e6e2; }
-  .login-input-wrap { background: #0b2622; border-color: rgba(255,255,255,.1); }
-  .login-input-wrap input { color: #e6f0ee; }
-  .login-input-wrap input::placeholder { color: #6b9e99; }
-  .login-input-wrap:focus-within { border-color: #14b8a6; box-shadow: 0 0 0 3px rgba(20,184,166,.15); }
-  .login-forgot { color: #2dd4bf; }
-  .login-card-info { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.08); color: #9bbab6; }
-  .login-card-info strong { color: #e6f0ee; }
-  .login-register { color: #9bbab6; }
-  .login-register-link { color: #2dd4bf; }
-  .login-branding { color: #6b9e99; }
-}
+/* Login tetap terang konsisten — jangan auto-dark via system (desktop dark vs hp terang bikin bingung).
+   Dark hanya aktif jika eksplisit html[data-theme="dark"] (jika ada toggle nanti) */
+html[data-theme="dark"] .login-page { background: radial-gradient(120% 120% at 50% 0%, #0b2e2a 0%, #061c1a 55%, #082522 100%); }
+html[data-theme="dark"] .login-visual { background: linear-gradient(145deg, #0e2f2b 0%, #102f2b 55%, #123630 100%); border-color: rgba(255,255,255,.08); }
+html[data-theme="dark"] .login-headline { color: #e6f0ee; }
+html[data-theme="dark"] .login-sub, html[data-theme="dark"] .login-desc { color: #9bbab6; }
+html[data-theme="dark"] .login-tag { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.1); color: #c8e6e2; }
+html[data-theme="dark"] .login-card { background: #102f2b; border-color: rgba(255,255,255,.08); box-shadow: 0 18px 48px rgba(0,0,0,.35); }
+html[data-theme="dark"] .login-card-title { color: #e6f0ee; }
+html[data-theme="dark"] .login-card-sub { color: #9bbab6; }
+html[data-theme="dark"] .login-google { background: #0f2e2a; border-color: rgba(255,255,255,.1); color: #e6f0ee; }
+html[data-theme="dark"] .login-google:hover { background: #123630; border-color: rgba(255,255,255,.15); }
+html[data-theme="dark"] .login-divider { color: #6b9e99; }
+html[data-theme="dark"] .login-divider::before, html[data-theme="dark"] .login-divider::after { background: rgba(255,255,255,.12); }
+html[data-theme="dark"] .login-field { color: #c8e6e2; }
+html[data-theme="dark"] .login-input-wrap { background: #0b2622; border-color: rgba(255,255,255,.1); }
+html[data-theme="dark"] .login-input-wrap input { color: #e6f0ee; }
+html[data-theme="dark"] .login-input-wrap input::placeholder { color: #6b9e99; }
+html[data-theme="dark"] .login-input-wrap:focus-within { border-color: #14b8a6; box-shadow: 0 0 0 3px rgba(20,184,166,.15); }
+html[data-theme="dark"] .login-forgot { color: #2dd4bf; }
+html[data-theme="dark"] .login-card-info { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.08); color: #9bbab6; }
+html[data-theme="dark"] .login-card-info strong { color: #e6f0ee; }
+html[data-theme="dark"] .login-register { color: #9bbab6; }
+html[data-theme="dark"] .login-register-link { color: #2dd4bf; }
+html[data-theme="dark"] .login-branding { color: #6b9e99; }
 @media (prefers-reduced-motion: reduce) {
   .login-page, .login-visual, .login-card, .login-blob, .login-float-icon, .login-ill-card.small, .login-headline span {
     animation: none !important;
