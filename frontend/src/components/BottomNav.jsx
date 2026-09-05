@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { BookOpen, Globe, HeartPulse, House, LogOut, Menu, QrCode, Sparkles, ListChecks, Bell, Siren, UserRound } from 'lucide-react'
 import { MobileMoreSheet } from './MobileMoreSheet'
-import { useAuth } from '../features/auth/AuthProvider'
+import { useLogout } from './LogoutExperience'
 
 const primary = [
   { to: '/warga', label: 'Beranda', Icon: House },
@@ -21,13 +21,10 @@ const moreItems = [
 
 export function BottomNav() {
   const [moreOpen, setMoreOpen] = useState(false)
-  const navigate = useNavigate()
-  const { isDemo, signOut, signOutDemo } = useAuth()
+  const { requestLogout } = useLogout()
   const moreActive = moreItems.some(({ to }) => window.location.pathname.startsWith(to))
 
-  const logout = async () => {
-    try { if (isDemo) signOutDemo(); else await signOut() } finally { window.location.href = '/login' }
-  }
+  const logout = () => requestLogout()
 
   const sheetItems = [
     ...moreItems,

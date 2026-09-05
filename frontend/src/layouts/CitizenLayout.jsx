@@ -4,6 +4,7 @@ import { Bell, LogOut, RefreshCw, ScanLine, AlertTriangle, House, HeartPulse, Bo
 import { Brand } from '../components/Brand'
 import { UserPill } from '../components/UserPill'
 import { useAuth } from '../features/auth/AuthProvider'
+import { useLogout } from '../components/LogoutExperience'
 import { BottomNav } from '../components/BottomNav'
 import { OfflineIndicator } from '../components/OfflineIndicator'
 import { QrScanner } from '../components/QrScanner'
@@ -63,11 +64,9 @@ export function CitizenLayout() {
     return () => { active = false }
   }, [bypass, access?.citizen_id, tick, location.pathname])
 
+  const { requestLogout } = useLogout()
   const refresh = useCallback(() => setTick((value) => value + 1), [])
-  const signOutNow = async () => {
-    const { signOut, signOutDemo } = await import('../features/auth/authService')
-    try { if (isDemoUser) signOutDemo(); else await signOut() } finally { window.location.href = '/login' }
-  }
+  const signOutNow = () => requestLogout()
 
   // Warga scans the admin's ACTIVATION QR — now via polished QR Access Experience
   const [scanMsg, setScanMsg] = useState('')

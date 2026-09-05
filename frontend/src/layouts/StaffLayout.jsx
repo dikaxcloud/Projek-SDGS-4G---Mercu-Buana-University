@@ -3,6 +3,7 @@ import { Outlet, Link, NavLink } from 'react-router-dom'
 import { BookOpen, ClipboardPlus, History, LayoutDashboard, LogOut, ScanLine, Search, ShieldCheck, UserPlus, Menu, User } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { useAuth } from '../features/auth/AuthProvider'
+import { useLogout } from '../components/LogoutExperience'
 import { supabase } from '../lib/supabase'
 import { MobileMoreSheet } from '../components/MobileMoreSheet'
 import { UserPill } from '../components/UserPill'
@@ -33,8 +34,9 @@ const moreItems = [
 ]
 
 export function StaffLayout() {
-  const { access, isDemo, signOut, signOutDemo } = useAuth()
-  const logout = async () => { if (isDemo) signOutDemo(); else await signOut() }
+  const { access } = useAuth()
+  const { requestLogout } = useLogout()
+  const logout = () => requestLogout()
   const [moreOpen, setMoreOpen] = useState(false)
 
   useEffect(() => {

@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, LogOut, User } from 'lucide-react'
 import { useAuth } from '../features/auth/AuthProvider'
+import { useLogout } from './LogoutExperience'
 
 export function UserPill() {
-  const { access, isDemo, signOut, signOutDemo } = useAuth()
+  const { access } = useAuth()
+  const { requestLogout } = useLogout()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const name = access?.display_name?.trim() || 'Akun'
 
-  const logout = async () => {
-    if (isDemo) signOutDemo()
-    else await signOut()
-    window.location.href = '/login'
+  const logout = () => {
+    setOpen(false)
+    requestLogout()
   }
 
   useEffect(() => {

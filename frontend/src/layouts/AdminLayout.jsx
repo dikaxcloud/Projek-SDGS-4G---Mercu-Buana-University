@@ -3,6 +3,7 @@ import { Outlet, Link, NavLink, useLocation } from 'react-router-dom'
 import { BookOpen, FileClock, Home, LayoutDashboard, LogOut, Map, Phone, QrCode, ShieldCheck, Shield, Stethoscope, Users, UserRoundCog, UserPlus, Menu, X, ChevronDown } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { useAuth } from '../features/auth/AuthProvider'
+import { useLogout } from '../components/LogoutExperience'
 import { MobileMoreSheet } from '../components/MobileMoreSheet'
 import { UserPill } from '../components/UserPill'
 
@@ -42,8 +43,9 @@ const moreItems = [
 ]
 
 export function AdminLayout() {
-  const { access, isDemo, signOut, signOutDemo } = useAuth()
-  const logout = async () => { if (isDemo) signOutDemo(); else await signOut() }
+  const { access } = useAuth()
+  const { requestLogout } = useLogout()
+  const logout = () => requestLogout()
   const [menuOpen, setMenuOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false)
