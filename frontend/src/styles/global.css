@@ -1106,60 +1106,162 @@ pre { white-space: pre-wrap; word-break: break-word; }
   overflow-wrap: anywhere;
 }
 
-/* 3. Navbar top — dorong UserPill/profile ke pojok kanan atas untuk SEMUA role (mobile) */
+/* 3. MOBILE HEADER / TOP NAVBAR REFINEMENT — semua role (Warga/Nakes/Admin) */
 .topbar .nav-actions {
   margin-left: auto;
   justify-self: end;
 }
 
-/* Semua layout (staff/admin/citizen/public) pakai .topbar yang sama — di mobile harus mepet pojok kanan */
-@media (max-width: 880px) {
+/* === MOBILE HEADER: 320–639px — compact, balanced, no overflow === */
+@media (max-width: 639px) {
   .topbar .nav {
-    width: calc(100% - 8px) !important;
-    max-width: none !important;
-    padding-left: 4px !important;
-    padding-right: 2px !important;
-    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    box-sizing: border-box !important;
+    gap: 12px !important;
+    min-height: 64px !important;
+    height: 64px !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: space-between !important;
   }
+  /* Brand boleh mengecil, user tetap terlihat — flex layout stable */
+  .brand {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    gap: 8px !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+  }
+  .brand-logo,
+  .brand-mark {
+    width: 36px !important;
+    height: 36px !important;
+    flex: 0 0 36px !important;
+    border-radius: 12px !important;
+  }
+  .brand > span:last-child {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 16px !important;
+    line-height: 1.1 !important;
+  }
+  .brand > span:last-child strong {
+    font-weight: 800 !important;
+  }
+  /* User area — flex-shrink 0, tetap terlihat walau brand panjang */
   .topbar .nav-actions {
-    margin-left: auto !important;
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    margin-left: 12px !important;
     margin-right: 0 !important;
     padding-right: 0 !important;
-    gap: 6px !important;
+    gap: 8px !important;
+    align-items: center !important;
   }
-  .topbar .nav-actions .user-pill {
-    margin-right: 0 !important;
+  /* Notification bell — 44px touch target, kecil tidak tabrakan */
+  .topbar .nav-actions .btn[aria-label="Notifikasi"],
+  .topbar .nav-actions .btn.btn-ghost[href*="notifikasi"] {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 12px !important;
   }
-}
-
-@media (max-width: 560px) {
+  /* User pill compact: height 40, padding 10-12, avatar 28, font 13 */
+  .user-pill {
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 0 10px 0 4px !important;
+    gap: 8px !important;
+    max-width: 160px !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+  }
+  .user-pill-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    flex: 0 0 28px !important;
+  }
+  .user-pill-name {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    max-width: 90px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  .user-pill-chevron {
+    width: 14px !important;
+    height: 14px !important;
+    flex: 0 0 14px !important;
+  }
+  /* Staff-page keep compact in mobile */
   .staff-page .container {
     width: min(100% - 28px, 1120px) !important;
     gap: 16px;
   }
   .staff-page .staff-panel { padding: 16px !important; border-radius: 18px; }
   .staff-page .staff-kpis { gap: 10px !important; }
-  .topbar .nav {
-    width: calc(100% - 8px) !important;
-    min-height: 60px !important;
-    padding-left: 6px !important;
-    padding-right: 2px !important;
-    gap: 6px !important;
-  }
-  .topbar .nav-actions .user-pill {
-    margin-right: 0 !important;
-  }
   .staff-page .chart-wrap { min-height: 220px; }
   .staff-page .byday-table { font-size: 12.5px; }
 }
 
-@media (max-width: 380px) {
+/* Compact mode ≤360px — sembunyikan nama, hanya avatar+chevron */
+@media (max-width: 360px) {
   .topbar .nav {
-    width: calc(100% - 8px) !important;
-    padding-left: 4px !important;
-    padding-right: 2px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    gap: 8px !important;
+    min-height: 64px !important;
+    height: 64px !important;
   }
-  .brand { gap: 6px !important; }
-  .brand span:last-child { font-size: 13.5px !important; }
+  .brand {
+    gap: 8px !important;
+    font-size: 15px !important;
+  }
+  .brand-logo,
+  .brand-mark {
+    width: 36px !important;
+    height: 36px !important;
+    flex: 0 0 36px !important;
+  }
+  .brand > span:last-child {
+    font-size: 14px !important;
+  }
+  .user-pill {
+    min-width: 40px !important;
+    width: 40px !important;
+    max-width: 40px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    border-radius: 999px !important;
+  }
+  .user-pill-name {
+    display: none !important;
+  }
+  .user-pill-chevron {
+    display: none !important;
+  }
+  .topbar .nav-actions {
+    gap: 6px !important;
+    margin-left: 8px !important;
+  }
+}
+
+/* Long name safety 361-430: truncate jika nama sangat panjang */
+@media (min-width: 361px) and (max-width: 430px) {
+  .user-pill-name {
+    max-width: 80px !important;
+  }
 }

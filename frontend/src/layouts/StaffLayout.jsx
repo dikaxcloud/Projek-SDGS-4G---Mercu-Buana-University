@@ -53,7 +53,7 @@ export function StaffLayout() {
 
   return (
     <div className="app-shell">
-      <header className="topbar"><div className="container nav" style={{ justifyContent: 'space-between' }}><Link to="/nakes" style={{ flex: '0 0 auto' }}><Brand /></Link><nav className="staff-nav" aria-label="Navigasi nakes">{staffNavLinks.map(({ to, Icon, label }) => <NavLink end={to === '/nakes'} to={to} key={to}><Icon size={16} /> {label}</NavLink>)}</nav><div className="nav-actions" style={{ marginLeft: 'auto', display: 'flex', justifyContent: 'flex-end', flex: '0 0 auto' }}><UserPill /></div></div></header>
+      <header className="topbar"><div className="container nav"><Link to="/nakes"><Brand /></Link><nav className="staff-nav" aria-label="Navigasi nakes">{staffNavLinks.map(({ to, Icon, label }) => <NavLink end={to === '/nakes'} to={to} key={to}><Icon size={16} /> {label}</NavLink>)}</nav><div className="nav-actions"><UserPill /></div></div></header>
       <main><Outlet /></main>
       <footer className="role-footer"><div className="container" style={{ textAlign: 'center', padding: '20px 0 28px', fontSize: 12.5, color: 'var(--muted)' }}><span>Created by </span><a href="https://projek-sdgs.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>SDGS Projek 4G</a><span> — Develop by </span><a href="https://dikaxcloud.web.id" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>Dika</a></div></footer>
 
