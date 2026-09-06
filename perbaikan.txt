@@ -1,702 +1,1002 @@
-# PROMPT OPENCODE — IMPROVEMENT UI/UX
-# INVITE VIA EMAIL + DELETE ACCOUNT
-# Desa Sehat Kenanga
+Saya ingin melakukan SECURITY HARDENING secara menyeluruh pada project "Desa Sehat Kenanga".
 
-Saya ingin melakukan PENAMBAHAN DAN PERBAIKAN UI/UX pada project yang sudah berjalan.
-
-PENTING:
-- Jangan membuat ulang project.
-- Jangan mengganti tech stack.
-- Jangan mengubah database schema yang sudah ada kecuali benar-benar diperlukan.
-- Jangan mengubah fitur existing yang sudah berjalan.
-- Jangan mengubah routing existing.
-- Jangan mengubah autentikasi existing.
-- Jangan mengubah logic pemeriksaan kesehatan.
-- Jangan mengubah role permission yang sudah ada.
-- Jangan menghapus fitur apa pun.
-- Fokus hanya pada UX untuk proses INVITE VIA EMAIL dan DELETE ACCOUNT.
-- Pertahankan design system, typography, spacing, icon style, dan color grading website yang sekarang.
-- Semua perubahan harus responsive untuk mobile, tablet, dan desktop.
-- Pastikan tidak menyebabkan regresi pada halaman lain.
-
-==================================================
-1. FITUR INVITE USER VIA EMAIL
-==================================================
-
-Saat Admin mengundang user melalui email, sekarang jangan hanya menampilkan:
-
-" Mengirim... "
-
-Saya ingin proses pengiriman terlihat seperti proses yang benar-benar sedang berlangsung.
-
-Form existing:
-
+PROJECT INI ADALAH WEBSITE LAYANAN KESEHATAN DESA DAN MENYIMPAN DATA SENSITIF SEPERTI:
+- NIK
+- Nomor KK
 - Nama lengkap
-- Email Google target
-- Role / Tier
-- Tombol "Kirim undangan"
+- Data identitas warga
+- Golongan darah
+- Tekanan darah
+- Gula darah
+- Berat badan
+- Riwayat pemeriksaan
+- Data tenaga kesehatan
+- Data akun pengguna
+- Role dan permission pengguna
 
-Pertahankan form tersebut.
+DATA TERSEBUT SANGAT SENSITIF. JANGAN MENGUBAH PROJECT MENJADI TIDAK BERFUNGSI HANYA DEMI SECURITY.
 
-Tambahkan UX loading yang lebih profesional.
+==================================================
+ATURAN UTAMA
+==================================================
 
---------------------------------------------------
-1.1 BUTTON STATE
---------------------------------------------------
+1. JANGAN mengubah desain UI yang sudah ada kecuali memang diperlukan untuk security.
+2. JANGAN menghapus fitur existing.
+3. JANGAN mengubah database secara sembarangan.
+4. Jangan membuat dummy security yang hanya terlihat aman tetapi sebenarnya tidak.
+5. Semua perubahan harus benar-benar diterapkan pada source code.
+6. Pertahankan seluruh role dan permission yang sudah ada.
+7. Jangan expose data sensitif melalui frontend, API, URL, log, error message, atau browser console.
+8. Jangan hardcode API key, password, token, secret, database credential, atau private key.
+9. Jangan menggunakan NIK/KK sebagai identifier publik.
+10. Jika menemukan vulnerability, perbaiki vulnerability tersebut, bukan hanya memberikan rekomendasi.
+11. Sebelum mengubah sesuatu, pahami terlebih dahulu arsitektur project yang sudah ada.
 
-Saat tombol:
+==================================================
+PHASE 1 — AUDIT PROJECT
+==================================================
 
-"Kirim undangan"
+Sebelum melakukan perubahan, lakukan audit terhadap seluruh project.
 
-ditekan:
+Periksa:
 
-ubah menjadi:
+- Struktur frontend
+- Struktur backend
+- Semua API endpoint
+- Authentication
+- Authorization
+- Middleware
+- Role & permission
+- Database schema
+- Migration
+- Model
+- Controller
+- Service
+- Validation
+- File upload
+- QR code system
+- Google OAuth / authentication
+- Session / cookie
+- CORS
+- CSRF
+- API response
+- Error handling
+- Logging
+- Environment variables
+- Third-party scripts
+- Dependencies
+- Docker configuration
+- Nginx / reverse proxy jika tersedia
 
-"Menyiapkan undangan..."
+Cari vulnerability seperti:
 
-dengan loading spinner.
+- Broken Access Control
+- IDOR / BOLA
+- Privilege Escalation
+- Authentication bypass
+- Authorization bypass
+- Sensitive Data Exposure
+- Excessive API Data Exposure
+- SQL Injection
+- XSS
+- Stored XSS
+- Reflected XSS
+- DOM XSS
+- CSRF
+- SSRF jika ada fitur yang memungkinkan server melakukan request
+- Path Traversal
+- File Upload vulnerability
+- Open Redirect
+- Session hijacking
+- Weak session configuration
+- Brute force
+- Credential stuffing
+- Rate limit bypass
+- CORS misconfiguration
+- Security misconfiguration
+- Exposed stack trace
+- Exposed environment variables
+- Exposed API keys
+- Sensitive information in logs
+- Predictable IDs
+- Mass assignment
+- Unsafe deserialization
+- Insecure direct database access
+- Exposed JSON endpoint
+- Public API endpoint tanpa authorization
 
-Button harus disabled selama proses berjalan.
+JANGAN langsung memperbaiki sebelum memahami alur aplikasi.
 
-Prevent double submit.
+==================================================
+PHASE 2 — PERBAIKI API / JSON DATA EXPOSURE
+==================================================
 
-User tidak boleh bisa menekan tombol berkali-kali.
+Ini PRIORITAS UTAMA.
 
---------------------------------------------------
-1.2 FULL PROCESS LOADING MODAL
---------------------------------------------------
+Sebelumnya ditemukan kemungkinan response JSON dapat dilihat oleh user/browser.
 
-Setelah submit berhasil dikirim ke backend, tampilkan modal/dialog proses pengiriman.
+Audit SEMUA endpoint API.
+
+Pastikan endpoint hanya mengembalikan field yang memang dibutuhkan oleh frontend.
+
+JANGAN melakukan:
+
+return user;
+
+atau:
+
+return warga;
+
+atau:
+
+return pemeriksaan;
+
+jika object tersebut mengandung field sensitif.
+
+Gunakan explicit response/resource/DTO/serializer.
+
+Contoh konsep:
+
+return {
+    id,
+    name,
+    role
+}
+
+bukan seluruh database object.
+
+Untuk data sensitif seperti:
+
+- NIK
+- KK
+- tanggal lahir
+- alamat
+- nomor telepon
+- data kesehatan
+
+jangan dikirim ke frontend jika tidak diperlukan.
+
+Jika frontend memang membutuhkan data tersebut, pastikan endpoint memiliki:
+
+1. Authentication
+2. Authorization
+3. Role checking
+4. Ownership checking
+5. Field-level access control
 
 Contoh:
 
---------------------------------
-        ✉
-   Mengirim undangan
+WARGA hanya boleh melihat data miliknya sendiri.
 
-Mohon tunggu, undangan sedang
-dikirim ke email tujuan.
+NAKES hanya boleh melihat warga yang memang berada dalam kewenangan pemeriksaannya.
 
-   ● ─── ○ ─── ○ ─── ○
+ADMIN memiliki akses administratif sesuai permission.
 
-Menyiapkan
-undangan
+Jangan hanya mengandalkan:
 
-Mengirim
-email
+GET /users/123
 
-Menunggu
-konfirmasi
+lalu percaya bahwa user ID 123 boleh dilihat oleh siapa saja.
 
-Selesai
---------------------------------
+Implementasikan server-side authorization.
 
-Gunakan animasi yang smooth.
+Jangan pernah mengandalkan proteksi frontend seperti:
 
-Tidak perlu animasi berlebihan.
+if (role === "admin")
+
+sebagai satu-satunya security.
+
+Semua permission wajib divalidasi di backend.
+
+==================================================
+PHASE 3 — IDOR / BOLA PROTECTION
+==================================================
+
+Cari seluruh endpoint yang menggunakan:
+
+/users/:id
+/warga/:id
+/pemeriksaan/:id
+/health/:id
+/profile/:id
+/documents/:id
+dan endpoint sejenis.
+
+Test apakah user A bisa mengganti ID menjadi ID user B dan mendapatkan data user B.
+
+Contoh:
+
+/api/warga/123
+
+menjadi:
+
+/api/warga/124
+
+HARUS ditolak jika user tidak memiliki permission.
+
+Gunakan authorization berbasis:
+
+- authenticated user
+- ownership
+- role
+- permission
+- relationship
+
+bukan hanya berdasarkan keberadaan ID.
+
+==================================================
+PHASE 4 — DATA SENSITIF NIK & KK
+==================================================
+
+Karena NIK dan KK merupakan data yang sangat sensitif:
+
+1. Jangan tampilkan NIK/KK secara penuh di UI kecuali benar-benar diperlukan.
+2. Masking untuk tampilan umum.
+
+Contoh:
+
+327xxxxxxxxxxxxx
+
+atau:
+
+3273************
+
+3. Jangan gunakan NIK/KK sebagai public ID.
+4. Jangan gunakan NIK/KK dalam URL.
+5. Jangan masukkan NIK/KK ke QR code secara langsung.
+6. Jangan masukkan NIK/KK ke frontend JavaScript jika tidak diperlukan.
+7. Jangan masukkan NIK/KK ke console.log().
+8. Jangan masukkan NIK/KK ke analytics/tracking.
+9. Jangan masukkan NIK/KK ke error message.
+10. Jangan masukkan NIK/KK ke log aplikasi secara plaintext.
+
+Jika database membutuhkan pencarian berdasarkan NIK:
+
+- gunakan mekanisme yang aman untuk lookup,
+- pertimbangkan encrypted storage,
+- gunakan deterministic lookup strategy hanya jika memang diperlukan,
+- jangan mengorbankan keamanan hanya demi kemudahan query.
+
+Jangan melakukan hashing NIK secara sembarangan jika aplikasi masih membutuhkan kemampuan untuk mengambil kembali NIK asli.
+
+Jika memungkinkan, gunakan encryption at rest untuk data sensitif.
+
+==================================================
+PHASE 5 — AUTHENTICATION SECURITY
+==================================================
+
+Audit sistem login.
+
+Pastikan:
+
+- Password tidak pernah disimpan plaintext.
+- Password menggunakan hashing yang aman.
+- Session/token aman.
+- Session memiliki expiration.
+- Logout benar-benar invalidasi session/token.
+- Cookie menggunakan HttpOnly jika menggunakan cookie authentication.
+- Cookie menggunakan Secure pada HTTPS.
+- SameSite dikonfigurasi dengan benar.
+- Jangan simpan credential sensitif di localStorage jika tidak diperlukan.
+- Google OAuth callback harus divalidasi.
+- Jangan percaya data role dari frontend.
+- Role harus berasal dari backend/database yang terpercaya.
+- Jangan memungkinkan user biasa mengubah role menjadi admin/nakes melalui request manipulation.
+
+Pastikan juga:
+
+- brute-force protection
+- login rate limiting
+- suspicious repeated login protection
+- account enumeration protection jika relevan
+
+==================================================
+PHASE 6 — AUTHORIZATION ROLE
+==================================================
+
+Project memiliki beberapa tier/role.
+
+JANGAN mengubah struktur role existing.
+
+Audit setiap role:
+
+- Warga
+- Nakes
+- Admin
+- dan role/tier lainnya yang sudah ada di project
+
+Buat matrix permission berdasarkan role yang benar-benar digunakan project.
+
+Pastikan:
+
+WARGA:
+- hanya dapat mengakses data miliknya sendiri
+- tidak dapat mengakses data warga lain
+- tidak dapat mengubah data pemeriksaan milik warga lain
+- tidak dapat mengakses endpoint admin
+- tidak dapat mengakses endpoint nakes
+
+NAKES:
+- hanya dapat mengakses fungsi sesuai kewenangan
+- tidak dapat mengakses fungsi admin
+- tidak dapat menaikkan role dirinya sendiri
+- tidak dapat mengubah permission dirinya sendiri
+
+ADMIN:
+- memiliki akses administratif sesuai kebutuhan aplikasi
+- endpoint sensitif tetap harus memiliki authorization
+
+Jangan mengandalkan hidden button di frontend sebagai security.
+
+==================================================
+PHASE 7 — INPUT VALIDATION
+==================================================
+
+Audit SEMUA input dari user.
+
+Termasuk:
+
+- nama
+- email
+- NIK
+- KK
+- alamat
+- nomor telepon
+- data pemeriksaan
+- catatan nakes
+- parameter URL
+- query parameter
+- form
+- upload file
+- QR code input
+- search
+- filter
+
+Semua input harus divalidasi di backend.
 
 Gunakan:
-- fade
-- scale
-- progress animation
-- spinner
-- icon transition
 
-Durasi animasi harus terasa cepat dan profesional.
+- allowlist validation
+- type validation
+- length limit
+- format validation
+- range validation
+- required/optional validation
 
-JANGAN membuat loading palsu terlalu lama.
+Jangan hanya melakukan validation di frontend.
 
-Status harus mengikuti kondisi request/API sebenarnya.
+Frontend validation hanya untuk UX.
 
---------------------------------------------------
-1.3 STEP PROGRESS
---------------------------------------------------
-
-Gunakan 4 tahap:
-
-STEP 1
-"Menyiapkan undangan"
-
-STEP 2
-"Mengirim email"
-
-STEP 3
-"Email berhasil dikirim"
-
-STEP 4
-"Selesai"
-
-Step yang aktif mempunyai:
-- animated indicator
-- spinner atau pulse
-
-Step yang selesai:
-- check icon
-- transition halus
-
-Step yang belum:
-- icon abu-abu
-
---------------------------------------------------
-1.4 SUCCESS STATE
---------------------------------------------------
-
-Jika API berhasil:
-
-Tampilkan success state:
-
-✓
-
-"Undangan berhasil dikirim!"
-
-"Undangan telah dikirim ke:
-[email user]"
-
-Tambahkan informasi:
-
-"User dapat mengikuti tautan pada email
-untuk bergabung ke Desa Sehat Kenanga."
-
-Button:
-
-" Selesai "
-
-Setelah klik:
-- tutup modal
-- reset form jika memang behavior existing seperti itu
-- refresh daftar user jika diperlukan
-- tampilkan toast success
-
-Contoh toast:
-
-"Undangan berhasil dikirim ke email tujuan."
-
---------------------------------------------------
-1.5 ERROR STATE
---------------------------------------------------
-
-Jika API gagal:
-
-Tampilkan:
-
-✕
-
-"Gagal mengirim undangan"
-
-"Undangan tidak dapat dikirim saat ini."
-
-Tampilkan alasan error jika backend memberikan error yang aman ditampilkan.
-
-Contoh:
-
-"Terjadi masalah pada layanan email."
-
-Button:
-
-"Coba lagi"
-
-dan
-
-"Tutup"
-
-Jika klik "Coba lagi":
-- ulangi request
-- tampilkan loading kembali
-
-Jangan reload halaman.
-
---------------------------------------------------
-1.6 EMAIL SUDAH TERDAFTAR
---------------------------------------------------
-
-Jika backend mengembalikan kondisi email sudah terdaftar:
-
-Tampilkan state khusus:
-
-⚠
-
-"Email sudah terdaftar"
-
-"Email tersebut sudah memiliki akun
-di Desa Sehat Kenanga."
-
-Berikan opsi:
-
-"Tutup"
-
-Jangan menganggap kondisi ini sebagai server error.
-
---------------------------------------------------
-1.7 ROLE / TIER VALIDATION
---------------------------------------------------
-
-Sistem memiliki 5 Tier/Role.
-
-Tetap pertahankan role system existing.
-
-Untuk fitur:
-
-"Undang pengguna via email"
-
-hanya boleh tersedia untuk:
-
-Tier 1
-Tier 2
-Tier 3
-
-Tier 4 dan Tier 5 TIDAK boleh diundang menggunakan fitur email ini.
-
-Jika user memilih Tier 4 atau Tier 5:
-
-- tampilkan warning
-- disable tombol submit
-
-Contoh:
-
-"Undangan via email hanya tersedia untuk Tier 1–3."
-
-Jangan hanya mengandalkan frontend.
-
-Backend juga wajib melakukan validation.
-
-Frontend dan backend harus konsisten.
+Backend validation adalah security boundary.
 
 ==================================================
-2. DELETE ACCOUNT UX
+PHASE 8 — XSS / SCRIPT INJECTION
 ==================================================
 
-Sekarang fitur hapus akun juga ingin dibuat lebih profesional.
+Saya ingin mencegah script injection terutama karena website dapat berpotensi menggunakan external scripts atau konten pihak ketiga.
 
-Jangan langsung:
+Audit semua tempat yang menampilkan input user.
 
-"Hapus → akun hilang → toast"
+Jangan menggunakan:
 
-Saya ingin ada confirmation + proses loading + success/error state.
+dangerouslySetInnerHTML
 
-==================================================
-2.1 DELETE CONFIRMATION MODAL
-==================================================
+atau mekanisme HTML injection lainnya tanpa alasan yang benar-benar diperlukan.
 
-Ketika Admin menekan:
+Jika memang diperlukan:
 
-"Hapus akun"
+- sanitize HTML
+- gunakan allowlist tag
+- gunakan allowlist attribute
+- jangan mengizinkan script
+- jangan mengizinkan event handler seperti onclick
+- jangan mengizinkan javascript: URL
 
-tampilkan confirmation modal.
+Pastikan input seperti:
 
-Contoh:
+<script>alert(1)</script>
 
---------------------------------
-        🗑
+tidak pernah dieksekusi.
 
-      Hapus Akun?
+Test juga payload seperti:
 
-Apakah Anda yakin ingin menghapus
-akun ini?
+<img src=x onerror=alert(1)>
 
-Tindakan ini dapat menghapus data
-terkait akun secara permanen dan
-tidak dapat dibatalkan.
+<svg onload=alert(1)>
 
-Ketik "HAPUS" untuk melanjutkan.
+javascript:alert(1)
 
-[________________]
+dan variasi encoded payload.
 
-[Batal]       [Hapus Akun]
---------------------------------
-
-Tombol "Hapus Akun" harus disabled
-sebelum user mengetik:
-
-HAPUS
-
-Case-insensitive boleh digunakan.
-
-Contoh:
-hapus
-HAPUS
-Hapus
-
-boleh dianggap valid.
-
---------------------------------------------------
-2.2 VISUAL WARNING
---------------------------------------------------
-
-Gunakan warna warning/error secukupnya.
-
-Jangan membuat seluruh halaman merah.
-
-Gunakan:
-- icon trash
-- border ringan
-- warning box
-- tombol destructive
-
-Design tetap mengikuti color system website.
+Jika ada user-generated content, pastikan output encoding diterapkan sesuai konteks.
 
 ==================================================
-2.3 DELETE PROCESS LOADING
+PHASE 9 — CONTENT SECURITY POLICY
 ==================================================
 
-Setelah user melakukan konfirmasi:
+Implementasikan Content Security Policy yang sesuai dengan aplikasi.
 
-Tampilkan modal progress.
+Gunakan CSP untuk membatasi:
 
-Contoh:
+- script-src
+- style-src
+- img-src
+- font-src
+- connect-src
+- frame-src
+- object-src
+- base-uri
+- form-action
 
---------------------------------
-        🗑
-     Menghapus akun
+Jangan langsung menggunakan:
 
-Mohon tunggu, akun sedang diproses.
+script-src 'unsafe-inline' *
 
-✓ Memeriksa data
+tanpa alasan.
 
-● Menghapus akun
+Hindari wildcard yang terlalu permisif.
 
-○ Membersihkan data terkait
+Jika project menggunakan external service tertentu, whitelist hanya domain yang benar-benar diperlukan.
 
-○ Selesai
+Tujuan:
 
---------------------------------
-
-Gunakan progress animation yang smooth.
-
-Tahapan:
-
-1. "Memeriksa data"
-2. "Menghapus akun"
-3. "Membersihkan data terkait"
-4. "Selesai"
-
-Status harus mencerminkan proses aktual sebanyak mungkin.
-
-Jangan membuat progress palsu yang menunggu terlalu lama.
+Jika terdapat script injection, browser tetap memiliki lapisan perlindungan tambahan.
 
 ==================================================
-2.4 DELETE SUCCESS
+PHASE 10 — SECURITY HEADERS
 ==================================================
 
-Jika berhasil:
+Tambahkan security headers yang sesuai.
 
-Tampilkan:
+Audit dan implementasikan:
 
-✓
+- Content-Security-Policy
+- Strict-Transport-Security
+- X-Content-Type-Options
+- Referrer-Policy
+- Permissions-Policy
+- frame-ancestors melalui CSP
 
-"Akun berhasil dihapus"
+Jangan menambahkan header yang sudah deprecated hanya demi checklist.
 
-"Data akun dan data terkait telah
-dihapus dari sistem."
-
-Button:
-
-"Kembali ke dashboard"
-
-atau
-
-"Selesai"
-
-Jika behavior existing membutuhkan redirect:
-
-gunakan redirect yang sudah ada.
-
-Jangan membuat routing baru jika tidak diperlukan.
+Jika menggunakan Nginx/reverse proxy, pastikan konfigurasi tidak bertentangan dengan backend.
 
 ==================================================
-2.5 DELETE ERROR
+PHASE 11 — CORS
 ==================================================
 
-Jika gagal:
+Audit CORS.
 
-✕
+Jangan menggunakan:
 
-"Gagal menghapus akun"
+Access-Control-Allow-Origin: *
 
-"Terjadi masalah saat menghapus akun."
+untuk endpoint yang membutuhkan authentication atau membawa data sensitif.
 
-Button:
-
-"Coba lagi"
-
-dan
-
-"Tutup"
-
-Jangan reload halaman.
-
-Jangan menghapus data dari UI jika backend sebenarnya gagal.
-
-UI harus mengikuti response backend.
-
-==================================================
-3. TOAST NOTIFICATION
-==================================================
-
-Gunakan toast notification yang konsisten.
-
-SUCCESS:
-
-✓
-"Undangan berhasil dikirim."
-
-ERROR:
-
-✕
-"Gagal mengirim undangan."
-
-WARNING:
-
-⚠
-"Email sudah terdaftar."
-
-DELETE SUCCESS:
-
-✓
-"Akun berhasil dihapus."
-
-DELETE ERROR:
-
-✕
-"Gagal menghapus akun."
-
-Toast:
-- muncul dengan slide/fade
-- memiliki duration yang wajar
-- bisa ditutup manual
-- tidak menutupi tombol penting
-- responsive mobile
-
-==================================================
-4. ANIMATION SYSTEM
-==================================================
-
-Gunakan animasi yang subtle dan profesional.
-
-Prioritas:
-
-- opacity
-- translate
-- scale
-- spinner
-- progress
-- icon morph/check
-- skeleton jika memang diperlukan
-
-Hindari:
-- animasi berlebihan
-- bouncing berlebihan
-- animasi yang terlalu lama
-- efek flashy
-- confetti berlebihan
-
-Website adalah portal administrasi kesehatan desa.
-
-Feel yang diinginkan:
-
-"modern"
-"professional"
-"trusted"
-"clean"
-"friendly"
-
-Bukan seperti aplikasi gaming.
-
-==================================================
-5. RESPONSIVE
-==================================================
-
-Semua modal harus responsive.
-
-Desktop:
-
-Modal sekitar 420–520px.
-
-Mobile:
-
-Modal hampir full width dengan margin aman.
-
-Pastikan:
-- tidak overflow horizontal
-- tombol tidak keluar layar
-- text tidak terpotong
-- progress step dapat berubah menjadi vertical jika layar kecil
-- toast tidak menutupi bottom navigation
-- input "HAPUS" mudah digunakan di mobile
-
-==================================================
-6. ACCESSIBILITY
-==================================================
+Gunakan whitelist origin yang memang diperlukan.
 
 Pastikan:
 
-- modal menggunakan proper dialog semantics
-- keyboard navigation
-- ESC dapat menutup modal jika kondisi memungkinkan
-- focus management
-- button disabled state jelas
-- loading state tidak dapat di-submit dua kali
-- aria-label pada icon-only button
-- contrast tetap bagus pada light dan dark mode
+- credentials
+- allowed methods
+- allowed headers
+
+dikonfigurasi dengan benar.
+
+Jangan mengizinkan arbitrary origin.
 
 ==================================================
-7. DARK MODE + LIGHT MODE
+PHASE 12 — CSRF
 ==================================================
 
-Pertahankan light mode dan dark mode existing.
+Jika authentication menggunakan cookie/session:
 
-Pastikan:
+implementasikan CSRF protection untuk request yang mengubah state.
 
-Light:
-- background tetap bersih
-- card putih
-- border subtle
-- teal sebagai primary
-- destructive menggunakan warna merah secara proporsional
+Audit:
 
-Dark:
-- jangan menggunakan pure black jika design system existing tidak menggunakannya
-- gunakan surface dark existing
-- border tetap terlihat
-- text memiliki contrast yang baik
-- modal tetap terlihat jelas
+POST
+PUT
+PATCH
+DELETE
 
-Jangan membuat dark mode dan light mode terasa seperti dua aplikasi berbeda.
+Pastikan endpoint sensitif tidak dapat dipanggil oleh website pihak lain secara tidak sah.
 
 ==================================================
-8. BACKEND SAFETY
+PHASE 13 — RATE LIMITING
 ==================================================
 
-Jangan hanya memperbaiki frontend.
+Tambahkan rate limit pada endpoint sensitif seperti:
 
-Untuk INVITE:
-- validasi role/tier di backend
-- validasi email
-- prevent duplicate invite jika diperlukan
-- handle email service error
-- return response yang jelas
+- login
+- register
+- forgot password
+- OTP jika ada
+- Google authentication callback jika relevan
+- API sensitif
+- scan/QR verification
+- invitation
+- email sending
+- account deletion
+- data export
 
-Untuk DELETE:
-- authorization wajib dilakukan backend
-- user tidak boleh menghapus akun yang bukan kewenangannya
-- pastikan permission role tetap berjalan
-- jangan melakukan delete jika authorization gagal
-- return error response yang jelas
+Jangan membuat rate limit terlalu ketat sehingga mengganggu penggunaan normal.
 
-Jangan expose:
+Gunakan konfigurasi yang masuk akal dan dapat disesuaikan melalui environment/config.
+
+==================================================
+PHASE 14 — QR CODE SECURITY
+==================================================
+
+Project menggunakan QR code.
+
+Pastikan QR code TIDAK berisi:
+
+- NIK plaintext
+- KK plaintext
+- password
+- access token permanen
+- data kesehatan
+
+Jika QR digunakan sebagai identifier:
+
+gunakan opaque random identifier/token.
+
+Token harus:
+
+- sulit ditebak
+- memiliki entropy tinggi
+- memiliki expiration jika memang diperlukan
+- dapat direvoke
+- tidak mengandung informasi pribadi
+
+Jangan menggunakan:
+
+QR = NIK
+
+atau:
+
+QR = user_id sederhana
+
+==================================================
+PHASE 15 — FILE UPLOAD
+==================================================
+
+Jika project memiliki upload foto/profile/document:
+
+Audit:
+
+- MIME validation
+- extension validation
+- file size limit
+- filename sanitization
+- storage location
+- executable file prevention
+- path traversal
+- SVG upload
+- malicious image
+- double extension
+
+Jangan menyimpan upload user sebagai executable file.
+
+Jangan percaya extension dari browser.
+
+Validasi file di server.
+
+==================================================
+PHASE 16 — DATABASE SECURITY
+==================================================
+
+Audit query database.
+
+Pastikan semua query menggunakan parameter binding / ORM yang aman.
+
+Cari kemungkinan SQL Injection.
+
+Jangan membuat query seperti:
+
+"SELECT * FROM users WHERE name = '" + input + "'"
+
+Pastikan menggunakan ORM/query builder/parameterized query.
+
+Audit juga:
+
+- mass assignment
+- model fillable/guarded
+- database permissions
+- exposed database port
+- production database credentials
+- backup security
+
+==================================================
+PHASE 17 — ERROR HANDLING
+==================================================
+
+JANGAN expose error internal kepada user.
+
+Production response TIDAK BOLEH mengandung:
+
+- stack trace
+- SQL query
+- database credential
+- file path server
+- framework debug information
+- environment variables
+- internal exception details
+
+Contoh buruk:
+
+SQLSTATE...
+/var/www/project/app/...
+DATABASE_PASSWORD=...
+GEMINI_API_KEY=...
+
+Gunakan generic error response.
+
+Contoh:
+
+{
+  "message": "Terjadi kesalahan pada server."
+}
+
+Detail hanya dicatat secara aman di server log jika diperlukan.
+
+==================================================
+PHASE 18 — LOGGING
+==================================================
+
+Audit semua console.log, logger, debug output.
+
+Pastikan data berikut TIDAK masuk log plaintext:
+
+- password
+- NIK
+- KK
+- access token
+- refresh token
+- session ID
+- OAuth credential
 - API key
-- secret
-- token
-- credential
-- internal error detail
+- data kesehatan sensitif
+
+Jika diperlukan untuk debugging:
+
+gunakan masking/redaction.
 
 ==================================================
-9. EXISTING SYSTEM MUST REMAIN INTACT
+PHASE 19 — ENVIRONMENT & SECRET
 ==================================================
 
-Sebelum melakukan perubahan:
+Cari semua secret yang mungkin hardcoded.
 
-1. Inspect project structure.
-2. Cari komponen invite user existing.
-3. Cari API/service invite existing.
-4. Cari komponen delete account existing.
-5. Cari API/service delete existing.
-6. Cari design system existing.
-7. Cari implementation dark/light mode.
-8. Cari role/tier permission existing.
+Contoh:
 
-Gunakan komponen existing jika memungkinkan.
+API_KEY=
+DATABASE_PASSWORD=
+JWT_SECRET=
+GOOGLE_CLIENT_SECRET=
+TELEGRAM_TOKEN=
+GEMINI_API_KEY=
 
-Jangan membuat duplicate component jika sebenarnya sudah tersedia.
+Pastikan menggunakan environment variables.
 
-==================================================
-10. IMPLEMENTATION PRINCIPLE
-==================================================
+Pastikan file seperti:
 
-Gunakan prinsip:
+.env
+.env.local
 
-EXISTING LOGIC
-      ↓
-IMPROVE UX
-      ↓
-ADD LOADING STATE
-      ↓
-ADD PROGRESS STATE
-      ↓
-ADD SUCCESS / ERROR STATE
-      ↓
-ADD TOAST
-      ↓
-RESPONSIVE
-      ↓
-ACCESSIBILITY
+tidak ikut repository.
 
-Bukan:
+Audit juga:
 
-REWRITE EXISTING SYSTEM.
+- frontend environment variables
+- Docker environment
+- Nginx config
+- Git history jika memungkinkan
+
+PERHATIKAN:
+
+Semua environment variable yang digunakan frontend harus diasumsikan PUBLIC.
+
+Jangan pernah memasukkan secret backend ke bundle frontend.
 
 ==================================================
-11. FINAL CHECK
+PHASE 20 — DEPENDENCY SECURITY
 ==================================================
 
-Setelah implementasi selesai, lakukan pengecekan:
+Audit dependencies frontend dan backend.
 
-[ ] Invite Tier 1 berhasil
-[ ] Invite Tier 2 berhasil
-[ ] Invite Tier 3 berhasil
-[ ] Invite Tier 4 ditolak
-[ ] Invite Tier 5 ditolak
-[ ] Email duplicate ditangani
-[ ] Email server error ditangani
-[ ] Loading tidak bisa double submit
-[ ] Success state bekerja
-[ ] Error state bekerja
-[ ] Delete confirmation bekerja
-[ ] DELETE membutuhkan input "HAPUS"
-[ ] Delete loading bekerja
-[ ] Delete success bekerja
-[ ] Delete error bekerja
-[ ] Authorization backend tetap aman
-[ ] Mobile responsive
-[ ] Tablet responsive
-[ ] Desktop responsive
-[ ] Light mode bagus
-[ ] Dark mode bagus
-[ ] Tidak ada horizontal overflow
-[ ] Tidak ada regresi pada fitur existing
-[ ] Tidak ada console error
-[ ] Tidak ada TypeScript/ESLint error jika project menggunakannya
+Cari:
+
+- outdated dependency
+- known vulnerability
+- package yang tidak diperlukan
+- package mencurigakan
+- dependency yang memiliki akses berlebihan
+
+Gunakan package manager security audit yang sesuai dengan stack project.
+
+Jangan upgrade seluruh dependency secara membabi buta.
+
+Jika ada dependency vulnerable:
+
+- identifikasi
+- cek compatibility
+- upgrade ke versi aman jika memungkinkan
+- test setelah upgrade
 
 ==================================================
-12. OUTPUT YANG SAYA INGINKAN
+PHASE 21 — PRODUCTION SECURITY
 ==================================================
 
-Setelah selesai:
+Pastikan production:
 
-1. Jelaskan file apa saja yang diubah.
-2. Jelaskan perubahan yang dilakukan.
-3. Jelaskan API/service apa yang digunakan.
-4. Jelaskan apakah ada perubahan database.
-5. Jelaskan validation Tier yang diterapkan.
-6. Jelaskan bagaimana loading state bekerja.
-7. Jelaskan bagaimana error handling bekerja.
-8. Jalankan lint/build/test yang tersedia.
-9. Laporkan jika ada error yang belum dapat diperbaiki.
+- DEBUG disabled
+- source map dipertimbangkan sesuai kebutuhan
+- HTTPS digunakan
+- database tidak terbuka ke public internet jika tidak diperlukan
+- Redis tidak terbuka ke public internet
+- admin endpoint terlindungi
+- server error tidak expose informasi internal
+- directory listing disabled
+- unnecessary ports disabled
 
-INGAT:
+Jika menggunakan Docker:
 
-JANGAN MENGUBAH DESAIN WEBSITE SECARA BESAR-BESARAN.
+audit Dockerfile dan docker-compose.
 
-JANGAN MENGUBAH HALAMAN LAIN.
+Pastikan:
 
-JANGAN MENGUBAH FITUR EXISTING.
+- tidak menjalankan container sebagai root jika tidak diperlukan
+- tidak memasukkan secret ke image
+- tidak expose port database secara publik jika tidak diperlukan
+- gunakan minimal base image jika memungkinkan
+- jangan menyimpan credential di Dockerfile
 
-Fokus hanya meningkatkan UX:
+==================================================
+PHASE 22 — FRONTEND SECURITY
+==================================================
 
-INVITE VIA EMAIL
-+
-DELETE ACCOUNT
+Audit frontend.
 
-dengan loading animation, progress state,
-confirmation, success/error state, toast,
-responsive design, accessibility,
-dan validasi role/tier.
+Pastikan:
+
+- tidak ada sensitive data yang tersimpan di localStorage tanpa alasan
+- tidak ada API key secret di bundle
+- tidak ada NIK/KK di URL
+- tidak ada sensitive data di query string
+- tidak ada sensitive data di browser console
+- tidak menggunakan unsafe HTML rendering
+- API error tidak menampilkan internal error
+- UI permission bukan satu-satunya security layer
+
+Jika frontend membutuhkan data sensitif:
+
+pastikan backend hanya memberikan data yang benar-benar diperlukan.
+
+==================================================
+PHASE 23 — ACCOUNT DELETION & LOGOUT
+==================================================
+
+Audit logout.
+
+Logout harus:
+
+- invalidate session/token
+- clear authentication state
+- clear secure cookies sesuai mekanisme authentication
+- tidak dapat digunakan kembali setelah logout
+
+Untuk account deletion:
+
+- harus membutuhkan authorization
+- jangan dapat dilakukan oleh user lain
+- gunakan confirmation
+- gunakan re-authentication jika diperlukan untuk tindakan sensitif
+- jangan expose data account yang dihapus
+
+Animasi logout boleh tetap dipertahankan karena ini bagian UI.
+
+Namun animasi TIDAK BOLEH menjadi satu-satunya proses logout.
+
+==================================================
+PHASE 24 — TEST SECURITY
+==================================================
+
+Setelah implementasi selesai, lakukan security testing.
+
+Test minimal:
+
+1. User biasa mencoba membuka endpoint admin.
+2. Warga mencoba membuka data warga lain.
+3. Warga mencoba mengubah data warga lain.
+4. Nakes mencoba mengakses fungsi admin.
+5. User mencoba mengganti ID pada URL/API.
+6. User mencoba mengirim role=admin.
+7. User mencoba mengirim permission=admin.
+8. SQL injection payload.
+9. XSS payload.
+10. HTML injection.
+11. Path traversal.
+12. Invalid file upload.
+13. Oversized request.
+14. Brute-force login.
+15. Endpoint tanpa authentication.
+16. Endpoint dengan authentication tetapi tanpa authorization.
+17. CORS test.
+18. CSRF test jika applicable.
+19. Response JSON sensitive data exposure.
+20. Browser DevTools Network inspection untuk memastikan response tidak membawa data yang tidak diperlukan.
+
+==================================================
+PHASE 25 — API RESPONSE AUDIT
+==================================================
+
+Ini WAJIB.
+
+Gunakan browser DevTools → Network atau automated testing untuk memeriksa response API.
+
+Untuk setiap endpoint:
+
+- request apa?
+- siapa yang boleh mengakses?
+- data apa yang dikirim?
+- apakah ada NIK?
+- apakah ada KK?
+- apakah ada password?
+- apakah ada token?
+- apakah ada internal ID?
+- apakah ada data warga lain?
+- apakah ada field database yang sebenarnya tidak diperlukan?
+
+Hapus field yang tidak diperlukan dari response.
+
+Jangan hanya menyembunyikannya menggunakan CSS atau JavaScript.
+
+Jika data sudah dikirim ke browser, data tersebut dianggap sudah terekspos kepada client.
+
+==================================================
+PHASE 26 — SECURITY TEST ACCOUNT
+==================================================
+
+Jika perlu membuat akun testing, gunakan data dummy.
+
+JANGAN menggunakan NIK atau KK asli untuk security testing.
+
+Gunakan contoh:
+
+NIK:
+0000000000000000
+
+KK:
+0000000000000000
+
+dan data dummy lainnya.
+
+==================================================
+PHASE 27 — JANGAN MERUSAK EXISTING FEATURE
+==================================================
+
+Setelah security hardening:
+
+test kembali seluruh flow:
+
+PUBLIC:
+- Landing page
+- Informasi
+- Tim kesehatan
+- Artikel
+- Dokumentasi
+
+AUTH:
+- Login
+- Logout
+- Google Login
+- Session
+
+WARGA:
+- Dashboard
+- QR
+- Data kesehatan
+- Riwayat
+- Profil
+- Informasi
+
+NAKES:
+- Dashboard
+- Warga
+- Pemeriksaan
+- Riwayat
+- Profil
+- QR Scanner
+
+ADMIN:
+- Dashboard
+- Warga
+- Verifikasi
+- Akun
+- Role management
+- Manajemen data
+
+Pastikan security improvement tidak merusak flow existing.
+
+==================================================
+PHASE 28 — SECURITY REPORT
+==================================================
+
+Setelah selesai, buat laporan dalam bentuk:
+
+SECURITY AUDIT RESULT
+
+1. CRITICAL
+2. HIGH
+3. MEDIUM
+4. LOW
+5. INFO
+
+Untuk setiap vulnerability:
+
+- Nama vulnerability
+- Lokasi file
+- Endpoint terkait
+- Risiko
+- Penyebab
+- Perbaikan yang dilakukan
+- Cara melakukan testing
+- Status
+
+Contoh:
+
+[HIGH]
+Sensitive Data Exposure
+
+Location:
+GET /api/warga/:id
+
+Problem:
+Endpoint mengembalikan seluruh object warga termasuk NIK dan KK.
+
+Fix:
+Menggunakan explicit API Resource dan field-level authorization.
+
+Status:
+FIXED
+
+==================================================
+FINAL REQUIREMENT
+==================================================
+
+JANGAN hanya membuat laporan.
+
+Lakukan perubahan nyata pada source code.
+
+Urutan kerja:
+
+1. Audit
+2. Identifikasi vulnerability
+3. Prioritaskan vulnerability
+4. Implementasikan fix
+5. Test
+6. Regression test
+7. Audit ulang
+8. Buat security report
+
+Jika menemukan security issue yang berpotensi menyebabkan kebocoran NIK/KK/data kesehatan, prioritaskan issue tersebut terlebih dahulu.
+
+JANGAN menghapus fitur hanya karena sulit diamankan.
+
+Jika suatu fitur memang memiliki desain yang tidak aman, ubah implementasinya menjadi lebih aman sambil mempertahankan fungsi utamanya.
+
+Terakhir, tampilkan:
+
+- daftar file yang diubah
+- daftar endpoint yang diperbaiki
+- daftar security issue yang ditemukan
+- daftar security issue yang sudah FIXED
+- daftar issue yang masih membutuhkan konfigurasi server/deployment
+- hasil security test
+- potensi breaking change
+- rekomendasi lanjutan
+
+Jangan menyatakan "aman 100%".
+Nyatakan secara objektif vulnerability apa yang sudah diperbaiki dan apa yang masih perlu diperhatikan.

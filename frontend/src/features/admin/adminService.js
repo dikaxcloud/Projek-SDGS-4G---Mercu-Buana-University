@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { isValidEmail, rateLimit, sanitizeErrorMessage, sanitizeText } from '../../utils/sanitize'
 
 const demo = {
   summary: { totalCitizens: 128, totalHouseholds: 50, totalRts: 5, totalHealthWorkers: 3, todayExaminations: 6, rtDistribution: [1, 2, 3, 4, 5].map((n) => ({ label: `RT ${String(n).padStart(2, '0')}`, total: 10 })) },
@@ -33,6 +34,10 @@ export async function setUserRoleByEmail(email, role) {
 /** Invite a new user (nakes/admin/warga) via Supabase Auth email invite.
  *  Tier-aware: Owner can invite tier 2/3/4/5, Senior can invite tier 3/4/5. */
 export async function inviteUser(email, role, fullName = '', tier = null) {
+  if (!rateLimit('invite_user', 5, 60000)) throw new Error('Terlalu banyak undangan. Coba lagi dalam 1 menit.')
+  const cleanEmail = sanitizeText(email, 254).toLowerCase()
+  if (!isValidEmail(cleanEmail)) throw new Error('Format email tidak valid')
+  const cleanName = sanitizeText(fullName, 120)
   if (!supabase) return { status: 'invited', role }
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) throw new Error('Belum login')
@@ -47,12 +52,12 @@ export async function inviteUser(email, role, fullName = '', tier = null) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${freshSession.access_token}`,
     },
-    body: JSON.stringify({ email, role, full_name: fullName.trim() || undefined, tier: tier || undefined }),
+    body: JSON.stringify({ email: cleanEmail, role, full_name: cleanName || undefined, tier: tier || undefined }),
   })
   const json = await res.json().catch(() => ({}))
   if (!res.ok) {
-    if (res.status === 401) throw new Error(json.detail || json.error || json.message || 'Sesi tidak valid, silakan login ulang')
-    throw new Error(json.error || json.message || 'Undangan gagal dikirim')
+    if (res.status === 401) throw new Error(sanitizeErrorMessage(json.detail || json.error || json.message || 'Sesi tidak valid, silakan login ulang'))
+    throw new Error(sanitizeErrorMessage(json.error || json.message || 'Undangan gagal dikirim'))
   }
   return json
 }

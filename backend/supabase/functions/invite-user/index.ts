@@ -1,11 +1,25 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendInviteEmailViaSmtp } from "./smtp.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+function getCorsHeaders(req: Request): Record<string, string> {
+  const raw = Deno.env.get("ALLOWED_ORIGINS") || Deno.env.get("SITE_URL") || ""
+  const allowed = raw.split(",").map((s) => s.trim()).filter(Boolean)
+  const origin = req.headers.get("origin") || ""
+  let allowOrigin = ""
+  if (allowed.length === 0) {
+    // Fallback: reflect request origin if env not yet configured (avoid breaking prod)
+    // Admin should set ALLOWED_ORIGINS=https://dika-web.web.id for strict whitelist
+    allowOrigin = origin || ""
+  } else {
+    allowOrigin = origin && allowed.includes(origin) ? origin : (allowed[0] || "")
+  }
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  }
+}
 
 const APP_NAME = "Desa Sehat Kenanga";
 const EMAIL_SUBJECT = `Undangan Akun - ${APP_NAME}`;
@@ -133,6 +147,11 @@ async function sendInviteEmailViaResend(opts: {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+  if (!corsHeaders["Access-Control-Allow-Origin"]) {
+    // No allowed origin configured or request origin not whitelisted -> reject preflight
+    if (req.method === "OPTIONS") return new Response("Forbidden", { status: 403 })
+  }
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

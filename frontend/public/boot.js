@@ -1,0 +1,1 @@
+setTimeout(function () { var boot = document.getElementById('boot'); if (boot && !boot.classList.contains('boot-done')) { boot.classList.add('boot-done'); setTimeout(function () { if(boot.parentNode) boot.remove() }, 600) } }, 1200)

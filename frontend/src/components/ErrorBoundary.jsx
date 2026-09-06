@@ -12,7 +12,8 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    if (window.console) console.error('UI Error:', error, info?.componentStack)
+    if (import.meta.env.DEV && window.console) console.error('UI Error:', error?.message, info?.componentStack)
+    // Production: do not log full error/stack that may contain sensitive API response detail
   }
 
   render() {
@@ -23,7 +24,7 @@ export class ErrorBoundary extends Component {
             <h1 style={{ fontSize: 20, margin: '0 0 8px' }}>⚠️ Terjadi kesalahan tampilan</h1>
             <p style={{ fontSize: 14, color: '#4b5563', margin: '0 0 6px' }}>Halaman ini gagal dirender. Coba muat ulang; jika berulang, screenshot pesan di bawah dan laporkan ke developer.</p>
             <pre style={{ background: '#fef2f2', color: '#b42318', padding: 12, borderRadius: 10, fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-              {String(this.state.error?.message || this.state.error)}
+              {import.meta.env.DEV ? String(this.state.error?.message || this.state.error) : 'Terjadi kesalahan. Silakan muat ulang halaman. Jika berlanjut, hubungi admin desa.'}
             </pre>
             <button className="btn btn-primary" onClick={() => window.location.reload()}>Muat Ulang</button>
           </div>

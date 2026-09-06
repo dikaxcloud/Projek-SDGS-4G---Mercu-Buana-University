@@ -52,8 +52,7 @@
         <div class="boot-dots"><span></span><span></span><span></span></div>
       </div>
     </div>
-    <script>/* Lighthouse: jangan block LCP 3.8s — fallback tetap cepat */
-    setTimeout(function () { var boot = document.getElementById('boot'); if (boot && !boot.classList.contains('boot-done')) { boot.classList.add('boot-done'); setTimeout(function () { if(boot.parentNode) boot.remove() }, 600) } }, 1200)</script>
+    <script src="/boot.js"></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

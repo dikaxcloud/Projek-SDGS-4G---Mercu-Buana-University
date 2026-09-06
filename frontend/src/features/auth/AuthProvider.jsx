@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { demoAccess, getAccess, signInWithGoogle, signOut } from './authService'
+import { clearOfflineUser } from '../../lib/offlineStore'
 
 const AuthContext = createContext(null)
 
@@ -46,7 +47,13 @@ export function AuthProvider({ children }) {
     signOutDemo: () => { setAccess(null); setSession(null) },
     signInWithGoogle: async () => { setError(''); try { await signInWithGoogle() } catch (err) { setError(err.message || 'Gagal masuk dengan Google.'); throw err } },
     refreshAccess: async () => { const next = await getAccess(); setAccess(next); return next },
-    signOut: async () => { await signOut(); setSession(null); setAccess(null) },
+    signOut: async () => {
+      try {
+        const uid = session?.user?.id || access?.user_id
+        if (uid) { try { await clearOfflineUser(uid) } catch {} }
+      } catch {}
+      await signOut(); setSession(null); setAccess(null)
+    },
   }), [access, error, loading, session])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

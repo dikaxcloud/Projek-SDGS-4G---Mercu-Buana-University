@@ -15,9 +15,11 @@ function openDb() {
   })
 }
 
+const OFFLINE_TTL_MS = 24 * 60 * 60 * 1000 // 24h - auto-expire stale queued health data
+
 export async function enqueueOfflineMutation(userId, mutation) {
   if (!userId) throw new Error('Sesi pengguna diperlukan.')
-  const item = { ...mutation, id: mutation.id || crypto.randomUUID(), userId, status: 'pending', createdAt: Date.now() }
+  const item = { ...mutation, id: mutation.id || crypto.randomUUID(), userId, status: 'pending', createdAt: Date.now(), ttl: OFFLINE_TTL_MS }
   const db = await openDb()
   return new Promise((resolve, reject) => {
     const tx = db.transaction('queue', 'readwrite')
@@ -34,7 +36,14 @@ export async function listOfflineMutations(userId) {
     return new Promise((resolve, reject) => {
       const tx = db.transaction('queue', 'readonly')
       const request = tx.objectStore('queue').getAll()
-      request.onsuccess = () => resolve(request.result.filter((item) => item.userId === userId))
+      request.onsuccess = () => {
+        const now = Date.now()
+        const valid = request.result.filter((item) => item.userId === userId && (!item.createdAt || now - item.createdAt < OFFLINE_TTL_MS))
+        const expired = request.result.filter((item) => item.createdAt && now - item.createdAt >= OFFLINE_TTL_MS)
+        // cleanup expired in background
+        if (expired.length) { expired.forEach((item) => { try { clearOfflineMutation(item.id) } catch {} }) }
+        resolve(valid)
+      }
       request.onerror = () => reject(request.error)
     })
   } catch { return [] }

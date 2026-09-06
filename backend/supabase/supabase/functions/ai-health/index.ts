@@ -8,10 +8,28 @@
 // - Medical safety: rule engine classifies; AI only explains. No diagnosis.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGINS') ?? '*',
+function getCorsHeaders(req: Request): Record<string, string> {
+  const raw = Deno.env.get('ALLOWED_ORIGINS') || Deno.env.get('SITE_URL') || ''
+  const allowed = raw.split(',').map((s) => s.trim()).filter(Boolean)
+  const origin = req.headers.get('origin') || ''
+  let allowOrigin = ''
+  if (allowed.length === 0) {
+    allowOrigin = origin || ''
+  } else {
+    allowOrigin = origin && allowed.includes(origin) ? origin : (allowed[0] || '')
+  }
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  }
+}
+const CORS_HEADERS_FALLBACK = {
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGINS')?.split(',')[0]?.trim() || Deno.env.get('SITE_URL') || '',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Vary': 'Origin',
 }
 
 const DISCLAIMER = 'Analisis AI ini bersifat edukatif dan bukan diagnosis medis. Jika Anda memiliki keluhan atau kondisi khusus, konsultasikan dengan tenaga kesehatan.'
@@ -27,12 +45,13 @@ const RATE_LIMIT_ANALYSIS_DAILY = Number(Deno.env.get('RATE_LIMIT_ANALYSIS_DAILY
 const RATE_LIMIT_TREND_DAILY = Number(Deno.env.get('RATE_LIMIT_TREND_DAILY') ?? 30)
 const RATE_LIMIT_EDUCATION_DAILY = Number(Deno.env.get('RATE_LIMIT_EDUCATION_DAILY') ?? 30)
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } })
+function json(body: unknown, status = 200, req?: Request) {
+  const headers = req ? getCorsHeaders(req) : CORS_HEADERS_FALLBACK
+  return new Response(JSON.stringify(body), { status, headers: { ...headers, 'Content-Type': 'application/json' } })
 }
 
-function fail(error: string, status = 400) {
-  return json({ ok: false, error }, status)
+function fail(error: string, status = 400, req?: Request) {
+  return json({ ok: false, error }, status, req)
 }
 
 type Metrics = {
@@ -200,8 +219,10 @@ async function countRecentRequests(admin: any, userId: string, action: string): 
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS })
-  if (req.method !== 'POST') return fail('Metode tidak didukung.', 405)
+  const reqCors = getCorsHeaders(req)
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: reqCors })
+  if (!reqCors['Access-Control-Allow-Origin'] && req.headers.get('origin')) return fail('Origin tidak diizinkan.', 403, req)
+  if (req.method !== 'POST') return fail('Metode tidak didukung.', 405, req)
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!

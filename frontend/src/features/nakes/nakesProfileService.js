@@ -114,17 +114,28 @@ export async function updateMyNakesProfile(values) {
   }
 }
 
+const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+const ALLOWED_AVATAR_EXTS = ['jpg', 'jpeg', 'png', 'webp']
+
+function sanitizeAvatarFilename(name) {
+  const ext = String(name || '').split('.').pop()?.toLowerCase() || ''
+  if (!ALLOWED_AVATAR_EXTS.includes(ext)) throw new Error('Format gambar harus JPG, PNG, atau WEBP')
+  return ext
+}
+
 export async function uploadNakesAvatar(file) {
   if (!file) throw new Error('File tidak valid')
   if (file.size > 2 * 1024 * 1024) throw new Error('Foto maksimal 2MB')
-  if (!file.type.startsWith('image/')) throw new Error('Hanya file gambar')
+  if (!ALLOWED_AVATAR_TYPES.includes(file.type)) throw new Error('Hanya file JPG, PNG, atau WEBP yang diizinkan')
+  if (file.type === 'image/svg+xml') throw new Error('Format SVG tidak diizinkan')
+  const ext = sanitizeAvatarFilename(file.name)
+  if (file.name.includes('..') || file.name.includes('/') || file.name.includes('\\')) throw new Error('Nama file tidak valid')
   if (!isSupabaseConfigured || !supabase) {
     // demo: return base64
     return await fileToDataUrl(file)
   }
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Belum login')
-  const ext = file.name.split('.').pop() || 'jpg'
   const path = `${user.id}/avatar-${Date.now()}.${ext}`
   // Try storage bucket 'avatars' or 'health-worker-avatars'
   let bucket = 'avatars'
@@ -141,8 +152,8 @@ export async function uploadNakesAvatar(file) {
     const { data } = supabase.storage.from(bucket).getPublicUrl(path)
     return data.publicUrl
   } catch (e) {
-    // fallback to base64
-    console.warn('Storage upload failed, fallback to base64', e.message)
+    // fallback to base64 - log generic only, no leaked error detail in prod
+    if (import.meta.env.DEV) console.warn('Storage upload fallback', e?.message)
     const dataUrl = await fileToDataUrl(file)
     try { localStorage.setItem(LOCAL_AVATAR_KEY(user.id), dataUrl) } catch {}
     return dataUrl

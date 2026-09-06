@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import { demoTimeline } from '../../services/demoData'
 import { clearOfflineMutation, enqueueOfflineMutation, listOfflineMutations, markOfflineMutationFailed } from '../../lib/offlineStore'
+import { rateLimit, sanitizeErrorMessage, sanitizeText } from '../../utils/sanitize'
 
 const demoCitizens = [
   { citizen_id: 'demo-citizen-001', full_name: 'Budi Santoso', nik_last4: '0001', household_number: 'KK-01-01', rt_code: 'RT 01', gender: 'laki-laki', age: 46 },
@@ -41,7 +42,8 @@ export function isDemoHealthSession(access) {
 }
 
 export async function searchCitizens(query = '') {
-  const cleanQuery = query.trim().slice(0, 60)
+  if (!rateLimit('search_citizens', 20, 60000)) throw new Error('Terlalu banyak pencarian. Tunggu sebentar.')
+  const cleanQuery = sanitizeText(query, 60).replace(/[%_\\]/g, '')
   if (!supabase) return demoCitizens.filter((citizen) => !cleanQuery || [citizen.full_name, citizen.household_number, citizen.rt_code].some((value) => value.toLowerCase().includes(cleanQuery.toLowerCase())))
   const { data, error } = await supabase.rpc('search_citizens', { p_query: cleanQuery, p_limit: 20 })
   if (error) throw error
