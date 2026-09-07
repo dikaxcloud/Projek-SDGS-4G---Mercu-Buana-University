@@ -1,7 +1,56 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Clock3, RefreshCw, Lightbulb, HeartPulse } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { getPublicArticleBySlug } from '../features/health/healthService'
+
+const CATEGORY_IMAGE = {
+  'Tekanan Darah': 'memahami-tekanan-darah-800.webp',
+  'Gula Darah': 'mengenal-gula-darah-800.webp',
+  'Pola Makan': 'pola-makan-800.webp',
+  'Aktivitas Fisik': 'aktivitas-fisik-ringan-untuk-semua-800.webp',
+  'Kesehatan Lansia': 'menjaga-kesehatan-lansia-800.webp',
+  'Kesehatan Anak': 'imunisasi-dan-kesehatan-anak-800.webp',
+  'Pertolongan Pertama': 'pertolongan-pertama-luka-ringan-800.webp',
+  'Pencegahan Penyakit': 'cuci-tangan-pencegahan-paling-mudah-800.webp',
+  'Pemeriksaan Rutin': 'kapan-harus-menghubungi-petugas-800.webp',
+  'Kesehatan Keluarga': 'satu-keluarga-sehat-satu-desa-kuat-800.webp',
+}
+const TITLE_KEYWORDS = [
+  { kw: ['tekanan darah', 'hipertensi'], file: 'cara-menjaga-tekanan-darah-tetap-sehat-800.webp' },
+  { kw: ['gula darah', 'diabetes'], file: 'mengenal-gula-darah-800.webp' },
+  { kw: ['pola makan', 'gizi'], file: 'pola-makan-800.webp' },
+  { kw: ['aktivitas', 'fisik'], file: 'aktivitas-fisik-ringan-untuk-semua-800.webp' },
+  { kw: ['lansia'], file: 'menjaga-kesehatan-lansia-800.webp' },
+  { kw: ['anak', 'imunisasi', 'balita'], file: 'imunisasi-dan-kesehatan-anak-800.webp' },
+  { kw: ['posyandu'], file: 'rutin-ke-posyandu-kenapa-penting-800.webp' },
+  { kw: ['luka', 'pertolongan'], file: 'pertolongan-pertama-luka-ringan-800.webp' },
+  { kw: ['cuci tangan', 'pencegahan'], file: 'cuci-tangan-pencegahan-paling-mudah-800.webp' },
+  { kw: ['petugas'], file: 'kapan-harus-menghubungi-petugas-800.webp' },
+  { kw: ['keluarga'], file: 'satu-keluarga-sehat-satu-desa-kuat-800.webp' },
+]
+function getDetailImage(article) {
+  if (article?.thumbnail_url) return article.thumbnail_url
+  const title = (article?.title || '').toLowerCase()
+  for (const e of TITLE_KEYWORDS) if (e.kw.some(k => title.includes(k))) return `/images/${e.file}`
+  if (article?.category && CATEGORY_IMAGE[article.category]) return `/images/${CATEGORY_IMAGE[article.category]}`
+  return '/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'
+}
+function getDetailThumb(item) {
+  if (item?.thumbnail_url) return item.thumbnail_url
+  const title = (item?.title || '').toLowerCase()
+  for (const e of TITLE_KEYWORDS) if (e.kw.some(k => title.includes(k))) return `/images/${e.file}`
+  if (item?.category && CATEGORY_IMAGE[item.category]) return `/images/${CATEGORY_IMAGE[item.category]}`
+  return '/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  try { return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) } catch { return '' }
+}
+function estimateReadMinutes(text = '') {
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  return Math.max(2, Math.ceil(words / 180))
+}
 
 export function ArticleDetailPage() {
   const { slug } = useParams()
@@ -21,52 +70,195 @@ export function ArticleDetailPage() {
 
   const article = data?.article
 
+  if (error) {
+    return (
+      <main className="article-detail-page"><div className="container narrow-container" style={{ paddingTop: 18 }}>
+        <Link className="back-link" to="/informasi-kesehatan"><ArrowLeft size={15} /> Semua artikel</Link>
+        <div className="article-state article-state--error" style={{ marginTop: 24 }} role="alert">
+          <div className="article-state-icon">!</div>
+          <h3>Informasi belum dapat dimuat</h3>
+          <p>Silakan coba lagi beberapa saat.</p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()}><RefreshCw size={15} /> Coba lagi</button>
+        </div>
+      </div></main>
+    )
+  }
+
+  if (loading) {
+    return (
+      <main className="article-detail-page"><div className="container narrow-container" style={{ paddingTop: 18 }}>
+        <Link className="back-link" to="/informasi-kesehatan"><ArrowLeft size={15} /> Semua artikel</Link>
+        <div className="detail-skeleton" aria-hidden="true">
+          <div className="skeleton skeleton-badge" style={{ marginTop: 20 }} />
+          <div className="skeleton" style={{ height: 36, width: '85%', marginTop: 14, borderRadius: 10 }} />
+          <div className="skeleton" style={{ height: 36, width: '60%', marginTop: 10, borderRadius: 10 }} />
+          <div className="skeleton" style={{ height: 14, width: 220, marginTop: 16, borderRadius: 999 }} />
+          <div className="skeleton skeleton-image" style={{ height: 340, marginTop: 18, borderRadius: 20 }} />
+          <div className="skeleton" style={{ height: 14, width: '100%', marginTop: 18 }} />
+          <div className="skeleton" style={{ height: 14, width: '96%', marginTop: 10 }} />
+          <div className="skeleton" style={{ height: 14, width: '92%', marginTop: 10 }} />
+        </div>
+      </div></main>
+    )
+  }
+
+  if (!article) {
+    return (
+      <main className="article-detail-page"><div className="container narrow-container" style={{ paddingTop: 18 }}>
+        <Link className="back-link" to="/informasi-kesehatan"><ArrowLeft size={15} /> Semua artikel</Link>
+        <div className="article-state" style={{ marginTop: 24 }}>
+          <h3>Artikel tidak ditemukan</h3>
+          <p>Artikel mungkin telah dipindahkan atau belum tersedia.</p>
+          <Link to="/informasi-kesehatan" className="btn btn-primary">Lihat artikel lain</Link>
+        </div>
+      </div></main>
+    )
+  }
+
+  const paragraphs = (article.content || '').split(/\n\s*\n/).filter(Boolean)
+  const readingMinutes = estimateReadMinutes((article.content || '') + ' ' + (article.summary || ''))
+  const heroSrc = getDetailImage(article)
+  // HANYA file -800.webp yang ada di /public/images — jangan generate 1200w non-existent (404 di mobile)
+  const heroSrcSet = `${heroSrc} 800w`
+
   return (
-    <main className="dashboard-page"><div className="container narrow-container">
-      <Link className="back-link" to="/informasi-kesehatan"><ArrowLeft size={15} /> Semua artikel</Link>
-      {error && <div className="staff-alert" role="alert">{error}<button className="btn btn-ghost" onClick={() => window.location.reload()}><RefreshCw size={15} /> Muat ulang</button></div>}
-      {loading && <p className="muted-text">Memuat artikel...</p>}
-      {!loading && !error && article && (
-        <article>
-          <small className="eyebrow">{article.category || 'Umum'}</small>
-          <h1 className="display" style={{ fontSize: 'clamp(28px, 5vw, 40px)', margin: '8px 0 6px' }}>{article.title}</h1>
-          <p style={{ color: 'var(--muted)', fontSize: 13 }}>
-            Diperbarui {new Date(article.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
-          {article.thumbnail_url && <img src={article.thumbnail_url} alt={article.title} style={{ width: '100%', borderRadius: 16, margin: '12px 0' }} loading="lazy" />}
-          <div style={{ background: '#f0faf7', border: '1px solid var(--line)', borderRadius: 14, padding: 14, margin: '14px 0', fontSize: 14.5, lineHeight: 1.6 }}>
-            <strong>Ringkasan:</strong> {article.summary}
+    <main className="article-detail-page">
+      <div className="container detail-layout">
+        <div className="detail-main">
+          <Link className="back-link" to="/informasi-kesehatan"><ArrowLeft size={15} /> Semua artikel</Link>
+
+          <div className="detail-eyebrow">{article.category || 'Umum'}</div>
+          <h1 className="detail-title display">{article.title}</h1>
+          <div className="detail-meta">
+            <span>{formatDate(article.updated_at)} </span>
+            <span className="dot">•</span>
+            <span><Clock3 size={12} aria-hidden="true" /> {readingMinutes} menit baca</span>
+            <span className="dot">•</span>
+            <span>Desa Sehat Kenanga</span>
           </div>
 
-          <div style={{ fontSize: 15.5, lineHeight: 1.75 }}>
-            {(article.content || '').split(/\n\s*\n/).map((paragraph, index) => (
-              <p key={index} style={{ marginTop: 0, marginBottom: 14, whiteSpace: 'pre-line' }}>{paragraph}</p>
-            ))}
+          <div className="detail-hero-image">
+            <img
+              src={heroSrc}
+              srcSet={heroSrcSet}
+              sizes="(max-width: 900px) 100vw, 760px"
+              alt={article.title}
+              width={1100}
+              height={620}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              onError={(e) => {
+                const fallback = '/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'
+                if (e.currentTarget.src !== window.location.origin + fallback) {
+                  e.currentTarget.src = fallback
+                  e.currentTarget.srcSet = `${fallback} 800w`
+                } else {
+                  e.currentTarget.style.display = 'none'
+                  const ph = e.currentTarget.nextElementSibling
+                  if (ph) ph.style.display = 'grid'
+                }
+              }}
+            />
+            <div className="detail-image-fallback" style={{ display: 'none' }} aria-hidden="true">
+              <span>Image unavailable</span>
+              <small>{article.title}</small>
+            </div>
           </div>
 
-          <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 14, padding: 14, fontSize: 13.5, lineHeight: 1.6 }}>
-            <strong>ℹ️ Catatan penting:</strong> Informasi pada artikel ini bersifat edukatif dan bukan diagnosis.
-            Untuk kondisi pribadi atau keluhan yang berlanjut, silakan berkonsultasi dengan tenaga kesehatan,
-            atau gunakan menu <Link to="/warga/bantuan" style={{ color: '#b42318', fontWeight: 700 }}>Bantuan Darurat</Link> bila mendesak.
+          <div className="detail-content">
+            <div className="detail-summary">
+              <strong>Ringkasan:</strong> {article.summary}
+            </div>
+
+            <div className="detail-body">
+              {paragraphs.map((paragraph, index) => {
+                const isHeading = paragraph.length < 90 && !paragraph.includes('.') && index !== 0 && paragraphs[index + 1]?.length > 80
+                if (isHeading) return <h2 key={index}>{paragraph}</h2>
+                if (paragraph.includes('\n- ') || paragraph.includes('\n•')) {
+                  const lines = paragraph.split('\n').filter(Boolean)
+                  const title = lines[0]?.length < 90 ? lines[0] : null
+                  const items = title ? lines.slice(1) : lines
+                  return (
+                    <div key={index}>
+                      {title && <h2>{title}</h2>}
+                      <ul>
+                        {items.map((li, liIdx) => <li key={liIdx}>{li.replace(/^[-•]\s*/, '')}</li>)}
+                      </ul>
+                    </div>
+                  )
+                }
+                return <p key={index}>{paragraph}</p>
+              })}
+            </div>
+
+            <div className="detail-highlight" role="note">
+              <div className="detail-highlight-icon"><Lightbulb size={16} aria-hidden="true" /></div>
+              <div>
+                <strong>💡 Tips:</strong> Lakukan pemeriksaan kesehatan secara rutin agar perubahan kondisi tubuh dapat diketahui lebih awal. Jika ada keluhan yang berlanjut, konsultasikan dengan tenaga kesehatan.
+              </div>
+            </div>
+
+            <div className="detail-note">
+              <strong>ℹ️ Catatan penting:</strong> Informasi pada artikel ini bersifat edukatif dan bukan diagnosis. Untuk kondisi pribadi atau keluhan yang berlanjut, silakan berkonsultasi dengan tenaga kesehatan, atau gunakan menu <Link to="/warga/bantuan" style={{ color: 'var(--teal)', fontWeight: 800 }}>Bantuan Darurat</Link> bila mendesak.
+            </div>
+
+            <div className="detail-cta">
+              <div>
+                <h3>Peduli kesehatan dimulai dari mengenal kondisi diri sendiri.</h3>
+                <p>Pantau hasil pemeriksaan kesehatan Anda melalui Desa Sehat Kenanga.</p>
+              </div>
+              <div className="detail-cta-actions">
+                <Link to="/warga/kesehatan" className="btn btn-primary">Pantau Kesehatan <ArrowUpRight size={15} /></Link>
+                <Link to="/informasi-kesehatan" className="btn btn-ghost">Kembali ke Artikel</Link>
+              </div>
+            </div>
           </div>
 
           {(data?.related ?? []).length > 0 && (
-            <section style={{ marginTop: 24 }}>
-              <h2 style={{ fontSize: '1.05rem' }}>Artikel terkait</h2>
-              <div className="record-table">
+            <section className="detail-related-mobile" aria-label="Artikel terkait">
+              <h2>Artikel terkait</h2>
+              <div className="detail-related-grid">
                 {data.related.map((item) => (
-                  <Link key={item.slug} to={`/artikel/${item.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div className="record-row">
-                      <div><strong>{item.title}</strong><small>{item.summary}</small></div>
-                      <ChevronRight size={16} />
+                  <Link key={item.slug} to={`/artikel/${item.slug}`} className="detail-related-card">
+                    <img src={getDetailThumb(item)} alt={item.title} width={84} height={64} loading="lazy" decoding="async" onError={(e)=>{e.currentTarget.src='/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'}} />
+                    <div>
+                      <small>{item.category || 'Umum'}</small>
+                      <strong>{item.title}</strong>
                     </div>
                   </Link>
                 ))}
               </div>
             </section>
           )}
-        </article>
-      )}
-    </div></main>
+        </div>
+
+        <aside className="detail-sidebar" aria-label="Artikel terkait">
+          {(data?.related ?? []).length > 0 && (
+            <>
+              <h3>Artikel terkait</h3>
+              <div className="detail-sidebar-list">
+                {data.related.slice(0, 3).map((item) => (
+                  <Link key={item.slug} to={`/artikel/${item.slug}`} className="detail-sidebar-item">
+                    <img src={getDetailThumb(item)} alt={item.title} width={72} height={56} loading="lazy" decoding="async" onError={(e)=>{e.currentTarget.src='/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'}} />
+                    <div>
+                      <small>{item.category || 'Umum'}</small>
+                      <strong>{item.title}</strong>
+                      <span>Baca →</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+          <div className="detail-sidebar-cta">
+            <div className="detail-sidebar-cta-icon"><HeartPulse size={18} aria-hidden="true" /></div>
+            <strong>Butuh bantuan?</strong>
+            <p>Hubungi petugas desa jika ada keluhan mendesak.</p>
+            <Link to="/warga/bantuan" className="btn btn-primary btn-wide">Bantuan Darurat</Link>
+          </div>
+        </aside>
+      </div>
+    </main>
   )
 }
