@@ -9,6 +9,8 @@ export default defineConfig({
     minify: 'esbuild',
     cssMinify: 'esbuild',
     sourcemap: false,
+    // Landing mobile TBT: jangan preload heavy chunks di initial — browser parse mahal di CPU mid-tier
+    modulePreload: false,
     rollupOptions: {
       output: {
         manualChunks: {

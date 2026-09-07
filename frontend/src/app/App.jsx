@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { PublicLayout } from '../layouts/PublicLayout'
-import { CitizenLayout } from '../layouts/CitizenLayout'
-import { StaffLayout } from '../layouts/StaffLayout'
-import { AdminLayout } from '../layouts/AdminLayout'
-import { LandingPage } from '../pages/LandingPage'
 import { ProtectedRoute, RoleRoute, CitizenRoute } from '../features/auth/ProtectedRoute'
+
+const PublicLayout = lazy(() => import('../layouts/PublicLayout').then(m => ({ default: m.PublicLayout })))
+const CitizenLayout = lazy(() => import('../layouts/CitizenLayout').then(m => ({ default: m.CitizenLayout })))
+const StaffLayout = lazy(() => import('../layouts/StaffLayout').then(m => ({ default: m.StaffLayout })))
+const AdminLayout = lazy(() => import('../layouts/AdminLayout').then(m => ({ default: m.AdminLayout })))
+const LandingPage = lazy(() => import('../pages/LandingPage').then(m => ({ default: m.LandingPage })))
 
 // Lazy heavy routes — shrink initial bundle for Lighthouse (was 1.3MB)
 const NakesDashboard = lazy(() => import('../pages/NakesDashboard').then(m => ({ default: m.NakesDashboard })))

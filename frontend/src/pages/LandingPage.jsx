@@ -1,23 +1,13 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, BookOpen, Check, ChevronRight, CircleHelp, HeartHandshake, ShieldCheck, Siren, Stethoscope } from 'lucide-react'
+import { ArrowRight, BookOpen, Check, ChevronRight, HeartHandshake, ShieldCheck, Siren } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { demoArticles, demoStats, demoWorkers } from '../services/demoData'
-import { isSupabaseConfigured, supabase } from '../lib/supabase'
-import { getPublicLandingData } from '../features/health/healthService'
-import { getWorkerAvatarUrl } from '../features/nakes/nakesProfileService'
 import { setSeo } from '../utils/seo'
 
-const fallbackStats = [
-  { value: '—', label: 'RT terlayani' },
-  { value: '—', label: 'Kepala keluarga' },
-  { value: '—', label: 'Warga terdata' },
-  { value: '—', label: 'Tenaga kesehatan' },
-]
-
 export function LandingPage() {
-  const [stats, setStats] = useState(isSupabaseConfigured ? fallbackStats : demoStats)
-  const [workers, setWorkers] = useState(isSupabaseConfigured ? [] : demoWorkers)
-  const [articles, setArticles] = useState(isSupabaseConfigured ? [] : demoArticles)
+  const [stats, setStats] = useState(demoStats)
+  const [workers, setWorkers] = useState(demoWorkers)
+  const [articles, setArticles] = useState(demoArticles)
 
   useEffect(() => {
     setSeo({
@@ -29,34 +19,53 @@ export function LandingPage() {
   }, [])
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return
+    let cancelled = false
+    let timer
+    // Lazy-load supabase only after paint — jangan block LCP di mobile
     const load = async () => {
       try {
+        const [{ isSupabaseConfigured, supabase }, { getPublicLandingData }, { getWorkerAvatarUrl }] = await Promise.all([
+          import('../lib/supabase'),
+          import('../features/health/healthService'),
+          import('../features/nakes/nakesProfileService'),
+        ])
+        if (cancelled || !isSupabaseConfigured) return
         const data = await getPublicLandingData()
-        if (!data) return
+        if (cancelled || !data) return
         if (Array.isArray(data.stats) && data.stats.length) setStats(data.stats)
         let list = (data.workers ?? []).map((w) => ({ name: w.name, role: w.role, specialty: w.specialty, initials: (w.name || '?').split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase(), online: Boolean(w.is_online), avatar_url: w.avatar_url || null, user_id: w.user_id || null, health_worker_id: w.health_worker_id || null }))
-        // enrich with avatar + id from health_workers
         try {
           const { data: full } = await supabase.from('health_workers').select('health_worker_id, full_name, avatar_url, user_id').eq('is_active', true)
-          if (full) {
+          if (!cancelled && full) {
             const map = new Map(full.map(f => [f.full_name?.toLowerCase(), f]))
             list = list.map(w => {
               const extra = map.get(w.name?.toLowerCase())
               const avatar = extra?.avatar_url ? extra.avatar_url : getWorkerAvatarUrl({ ...w, user_id: extra?.user_id || w.user_id, avatar_url: extra?.avatar_url || w.avatar_url })
               return { ...w, avatar_url: avatar || w.avatar_url, user_id: extra?.user_id || w.user_id, health_worker_id: extra?.health_worker_id || w.health_worker_id }
             })
-          } else {
+          } else if (!cancelled) {
             list = list.map(w => ({ ...w, avatar_url: getWorkerAvatarUrl(w) || w.avatar_url }))
           }
-        } catch { list = list.map(w => ({ ...w, avatar_url: getWorkerAvatarUrl(w) || w.avatar_url })) }
-        setWorkers(list)
-        setArticles((data.articles ?? []).map((a) => ({ category: 'Informasi kesehatan', title: a.title, text: a.summary, slug: a.slug })))
+        } catch {
+          if (!cancelled) {
+            const { getWorkerAvatarUrl: fallback } = await import('../features/nakes/nakesProfileService')
+            list = list.map(w => ({ ...w, avatar_url: fallback(w) || w.avatar_url }))
+          }
+        }
+        if (!cancelled) {
+          setWorkers(list)
+          setArticles((data.articles ?? []).map((a) => ({ category: 'Informasi kesehatan', title: a.title, text: a.summary, slug: a.slug })))
+        }
       } catch {}
     }
-    void load()
-    const timer = window.setInterval(load, 30000)
-    return () => window.clearInterval(timer)
+    // Defer hingga idle — LCP prioritas
+    const schedule = () => {
+      if ('requestIdleCallback' in window) window.requestIdleCallback(load, { timeout: 2000 })
+      else setTimeout(load, 1200)
+    }
+    schedule()
+    timer = window.setInterval(load, 60000)
+    return () => { cancelled = true; window.clearInterval(timer) }
   }, [])
 
   return <>
