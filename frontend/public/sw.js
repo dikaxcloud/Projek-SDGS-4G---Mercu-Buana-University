@@ -1,5 +1,5 @@
-const CACHE = 'desa-sehat-shell-v4'
-const SHELL = ['/', '/offline.html', '/manifest.webmanifest', '/logo.png', '/icon.svg']
+const CACHE = 'desa-sehat-shell-v5'
+const SHELL = ['/', '/offline.html', '/manifest.webmanifest', '/logo-76.webp', '/icon.svg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()))

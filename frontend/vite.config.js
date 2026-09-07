@@ -7,6 +7,8 @@ export default defineConfig({
     cssCodeSplit: true,
     target: 'esnext',
     minify: 'esbuild',
+    cssMinify: 'esbuild',
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -19,6 +21,7 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 600,
   },
+  preview: { headers: { 'Cache-Control': 'public, max-age=600' } },
   server: {
     headers: {
       'X-Content-Type-Options': 'nosniff',

@@ -5,14 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f766e" />
     <meta name="description" content="Portal kesehatan warga Desa Sehat Kenanga — pantau kesehatan keluarga, riwayat pemeriksaan, dan hubungi nakes desa dengan mudah." />
+    <link rel="canonical" href="https://dika-web.web.id/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:site_name" content="Desa Sehat Kenanga" />
+    <meta property="og:title" content="Desa Sehat Kenanga — Kesehatan Warga Lebih Dekat" />
+    <meta property="og:description" content="Portal kesehatan warga Desa Sehat Kenanga — pantau kesehatan keluarga, riwayat pemeriksaan, dan hubungi nakes desa dengan mudah." />
+    <meta property="og:url" content="https://dika-web.web.id/" />
+    <meta property="og:image" content="https://dika-web.web.id/logo-512.webp" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Desa Sehat Kenanga — Kesehatan Warga Lebih Dekat" />
+    <meta name="twitter:description" content="Portal kesehatan warga Desa Sehat Kenanga — pantau kesehatan keluarga, riwayat pemeriksaan, dan hubungi nakes desa dengan mudah." />
+    <meta name="twitter:image" content="https://dika-web.web.id/logo-512.webp" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
-    <link rel="preload" href="/logo-152.webp" as="image" type="image/webp" fetchpriority="high" />
-    <link rel="preload" href="/logo-76.webp" as="image" type="image/webp" />
+    <!-- Non-blocking font load: preload + swap — lighthouse render-blocking fix -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" /></noscript>
+    <link rel="preload" href="/logo-76.webp" as="image" type="image/webp" fetchpriority="high" imagesrcset="/logo-76.webp 1x, /logo-152.webp 2x" imagesizes="38px" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/webp" href="/logo-76.webp" />
-    <link rel="apple-touch-icon" href="/logo-152.webp" />
+    <link rel="apple-touch-icon" href="/logo-192.webp" />
     <title>Desa Sehat Kenanga — Kesehatan Warga Lebih Dekat</title>
     <style>
       html { background: #f5faf8; }
@@ -40,10 +57,11 @@
     </style>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
     <div id="root"></div>
     <div id="boot" aria-hidden="true">
       <div class="boot-inner">
-        <div class="boot-logo"><span class="boot-ring"></span><picture><source srcset="/logo-76.webp 1x, /logo-152.webp 2x" type="image/webp" /><img src="/logo-152.png" alt="" width="76" height="76" fetchpriority="high" onerror="this.style.display='none'" /></picture></div>
+        <div class="boot-logo"><span class="boot-ring"></span><picture><source srcset="/logo-76.webp 1x, /logo-152.webp 2x" type="image/webp" /><img src="/logo-76.png" alt="" width="76" height="76" fetchpriority="high" onerror="this.style.display='none'" /></picture></div>
         <svg class="boot-ecg" viewBox="0 0 180 44" fill="none" aria-hidden="true">
           <polyline pathLength="100" points="2,24 52,24 66,24 76,8 88,38 98,14 106,24 178,24" />
         </svg>
@@ -52,7 +70,7 @@
         <div class="boot-dots"><span></span><span></span><span></span></div>
       </div>
     </div>
-    <script src="/boot.js"></script>
+    <script src="/boot.js" defer></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

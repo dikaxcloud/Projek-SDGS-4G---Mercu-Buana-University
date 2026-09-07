@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowUpRight, Clock3, RefreshCw, Lightbulb, HeartPulse } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { getPublicArticleBySlug } from '../features/health/healthService'
+import { setSeo } from '../utils/seo'
 
 const CATEGORY_IMAGE = {
   'Tekanan Darah': 'memahami-tekanan-darah-800.webp',
@@ -70,6 +71,40 @@ export function ArticleDetailPage() {
 
   const article = data?.article
 
+  useEffect(() => {
+    if (!article) return
+    const desc = (article.summary || '').slice(0, 155)
+    const img = getDetailImage(article)
+    const canonical = `https://dika-web.web.id/artikel/${slug}`
+    setSeo({
+      title: `${article.title} — Desa Sehat Kenanga`,
+      description: desc || 'Artikel kesehatan Desa Sehat Kenanga',
+      canonical,
+      image: img.startsWith('http') ? img : `https://dika-web.web.id${img}`,
+      type: 'article'
+    })
+    // Article JSON-LD
+    const prev = document.querySelector('#ld-article')
+    if (prev) prev.remove()
+    const ld = document.createElement('script')
+    ld.id = 'ld-article'
+    ld.type = 'application/ld+json'
+    ld.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: article.title,
+      description: desc,
+      image: img.startsWith('http') ? img : `https://dika-web.web.id${img}`,
+      author: { '@type': 'Organization', name: 'Desa Sehat Kenanga' },
+      publisher: { '@type': 'Organization', name: 'Desa Sehat Kenanga', logo: { '@type': 'ImageObject', url: 'https://dika-web.web.id/logo-512.webp' } },
+      datePublished: article.created_at,
+      dateModified: article.updated_at,
+      mainEntityOfPage: canonical
+    })
+    document.head.appendChild(ld)
+    return () => { const n = document.querySelector('#ld-article'); if (n) n.remove() }
+  }, [article, slug])
+
   if (error) {
     return (
       <main className="article-detail-page"><div className="container narrow-container" style={{ paddingTop: 18 }}>
@@ -122,7 +157,7 @@ export function ArticleDetailPage() {
   const heroSrcSet = `${heroSrc} 800w`
 
   return (
-    <main className="article-detail-page">
+    <main id="main-content" className="article-detail-page">
       <div className="container detail-layout">
         <div className="detail-main">
           <Link className="back-link" to="/informasi-kesehatan"><ArrowLeft size={15} /> Semua artikel</Link>

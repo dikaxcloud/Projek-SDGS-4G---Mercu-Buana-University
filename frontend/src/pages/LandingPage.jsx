@@ -5,6 +5,7 @@ import { demoArticles, demoStats, demoWorkers } from '../services/demoData'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import { getPublicLandingData } from '../features/health/healthService'
 import { getWorkerAvatarUrl } from '../features/nakes/nakesProfileService'
+import { setSeo } from '../utils/seo'
 
 const fallbackStats = [
   { value: '—', label: 'RT terlayani' },
@@ -17,6 +18,15 @@ export function LandingPage() {
   const [stats, setStats] = useState(isSupabaseConfigured ? fallbackStats : demoStats)
   const [workers, setWorkers] = useState(isSupabaseConfigured ? [] : demoWorkers)
   const [articles, setArticles] = useState(isSupabaseConfigured ? [] : demoArticles)
+
+  useEffect(() => {
+    setSeo({
+      title: 'Desa Sehat Kenanga — Kesehatan Warga Lebih Dekat',
+      description: 'Portal kesehatan warga Desa Sehat Kenanga — pantau kesehatan keluarga, riwayat pemeriksaan, dan hubungi nakes desa dengan mudah.',
+      canonical: 'https://dika-web.web.id/',
+      image: 'https://dika-web.web.id/logo-512.webp'
+    })
+  }, [])
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
@@ -50,7 +60,7 @@ export function LandingPage() {
   }, [])
 
   return <>
-    <main>
+    <main id="main-content">
       <section className="hero"><div className="container hero-grid">
         <div>
           <div className="eyebrow">Portal kesehatan warga desa</div>
@@ -61,7 +71,7 @@ export function LandingPage() {
         </div>
         <div className="hero-visual" aria-label="Pratinjau dashboard kesehatan warga"><div className="blob" /><div className="phone-card">
           <div className="phone-top"><span>Rabu, 23 Agustus 2026</span><span className="avatar">B</span></div>
-          <p style={{ margin: '18px 0 0', fontSize: 13, color: 'var(--muted)' }}>Selamat pagi,</p><h3 style={{ margin: '4px 0 0', fontSize: 22 }}>Budi 👋</h3>
+          <p style={{ margin: '18px 0 0', fontSize: 13, color: 'var(--muted)' }}>Selamat pagi,</p><div style={{ margin: '4px 0 0', fontSize: 22, fontWeight: 800 }} aria-hidden="true">Budi 👋</div>
           <div className="health-card"><p>Status kesehatan terakhir</p><strong>Baik dan terpantau</strong><span style={{ display: 'block', marginTop: 9, fontSize: 12, opacity: .85 }}>Pemeriksaan terakhir hari ini</span></div>
           <div className="mini-grid"><div className="mini-stat"><small>Tekanan darah</small><strong>120/80</strong></div><div className="mini-stat"><small>Gula darah</small><strong>105 mg/dL</strong></div></div>
         </div><div className="float-chip"><Check size={16} /> Data tersimpan rapi</div><div className="float-chip bottom"><HeartHandshake size={16} /> Petugas siap membantu</div></div>

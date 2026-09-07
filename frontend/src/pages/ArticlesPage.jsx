@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpRight, Clock3, Search, RefreshCw, HeartPulse, Leaf, A
 import { Link } from 'react-router-dom'
 import { getPublicArticles } from '../features/health/healthService'
 import { useAuth } from '../features/auth/AuthProvider'
+import { setSeo } from '../utils/seo'
 
 const CATEGORIES = ['Semua', 'Tekanan Darah', 'Gula Darah', 'Pola Makan', 'Aktivitas Fisik', 'Kesehatan Lansia', 'Kesehatan Anak', 'Pertolongan Pertama', 'Pencegahan Penyakit', 'Pemeriksaan Rutin', 'Kesehatan Keluarga']
 
@@ -97,18 +98,29 @@ export function ArticlesPage() {
   const gridArticles = filtered.slice(1)
 
   useEffect(() => {
+    setSeo({
+      title: 'Informasi Kesehatan — Desa Sehat Kenanga',
+      description: 'Temukan informasi sederhana seputar kesehatan, pemeriksaan rutin, pola hidup sehat, dan tips menjaga kesehatan keluarga di Desa Sehat Kenanga.',
+      canonical: 'https://dika-web.web.id/informasi-kesehatan',
+      image: 'https://dika-web.web.id/images/informasi-sehat-untuk-anda-dan-keluarga-800.webp',
+      type: 'website'
+    })
+  }, [])
+
+  useEffect(() => {
     const link = document.createElement('link')
     link.rel = 'preload'
     link.as = 'image'
     link.href = HERO_IMAGE_800
     link.setAttribute('imagesrcset', `${HERO_IMAGE_800} 800w`)
     link.setAttribute('imagesizes', '(max-width: 900px) 100vw, 460px')
+    link.setAttribute('fetchpriority', 'high')
     document.head.appendChild(link)
     return () => { try { document.head.removeChild(link) } catch {} }
   }, [])
 
   return (
-    <main className="article-page">
+    <main id="main-content" className="article-page">
       <div className="article-hero">
         <div className="container article-hero-inner">
           <div className="article-hero-copy">
