@@ -146,6 +146,8 @@ export function ArticlesPage() {
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
+                onError={(e)=>{e.currentTarget.onerror=null; e.currentTarget.src='/logo-512.webp'}}
+                style={{ display:'block' }}
               />
               <span className="article-float article-float--a"><HeartPulse size={15} /> Pemeriksaan rutin</span>
               <span className="article-float article-float--b"><Leaf size={14} /> Hidup sehat</span>
