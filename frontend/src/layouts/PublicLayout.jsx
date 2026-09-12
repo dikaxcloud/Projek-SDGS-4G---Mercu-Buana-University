@@ -36,7 +36,7 @@ export function PublicLayout() {
     { label: 'Mulai Sekarang', Icon: ArrowRight, onClick: () => navigate('/login') },
   ]
 
-  return <div className="app-shell public-layout"><Topbar hideHamburgerOnMobile /><Outlet /><Footer />
+  return <div className="app-shell public-layout"><Topbar hideHamburgerOnMobile /><div key={location.pathname} className="page-transition"><Outlet /></div><Footer />
     <nav className="bottom-nav public-bottom-nav" aria-label="Navigasi utama mobile">
       <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><House size={19} /><span>Beranda</span></button>
       <button type="button" onClick={() => goHash('#tentang')}><Info size={19} /><span>Tentang</span></button>

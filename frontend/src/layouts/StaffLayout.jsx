@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Outlet, Link, NavLink } from 'react-router-dom'
+import { Outlet, Link, NavLink, useLocation } from 'react-router-dom'
 import { BookOpen, ClipboardPlus, History, LayoutDashboard, LogOut, ScanLine, Search, ShieldCheck, UserPlus, Menu, User } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { useAuth } from '../features/auth/AuthProvider'
@@ -38,6 +38,7 @@ export function StaffLayout() {
   const { requestLogout } = useLogout()
   const logout = () => requestLogout()
   const [moreOpen, setMoreOpen] = useState(false)
+  const location = useLocation()
 
   useEffect(() => {
     if (!supabase || access?.role !== 'nakes') return undefined
@@ -56,7 +57,7 @@ export function StaffLayout() {
   return (
     <div className="app-shell">
       <header className="topbar"><div className="container nav"><Link to="/nakes"><Brand /></Link><nav className="staff-nav" aria-label="Navigasi nakes">{staffNavLinks.map(({ to, Icon, label }) => <NavLink end={to === '/nakes'} to={to} key={to}><Icon size={16} /> {label}</NavLink>)}</nav><div className="nav-actions"><UserPill /></div></div></header>
-      <main><Outlet /></main>
+      <main key={location.pathname} className="page-transition"><Outlet /></main>
       <footer className="role-footer"><div className="container" style={{ textAlign: 'center', padding: '20px 0 28px', fontSize: 12.5, color: 'var(--muted)' }}><span>Created by </span><a href="https://projek-sdgs.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>SDGS Projek 4G</a><span> — Develop by </span><a href="https://dikaxcloud.web.id" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>Dika</a></div></footer>
 
       {/* Mobile bottom nav: 4 primary + Lainnya */}

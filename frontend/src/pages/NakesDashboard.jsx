@@ -82,13 +82,19 @@ export function NakesDashboard() {
           <div>
             <div className="eyebrow">Portal tenaga kesehatan</div>
             <h1 className="display">Selamat datang, {dash?.examinerName || 'Nakes'} 👋</h1>
-            <p>Pantau warga dan catat pemeriksaan dengan rapi.</p>
+            <p>Siap membantu masyarakat hari ini.</p>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <Link className="btn btn-ghost" to="/nakes/riwayat-saya"><History size={17} /> Riwayat Saya</Link>
             <Link className="btn btn-ghost" to="/nakes/warga/baru"><UserPlus size={17} /> Tambah Warga</Link>
             <Link className="btn btn-primary" to="/nakes/pemeriksaan/baru"><ClipboardList size={17} /> Mulai pemeriksaan</Link>
           </div>
+        </div>
+        <div className="nakes-quick">
+          <Link to="/nakes/scan" className="primary"><span style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,.22)', display: 'grid', placeItems: 'center' }}><Radio size={18} /></span><strong>Scan QR</strong><small style={{ opacity: .9 }}>Pindai QR warga — paling cepat</small></Link>
+          <Link to="/nakes/pemeriksaan/baru"><ClipboardList size={20} color="var(--teal)" /><strong>Catat Pemeriksaan</strong><small style={{ color: 'var(--muted)' }}>Form tensi, gula, BB</small></Link>
+          <Link to="/nakes/warga"><Search size={20} color="var(--teal)" /><strong>Lihat Pasien</strong><small style={{ color: 'var(--muted)' }}>Daftar warga & KK</small></Link>
+          <Link to="/nakes/riwayat-saya"><History size={20} color="var(--teal)" /><strong>Riwayat</strong><small style={{ color: 'var(--muted)' }}>Pemeriksaan saya</small></Link>
         </div>
         {liveAlert && <div className="staff-alert" role="status" style={{ background: '#f0f7ff', borderColor: '#bfdcff', color: '#1d4ed8' }}><BellRing size={17} /><span><strong>Warga baru masuk:</strong> {liveAlert.name}. Daftar warga diperbarui otomatis ({liveAlert.at.toLocaleTimeString('id-ID')}).</span><button className="btn btn-ghost" onClick={() => setLiveAlert(null)}>Tutup</button></div>}
         {error && <div className="staff-alert"><AlertTriangle size={17} />{error}<button onClick={load} className="btn btn-ghost"><RefreshCw size={15} /> Coba lagi</button></div>}

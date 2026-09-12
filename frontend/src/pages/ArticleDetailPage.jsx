@@ -3,45 +3,16 @@ import { ArrowLeft, ArrowUpRight, Clock3, RefreshCw, Lightbulb, HeartPulse } fro
 import { Link, useParams } from 'react-router-dom'
 import { getPublicArticleBySlug } from '../features/health/healthService'
 import { setSeo } from '../utils/seo'
+import { getArticleImageByFields, toSrcSet } from '../utils/articleImages'
 
-const CATEGORY_IMAGE = {
-  'Tekanan Darah': 'memahami-tekanan-darah-800.webp',
-  'Gula Darah': 'mengenal-gula-darah-800.webp',
-  'Pola Makan': 'pola-makan-800.webp',
-  'Aktivitas Fisik': 'aktivitas-fisik-ringan-untuk-semua-800.webp',
-  'Kesehatan Lansia': 'menjaga-kesehatan-lansia-800.webp',
-  'Kesehatan Anak': 'imunisasi-dan-kesehatan-anak-800.webp',
-  'Pertolongan Pertama': 'pertolongan-pertama-luka-ringan-800.webp',
-  'Pencegahan Penyakit': 'cuci-tangan-pencegahan-paling-mudah-800.webp',
-  'Pemeriksaan Rutin': 'kapan-harus-menghubungi-petugas-800.webp',
-  'Kesehatan Keluarga': 'satu-keluarga-sehat-satu-desa-kuat-800.webp',
-}
-const TITLE_KEYWORDS = [
-  { kw: ['tekanan darah', 'hipertensi'], file: 'cara-menjaga-tekanan-darah-tetap-sehat-800.webp' },
-  { kw: ['gula darah', 'diabetes'], file: 'mengenal-gula-darah-800.webp' },
-  { kw: ['pola makan', 'gizi'], file: 'pola-makan-800.webp' },
-  { kw: ['aktivitas', 'fisik'], file: 'aktivitas-fisik-ringan-untuk-semua-800.webp' },
-  { kw: ['lansia'], file: 'menjaga-kesehatan-lansia-800.webp' },
-  { kw: ['anak', 'imunisasi', 'balita'], file: 'imunisasi-dan-kesehatan-anak-800.webp' },
-  { kw: ['posyandu'], file: 'rutin-ke-posyandu-kenapa-penting-800.webp' },
-  { kw: ['luka', 'pertolongan'], file: 'pertolongan-pertama-luka-ringan-800.webp' },
-  { kw: ['cuci tangan', 'pencegahan'], file: 'cuci-tangan-pencegahan-paling-mudah-800.webp' },
-  { kw: ['petugas'], file: 'kapan-harus-menghubungi-petugas-800.webp' },
-  { kw: ['keluarga'], file: 'satu-keluarga-sehat-satu-desa-kuat-800.webp' },
-]
 function getDetailImage(article) {
-  if (article?.thumbnail_url) return article.thumbnail_url
-  const title = (article?.title || '').toLowerCase()
-  for (const e of TITLE_KEYWORDS) if (e.kw.some(k => title.includes(k))) return `/images/${e.file}`
-  if (article?.category && CATEGORY_IMAGE[article.category]) return `/images/${CATEGORY_IMAGE[article.category]}`
-  return '/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'
+  return getArticleImageByFields(article ?? {})
 }
 function getDetailThumb(item) {
-  if (item?.thumbnail_url) return item.thumbnail_url
-  const title = (item?.title || '').toLowerCase()
-  for (const e of TITLE_KEYWORDS) if (e.kw.some(k => title.includes(k))) return `/images/${e.file}`
-  if (item?.category && CATEGORY_IMAGE[item.category]) return `/images/${CATEGORY_IMAGE[item.category]}`
-  return '/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'
+  return getArticleImageByFields(item ?? {})
+}
+function thumbSrcSet(p800) {
+  return toSrcSet(p800)
 }
 
 function formatDate(dateStr) {
@@ -153,8 +124,7 @@ export function ArticleDetailPage() {
   const paragraphs = (article.content || '').split(/\n\s*\n/).filter(Boolean)
   const readingMinutes = estimateReadMinutes((article.content || '') + ' ' + (article.summary || ''))
   const heroSrc = getDetailImage(article)
-  // HANYA file -800.webp yang ada di /public/images — jangan generate 1200w non-existent (404 di mobile)
-  const heroSrcSet = `${heroSrc} 800w`
+  const heroSrcSet = toSrcSet(heroSrc) || `${heroSrc} 800w`
 
   return (
     <main id="main-content" className="article-detail-page">
@@ -183,11 +153,12 @@ export function ArticleDetailPage() {
               loading="eager"
               decoding="async"
               fetchPriority="high"
+              style={{ width:'100%', height:'auto', aspectRatio:'1100 / 620' }}
               onError={(e) => {
                 const fallback = '/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'
                 if (e.currentTarget.src !== window.location.origin + fallback) {
                   e.currentTarget.src = fallback
-                  e.currentTarget.srcSet = `${fallback} 800w`
+                  e.currentTarget.srcSet = `${fallback.replace('-800.webp','-400.webp')} 400w, ${fallback} 800w`
                 } else {
                   e.currentTarget.style.display = 'none'
                   const ph = e.currentTarget.nextElementSibling
@@ -256,7 +227,7 @@ export function ArticleDetailPage() {
               <div className="detail-related-grid">
                 {data.related.map((item) => (
                   <Link key={item.slug} to={`/artikel/${item.slug}`} className="detail-related-card">
-                    <img src={getDetailThumb(item)} alt={item.title} width={84} height={64} loading="lazy" decoding="async" onError={(e)=>{e.currentTarget.src='/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'}} />
+                    <img src={getDetailThumb(item)} srcSet={thumbSrcSet(getDetailThumb(item))} sizes="84px" alt={item.title} width={84} height={64} loading="lazy" decoding="async" onError={(e)=>{e.currentTarget.src='/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'; e.currentTarget.srcSet=`/images/satu-keluarga-sehat-satu-desa-kuat-400.webp 400w, /images/satu-keluarga-sehat-satu-desa-kuat-800.webp 800w`}} style={{ aspectRatio:'84 / 64' }} />
                     <div>
                       <small>{item.category || 'Umum'}</small>
                       <strong>{item.title}</strong>
@@ -275,7 +246,7 @@ export function ArticleDetailPage() {
               <div className="detail-sidebar-list">
                 {data.related.slice(0, 3).map((item) => (
                   <Link key={item.slug} to={`/artikel/${item.slug}`} className="detail-sidebar-item">
-                    <img src={getDetailThumb(item)} alt={item.title} width={72} height={56} loading="lazy" decoding="async" onError={(e)=>{e.currentTarget.src='/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'}} />
+                    <img src={getDetailThumb(item)} srcSet={thumbSrcSet(getDetailThumb(item))} sizes="72px" alt={item.title} width={72} height={56} loading="lazy" decoding="async" onError={(e)=>{e.currentTarget.src='/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'; e.currentTarget.srcSet=`/images/satu-keluarga-sehat-satu-desa-kuat-400.webp 400w, /images/satu-keluarga-sehat-satu-desa-kuat-800.webp 800w`}} style={{ aspectRatio:'72 / 56' }} />
                     <div>
                       <small>{item.category || 'Umum'}</small>
                       <strong>{item.title}</strong>

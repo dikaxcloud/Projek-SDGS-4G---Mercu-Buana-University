@@ -4,53 +4,23 @@ import { Link } from 'react-router-dom'
 import { getPublicArticles } from '../features/health/healthService'
 import { useAuth } from '../features/auth/AuthProvider'
 import { setSeo } from '../utils/seo'
+import { getArticleImageByFields, toSrcSet } from '../utils/articleImages'
 
 const CATEGORIES = ['Semua', 'Tekanan Darah', 'Gula Darah', 'Pola Makan', 'Aktivitas Fisik', 'Kesehatan Lansia', 'Kesehatan Anak', 'Pertolongan Pertama', 'Pencegahan Penyakit', 'Pemeriksaan Rutin', 'Kesehatan Keluarga']
 
 const HERO_IMAGE_800 = '/images/informasi-sehat-untuk-anda-dan-keluarga-800.webp'
-const HERO_IMAGE_1200 = '/images/informasi-sehat-untuk-anda-dan-keluarga-800.webp'
+const HERO_IMAGE_400 = '/images/informasi-sehat-untuk-anda-dan-keluarga-400.webp'
 
-// kategori -> file (800 variant untuk card, full untuk hero/detail)
-const CATEGORY_IMAGE = {
-  'Tekanan Darah': 'memahami-tekanan-darah-800.webp',
-  'Gula Darah': 'mengenal-gula-darah-800.webp',
-  'Pola Makan': 'pola-makan-800.webp',
-  'Aktivitas Fisik': 'aktivitas-fisik-ringan-untuk-semua-800.webp',
-  'Kesehatan Lansia': 'menjaga-kesehatan-lansia-800.webp',
-  'Kesehatan Anak': 'imunisasi-dan-kesehatan-anak-800.webp',
-  'Pertolongan Pertama': 'pertolongan-pertama-luka-ringan-800.webp',
-  'Pencegahan Penyakit': 'cuci-tangan-pencegahan-paling-mudah-800.webp',
-  'Pemeriksaan Rutin': 'kapan-harus-menghubungi-petugas-800.webp',
-  'Kesehatan Keluarga': 'satu-keluarga-sehat-satu-desa-kuat-800.webp',
+const FALLBACK_FEATURED_800 = '/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'
+const FALLBACK_FEATURED_400 = '/images/satu-keluarga-sehat-satu-desa-kuat-400.webp'
+
+// wrapper deterministik: list & detail harus hasil sama per artikel
+function getArticleImage(article) {
+  return getArticleImageByFields(article ?? {})
 }
-
-const TITLE_KEYWORDS = [
-  { kw: ['tekanan darah', 'hipertensi', 'tensi'], file: 'cara-menjaga-tekanan-darah-tetap-sehat-800.webp' },
-  { kw: ['gula darah', 'diabetes'], file: 'mengenal-gula-darah-800.webp' },
-  { kw: ['pola makan', 'gizi', 'makan'], file: 'pola-makan-800.webp' },
-  { kw: ['aktivitas', 'fisik', 'olahraga', 'senam'], file: 'aktivitas-fisik-ringan-untuk-semua-800.webp' },
-  { kw: ['lansia', 'lanjut usia'], file: 'menjaga-kesehatan-lansia-800.webp' },
-  { kw: ['anak', 'imunisasi', 'balita'], file: 'imunisasi-dan-kesehatan-anak-800.webp' },
-  { kw: ['posyandu'], file: 'rutin-ke-posyandu-kenapa-penting-800.webp' },
-  { kw: ['luka', 'pertolongan pertama', 'p3k'], file: 'pertolongan-pertama-luka-ringan-800.webp' },
-  { kw: ['cuci tangan', 'pencegahan', 'paling mudah'], file: 'cuci-tangan-pencegahan-paling-mudah-800.webp' },
-  { kw: ['petugas', 'menghubungi', 'kapan harus'], file: 'kapan-harus-menghubungi-petugas-800.webp' },
-  { kw: ['keluarga', 'desa kuat'], file: 'satu-keluarga-sehat-satu-desa-kuat-800.webp' },
-]
-
-function getArticleImage(article, index = 0) {
-  if (article?.thumbnail_url) return article.thumbnail_url
-  const title = (article?.title || '').toLowerCase()
-  const cat = article?.category || ''
-  // 1. keyword match dari judul
-  for (const entry of TITLE_KEYWORDS) {
-    if (entry.kw.some(k => title.includes(k))) return `/images/${entry.file}`
-  }
-  // 2. mapping kategori
-  if (CATEGORY_IMAGE[cat]) return `/images/${CATEGORY_IMAGE[cat]}`
-  // 3. fallback berurutan biar variasi
-  const fallbacks = Object.values(CATEGORY_IMAGE)
-  return `/images/${fallbacks[index % fallbacks.length]}`
+function getFeaturedImage(article) {
+  const src = getArticleImageByFields(article ?? {})
+  return src || FALLBACK_FEATURED_800
 }
 
 function estimateReadMinutes(text = '') {
@@ -112,7 +82,7 @@ export function ArticlesPage() {
     link.rel = 'preload'
     link.as = 'image'
     link.href = HERO_IMAGE_800
-    link.setAttribute('imagesrcset', `${HERO_IMAGE_800} 800w`)
+    link.setAttribute('imagesrcset', `${HERO_IMAGE_400} 400w, ${HERO_IMAGE_800} 800w`)
     link.setAttribute('imagesizes', '(max-width: 900px) 100vw, 460px')
     link.setAttribute('fetchpriority', 'high')
     document.head.appendChild(link)
@@ -138,7 +108,7 @@ export function ArticlesPage() {
             <div className="article-hero-image-wrap">
               <img
                 src={HERO_IMAGE_800}
-                srcSet={`${HERO_IMAGE_800} 800w`}
+                srcSet={`${HERO_IMAGE_400} 400w, ${HERO_IMAGE_800} 800w`}
                 sizes="(max-width: 900px) 100vw, 460px"
                 alt="Keluarga sehat bersama tenaga kesehatan desa Kenanga"
                 width={760}
@@ -147,7 +117,7 @@ export function ArticlesPage() {
                 decoding="async"
                 fetchPriority="high"
                 onError={(e)=>{e.currentTarget.onerror=null; e.currentTarget.src='/logo-512.webp'}}
-                style={{ display:'block' }}
+                style={{ display:'block', width:'100%', height:'auto', aspectRatio:'760 / 520' }}
               />
               <span className="article-float article-float--a"><HeartPulse size={15} /> Pemeriksaan rutin</span>
               <span className="article-float article-float--b"><Leaf size={14} /> Hidup sehat</span>
@@ -162,16 +132,28 @@ export function ArticlesPage() {
             <div className="article-section-label">Artikel Pilihan</div>
             <Link to={`/artikel/${featured.slug}`} className="article-featured-card">
               <div className="article-featured-image">
+                {(() => { const fSrc = getFeaturedImage(featured); const fSet = toSrcSet(fSrc); return (
                 <img
-                  src={getArticleImage(featured, 0)}
-                  alt={featured.title}
+                  src={fSrc}
+                  srcSet={fSet}
+                  sizes="(max-width: 900px) 100vw, 600px"
+                  alt={featured.title || 'Satu Keluarga Sehat, Satu Desa Kuat'}
                   width={600}
                   height={400}
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
-                  fetchPriority="low"
-                  onError={(e)=>{e.currentTarget.src='/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'}}
-                />
+                  fetchPriority="high"
+                  onError={(e)=>{
+                    if (!e.currentTarget.dataset.fallback) {
+                      e.currentTarget.dataset.fallback='1';
+                      e.currentTarget.src=FALLBACK_FEATURED_800;
+                      e.currentTarget.srcSet=`${FALLBACK_FEATURED_400} 400w, ${FALLBACK_FEATURED_800} 800w`;
+                    } else {
+                      e.currentTarget.onerror=null; e.currentTarget.src='/logo-512.webp'; e.currentTarget.srcSet=undefined
+                    }
+                  }}
+                  style={{ width:'100%', height:'auto' }}
+                /> )})()}
                 <span className="article-badge">{featured.category || 'Tips Kesehatan'}</span>
               </div>
               <div className="article-featured-content">
@@ -258,12 +240,15 @@ export function ArticlesPage() {
                     <div className="article-card-image">
                       <img
                         src={getArticleImage(article, idx + 1)}
+                        srcSet={toSrcSet(getArticleImage(article, idx + 1))}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
                         alt={article.title}
                         width={400}
                         height={225}
                         loading="lazy"
                         decoding="async"
-                        onError={(e)=>{e.currentTarget.src='/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'}}
+                        onError={(e)=>{e.currentTarget.onerror=null; e.currentTarget.src='/images/satu-keluarga-sehat-satu-desa-kuat-800.webp'; e.currentTarget.srcSet=`/images/satu-keluarga-sehat-satu-desa-kuat-400.webp 400w, /images/satu-keluarga-sehat-satu-desa-kuat-800.webp 800w`}}
+                        style={{ width:'100%', height:'auto', aspectRatio:'16 / 9' }}
                       />
                       <span className="article-badge article-badge--on-image">{article.category || 'Umum'}</span>
                     </div>

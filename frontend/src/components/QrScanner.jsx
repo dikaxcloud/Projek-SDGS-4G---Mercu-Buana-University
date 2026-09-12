@@ -1,27 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
 import jsQR from 'jsqr'
-import { CameraOff, Keyboard, QrCode } from 'lucide-react'
+import { CameraOff, Keyboard, QrCode, Check, X } from 'lucide-react'
 
-/** Reusable QR camera scanner — auto-detects QR codes from the live stream
- *  using jsQR frame decoding (works on every browser with getUserMedia). */
+/** Premium QR scanner — 8 steps inspired: open → init → scanning (line+glow) → detected (scale+check) → processing */
 export function QrScanner({ onScan, hint, label = 'Mulai Scan QR' }) {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const streamRef = useRef(null)
   const timerRef = useRef(null)
   const busyRef = useRef(false)
-  const [cameraState, setCameraState] = useState('idle') // idle | on | denied
+  const [cameraState, setCameraState] = useState('idle') // idle | on | denied | detected | error
   const [manual, setManual] = useState('')
+  const [detectAnim, setDetectAnim] = useState(false)
 
   const stopCamera = () => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
     streamRef.current?.getTracks().forEach((track) => track.stop())
     streamRef.current = null
     setCameraState('idle')
+    setDetectAnim(false)
   }
   useEffect(() => () => stopCamera(), [])
 
-  // Attach the stream once the <video> element is actually mounted (cameraState flip).
   useEffect(() => {
     if (cameraState === 'on' && videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current
@@ -39,7 +39,6 @@ export function QrScanner({ onScan, hint, label = 'Mulai Scan QR' }) {
         videoRef.current.srcObject = stream
         await videoRef.current.play().catch(() => {})
       }
-      // Auto-detect loop: grab frames, downscale, decode with jsQR every ~120ms.
       timerRef.current = setInterval(() => {
         if (busyRef.current) return
         const video = videoRef.current
@@ -47,7 +46,6 @@ export function QrScanner({ onScan, hint, label = 'Mulai Scan QR' }) {
         if (!video || !canvas || video.readyState < 2 || !video.videoWidth) return
         busyRef.current = true
         try {
-          // Downscale besar frame agar decode lebih cepat & andal.
           const scale = Math.min(1, 640 / video.videoWidth)
           canvas.width = Math.round(video.videoWidth * scale)
           canvas.height = Math.round(video.videoHeight * scale)
@@ -56,11 +54,18 @@ export function QrScanner({ onScan, hint, label = 'Mulai Scan QR' }) {
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
           const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' })
           if (code?.data) {
-            stopCamera()
-            onScan(code.data)
+            // DETECTED — premium success animation before callback
+            setDetectAnim(true)
+            setCameraState('detected')
+            clearInterval(timerRef.current)
+            timerRef.current = null
+            setTimeout(() => {
+              stopCamera()
+              onScan(code.data)
+            }, 700)
             return
           }
-        } catch { /* frame gagal — coba frame berikutnya */ }
+        } catch { /* retry next frame */ }
         busyRef.current = false
       }, 120)
     } catch {
@@ -72,9 +77,13 @@ export function QrScanner({ onScan, hint, label = 'Mulai Scan QR' }) {
     <div style={{ textAlign: 'center' }}>
       {cameraState === 'on' && (
         <>
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <video ref={videoRef} playsInline autoPlay muted style={{ width: '100%', maxWidth: 340, borderRadius: 16, background: '#000', aspectRatio: '3/4', objectFit: 'cover' }} />
-            <span style={{ position: 'absolute', left: 12, bottom: 12, background: 'rgba(13,40,37,.72)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 10px', borderRadius: 999 }}>🔍 Mencari QR code…</span>
+          <div className="qr-premium-wrap">
+            <video ref={videoRef} playsInline autoPlay muted className="qr-premium-video" />
+            <div className="qr-premium-overlay" />
+            <div className="qr-premium-frame">
+              <div className="qr-premium-line" />
+            </div>
+            <span className="qr-premium-label">🔍 Mencari QR Code…<br /><small style={{ fontWeight: 400, opacity: .9 }}>Arahkan kamera ke QR warga</small></span>
           </div>
           <canvas ref={canvasRef} style={{ display: 'none' }} />
           <div style={{ marginTop: 10 }}>
@@ -82,11 +91,23 @@ export function QrScanner({ onScan, hint, label = 'Mulai Scan QR' }) {
           </div>
         </>
       )}
+      {cameraState === 'detected' && (
+        <div className="qr-premium-wrap" style={{ display: 'grid', placeItems: 'center', background: '#065f46' }}>
+          <div className="qr-premium-frame success">
+            <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: 'rgba(34,197,94,.18)' }}>
+              <span style={{ width: 56, height: 56, borderRadius: '50%', background: '#22c55e', display: 'grid', placeItems: 'center', color: 'white', animation: 'qr-success-pulse .5s ease-out' }}><Check size={28} /></span>
+            </div>
+          </div>
+          <span className="qr-premium-label" style={{ background: '#22c55e' }}>✓ QR Terdeteksi — Memverifikasi…</span>
+        </div>
+      )}
       {cameraState === 'idle' && (
         <button type="button" className="btn btn-primary btn-wide" onClick={() => void startCamera()}><QrCode size={17} /> {label}</button>
       )}
       {cameraState === 'denied' && (
-        <p className="muted-text">Izin kamera ditolak. Aktifkan izin kamera atau gunakan input manual.</p>
+        <div style={{ padding: 16, borderRadius: 14, background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b' }}>
+          <p className="muted-text" style={{ color: '#7f1d1d' }}><CameraOff size={16} style={{ verticalAlign: -3, marginRight: 6 }} />Izin kamera ditolak. Aktifkan izin kamera atau gunakan input manual.</p>
+        </div>
       )}
 
       <label style={{ display: 'grid', gap: 6, marginTop: 14, fontSize: 13, fontWeight: 700, textAlign: 'left' }}>

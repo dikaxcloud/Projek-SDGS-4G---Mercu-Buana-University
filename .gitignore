@@ -40,3 +40,4 @@ Thumbs.db
 # Large files - keep but allow (logo 1MB is ok, but exclude if >50MB)
 # !logo.png allowed
 token.txt
+.env*
