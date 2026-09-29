@@ -8,7 +8,7 @@ function getCorsHeaders(req: Request): Record<string, string> {
   let allowOrigin = ""
   if (allowed.length === 0) {
     // Fallback: reflect request origin if env not yet configured (avoid breaking prod)
-    // Admin should set ALLOWED_ORIGINS=https://dika-web.web.id for strict whitelist
+    // Admin should set ALLOWED_ORIGINS=https://desaku-sehat.my.id for strict whitelist
     allowOrigin = origin || ""
   } else {
     allowOrigin = origin && allowed.includes(origin) ? origin : (allowed[0] || "")
@@ -21,20 +21,21 @@ function getCorsHeaders(req: Request): Record<string, string> {
   }
 }
 
-const APP_NAME = "Desa Sehat Kenanga";
+const APP_NAME = "Desa Sehat";
 const EMAIL_SUBJECT = `Undangan Akun - ${APP_NAME}`;
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
-  nakes: "🩺 Tenaga Kesehatan",
-  warga: "🏠 Warga",
+  nakes: "Tenaga Kesehatan",
+  warga: "Warga",
 };
 
 function escapeHtml(value: string): string {
   return value
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function buildInviteEmailHtml(opts: {

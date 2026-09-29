@@ -4,8 +4,13 @@ import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getAdminSummary } from '../features/admin/adminService'
 import { listStaffCitizens } from '../features/staff/staffService'
+import { useAuth } from '../features/auth/AuthProvider'
+import { ROLES, roleLabel } from '../features/auth/roles'
 
 export function AdminDashboard() {
+  const { access } = useAuth()
+  const role = access?.role ?? null
+  const isDeveloper = role === ROLES.DEVELOPER
   const [summary, setSummary] = useState(null); const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [pendingCount, setPendingCount] = useState(0)
   const load = async () => {
     setLoading(true); setError('')
@@ -18,7 +23,7 @@ export function AdminDashboard() {
     } catch (err) { setError(err.message || 'Ringkasan admin belum dapat dimuat.') } finally { setLoading(false) }
   }
   useEffect(() => { void load() }, [])
-  return <div className="admin-page"><div className="container"><div className="staff-header"><div><div className="eyebrow">Portal administrasi desa</div><h1 className="display">Selamat datang, Admin 👋</h1><p>Kelola sistem Desa Sehat Kenanga dengan aman dan terstruktur.</p></div><Link className="btn btn-primary" to="/admin/verifikasi"><ShieldCheck size={17} /> Verifikasi Warga{pendingCount > 0 ? ` (${pendingCount})` : ''}</Link></div>
+  return <div className="admin-page"><div className="container">    <div className="staff-header"><div><div className="eyebrow">{isDeveloper ? 'System Control Center' : 'Wilayah & Warga Management'}</div><h1 className="display">Selamat datang, {roleLabel(role)} 👋</h1><p>Kelola sistem Desa Sehat dengan aman dan terstruktur.</p></div><Link className="btn btn-primary" to="/admin/verifikasi"><ShieldCheck size={17} /> Verifikasi Warga{pendingCount > 0 ? ` (${pendingCount})` : ''}</Link></div>
     {error && <div className="staff-alert"><AlertTriangle size={17} /> {error}<button className="btn btn-ghost" onClick={load}><RefreshCw size={15} /> Coba lagi</button></div>}
     {pendingCount > 0 && (
       <Link to="/admin/verifikasi" style={{ textDecoration: 'none', color: 'inherit', display: 'block', marginBottom: 16 }}>

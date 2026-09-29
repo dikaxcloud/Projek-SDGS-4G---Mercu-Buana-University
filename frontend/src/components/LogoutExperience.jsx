@@ -75,7 +75,7 @@ export function LogoutProvider({ children }) {
         {phase === 'confirming' && (
           <>
             <h2 className="logout-title">Keluar dari akun?</h2>
-            <p className="logout-desc">Anda akan keluar dari <strong>Desa Sehat Kenanga</strong>. Anda dapat masuk kembali kapan saja.</p>
+            <p className="logout-desc">Anda akan keluar dari <strong>Desa Sehat</strong>. Anda dapat masuk kembali kapan saja.</p>
             <div className="logout-actions">
               <button type="button" className="btn btn-ghost logout-btn-cancel" onClick={close}>Batal</button>
               <button type="button" className="btn btn-danger logout-btn-confirm" onClick={confirmLogout}>Ya, Keluar</button>

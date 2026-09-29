@@ -11,10 +11,10 @@ export function LandingPage() {
 
   useEffect(() => {
     setSeo({
-      title: 'Desa Sehat Kenanga — Kesehatan Warga Lebih Dekat',
-      description: 'Portal kesehatan warga Desa Sehat Kenanga — pantau kesehatan keluarga, riwayat pemeriksaan, dan hubungi nakes desa dengan mudah.',
-      canonical: 'https://dika-web.web.id/',
-      image: 'https://dika-web.web.id/logo-512.webp'
+      title: 'Desa Sehat — Kesehatan Warga Lebih Dekat',
+      description: 'Portal kesehatan warga Desa Sehat — pantau kesehatan keluarga, riwayat pemeriksaan, dan hubungi nakes desa dengan mudah.',
+      canonical: 'https://desaku-sehat.my.id/',
+      image: 'https://desaku-sehat.my.id/logo-512.webp'
     })
   }, [])
 

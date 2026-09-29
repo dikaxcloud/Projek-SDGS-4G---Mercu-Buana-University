@@ -46,12 +46,12 @@ export function ArticleDetailPage() {
     if (!article) return
     const desc = (article.summary || '').slice(0, 155)
     const img = getDetailImage(article)
-    const canonical = `https://dika-web.web.id/artikel/${slug}`
+    const canonical = `https://desaku-sehat.my.id/artikel/${slug}`
     setSeo({
-      title: `${article.title} — Desa Sehat Kenanga`,
-      description: desc || 'Artikel kesehatan Desa Sehat Kenanga',
+      title: `${article.title} — Desa Sehat`,
+      description: desc || 'Artikel kesehatan Desa Sehat',
       canonical,
-      image: img.startsWith('http') ? img : `https://dika-web.web.id${img}`,
+      image: img.startsWith('http') ? img : `https://desaku-sehat.my.id${img}`,
       type: 'article'
     })
     // Article JSON-LD
@@ -65,9 +65,9 @@ export function ArticleDetailPage() {
       '@type': 'Article',
       headline: article.title,
       description: desc,
-      image: img.startsWith('http') ? img : `https://dika-web.web.id${img}`,
-      author: { '@type': 'Organization', name: 'Desa Sehat Kenanga' },
-      publisher: { '@type': 'Organization', name: 'Desa Sehat Kenanga', logo: { '@type': 'ImageObject', url: 'https://dika-web.web.id/logo-512.webp' } },
+      image: img.startsWith('http') ? img : `https://desaku-sehat.my.id${img}`,
+      author: { '@type': 'Organization', name: 'Desa Sehat' },
+      publisher: { '@type': 'Organization', name: 'Desa Sehat', logo: { '@type': 'ImageObject', url: 'https://desaku-sehat.my.id/logo-512.webp' } },
       datePublished: article.created_at,
       dateModified: article.updated_at,
       mainEntityOfPage: canonical
@@ -139,7 +139,7 @@ export function ArticleDetailPage() {
             <span className="dot">•</span>
             <span><Clock3 size={12} aria-hidden="true" /> {readingMinutes} menit baca</span>
             <span className="dot">•</span>
-            <span>Desa Sehat Kenanga</span>
+            <span>Desa Sehat</span>
           </div>
 
           <div className="detail-hero-image">
@@ -212,7 +212,7 @@ export function ArticleDetailPage() {
             <div className="detail-cta">
               <div>
                 <h3>Peduli kesehatan dimulai dari mengenal kondisi diri sendiri.</h3>
-                <p>Pantau hasil pemeriksaan kesehatan Anda melalui Desa Sehat Kenanga.</p>
+                <p>Pantau hasil pemeriksaan kesehatan Anda melalui Desa Sehat.</p>
               </div>
               <div className="detail-cta-actions">
                 <Link to="/warga/kesehatan" className="btn btn-primary">Pantau Kesehatan <ArrowUpRight size={15} /></Link>

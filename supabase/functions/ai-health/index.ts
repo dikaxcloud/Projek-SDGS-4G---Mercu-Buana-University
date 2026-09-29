@@ -226,7 +226,7 @@ Deno.serve(async (req: Request) => {
       .select('role, is_active')
       .eq('user_id', userId)
       .maybeSingle()
-    const isStaff = profile?.is_active && ['nakes', 'admin'].includes(profile.role)
+    const isStaff = profile?.is_active && ['nakes', 'developer', 'rt_rw'].includes(profile.role)
     const { data: links } = await admin
       .from('linked_accounts')
       .select('citizen_id')

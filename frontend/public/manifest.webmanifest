@@ -1,7 +1,7 @@
 {
-  "name": "Desa Sehat Kenanga",
-  "short_name": "Sehat Kenanga",
-  "description": "Portal kesehatan demo warga Desa Sehat Kenanga.",
+  "name": "Desa Sehat",
+  "short_name": "Desa Sehat",
+  "description": "Portal kesehatan demo warga Desa Sehat.",
   "lang": "id-ID",
   "start_url": "/",
   "display": "standalone",

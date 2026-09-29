@@ -1,11 +1,10 @@
 import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 
 export const demoAccess = {
-  warga: { user_id: 'demo-warga', role: 'warga', admin_tier: null, display_name: 'Budi Santoso', citizen_id: 'demo-citizen-001', nik_last4: '0001' },
-  nakes: { user_id: 'demo-nakes', role: 'nakes', admin_tier: null, display_name: 'Siti Rahmawati', citizen_id: null, nik_last4: null },
-  admin: { user_id: 'demo-admin', role: 'admin', admin_tier: 1, display_name: 'Admin Desa (Owner)', citizen_id: null, nik_last4: null },
-  senior: { user_id: 'demo-senior', role: 'admin', admin_tier: 2, display_name: 'Admin Senior', citizen_id: null, nik_last4: null },
-  junior: { user_id: 'demo-junior', role: 'admin', admin_tier: 3, display_name: 'Admin Junior', citizen_id: null, nik_last4: null },
+  warga: { user_id: 'demo-warga', role: 'warga', display_name: 'Budi Santoso', citizen_id: 'demo-citizen-001', nik_last4: '0001' },
+  nakes: { user_id: 'demo-nakes', role: 'nakes', display_name: 'Siti Rahmawati', citizen_id: null, nik_last4: null },
+  developer: { user_id: 'demo-developer', role: 'developer', display_name: 'Developer', citizen_id: null, nik_last4: null },
+  rt_rw: { user_id: 'demo-rt-rw', role: 'rt_rw', display_name: 'Pengurus RT/RW', citizen_id: null, nik_last4: null },
 }
 
 export async function signInWithGoogle() {

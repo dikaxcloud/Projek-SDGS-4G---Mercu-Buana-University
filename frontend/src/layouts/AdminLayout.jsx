@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Outlet, Link, NavLink, useLocation } from 'react-router-dom'
-import { BookOpen, FileClock, Home, LayoutDashboard, LogOut, Map, Phone, QrCode, ShieldCheck, Shield, Stethoscope, Users, UserRoundCog, UserPlus, Menu, X, ChevronDown } from 'lucide-react'
+import { BookOpen, FileClock, Home, LayoutDashboard, LogOut, Map, Phone, QrCode, ShieldCheck, Shield, Users, UserRoundCog, UserPlus, Menu, X, ChevronDown } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { useAuth } from '../features/auth/AuthProvider'
+import { ROLES, roleLabel } from '../features/auth/roles'
 import { useLogout } from '../components/LogoutExperience'
 import { MobileMoreSheet } from '../components/MobileMoreSheet'
 import { UserPill } from '../components/UserPill'
@@ -21,8 +22,8 @@ const allLinks = [
   ['/admin/audit-log', FileClock, 'Audit log'],
 ]
 
-const desktopLinks = allLinks.slice(0, 7)
-const desktopMoreLinks = allLinks.slice(7)
+/** Menu khusus Developer — RT/RW tidak mengelola akun & konfigurasi sistem. */
+const developerOnlyPaths = ['/admin/admins']
 
 const mobilePrimary = [
   { to: '/admin', label: 'Ringkasan', Icon: LayoutDashboard },
@@ -44,6 +45,7 @@ const moreItems = [
 
 export function AdminLayout() {
   const { access } = useAuth()
+  const isDeveloper = access?.role === ROLES.DEVELOPER
   const { requestLogout } = useLogout()
   const logout = () => requestLogout()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -52,8 +54,13 @@ export function AdminLayout() {
   const moreDropdownRef = useRef(null)
   const location = useLocation()
 
+  const visibleLinks = allLinks.filter(([to]) => isDeveloper || !developerOnlyPaths.includes(to))
+  const desktopLinks = visibleLinks.slice(0, 7)
+  const desktopMoreLinks = visibleLinks.slice(7)
+  const visibleMoreItems = moreItems.filter(({ to }) => isDeveloper || !developerOnlyPaths.includes(to))
+
   const sheetItems = [
-    ...moreItems,
+    ...visibleMoreItems,
     { label: 'Keluar Akun', Icon: LogOut, danger: true, onClick: logout },
   ]
 
@@ -110,7 +117,7 @@ export function AdminLayout() {
         <div className="container nav">
           <Link to="/admin"><Brand /></Link>
 
-          <nav className="admin-nav" aria-label="Navigasi admin">
+          <nav className="admin-nav" aria-label={isDeveloper ? 'Navigasi developer' : 'Navigasi RT/RW'}>
             {desktopLinks.map(([to, Icon, label]) => (
               <NavLink end={to === '/admin'} to={to} key={to}>
                 <Icon size={15} /> {label}
@@ -160,7 +167,7 @@ export function AdminLayout() {
               </button>
             </div>
             <div className="admin-mobile-menu-links">
-              {allLinks.map(([to, Icon, label]) => (
+              {visibleLinks.map(([to, Icon, label]) => (
                 <NavLink end={to === '/admin'} to={to} key={to}>
                   <Icon size={16} /> {label}
                 </NavLink>
@@ -169,7 +176,7 @@ export function AdminLayout() {
             <div className="admin-mobile-menu-footer">
               <div className="admin-drawer-user">
                 <strong>{access?.display_name}</strong>
-                <span>{access?.role === 'admin' ? 'Admin' : 'Nakes'}</span>
+                <span>{roleLabel(access?.role)}</span>
               </div>
               <button onClick={logout} className="admin-mobile-logout">
                 <LogOut size={16} /> Keluar
@@ -194,7 +201,7 @@ export function AdminLayout() {
         </button>
       </nav>
 
-      <MobileMoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} title="Menu Admin" items={sheetItems} />
+      <MobileMoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} title={isDeveloper ? 'Menu Developer' : 'Menu RT/RW'} items={sheetItems} />
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpRight, Clock3, Search, RefreshCw, HeartPulse, Leaf, A
 import { Link } from 'react-router-dom'
 import { getPublicArticles } from '../features/health/healthService'
 import { useAuth } from '../features/auth/AuthProvider'
+import { homePathFor } from '../features/auth/ProtectedRoute'
 import { setSeo } from '../utils/seo'
 import { getArticleImageByFields, toSrcSet } from '../utils/articleImages'
 
@@ -37,7 +38,7 @@ function formatDate(dateStr) {
 
 export function ArticlesPage() {
   const { access } = useAuth()
-  const homePath = access?.role === 'warga' ? '/warga' : access?.role === 'nakes' ? '/nakes' : access?.role === 'admin' ? '/admin' : '/'
+  const homePath = homePathFor(access?.role)
   const [category, setCategory] = useState('Semua')
   const [search, setSearch] = useState('')
   const [articles, setArticles] = useState([])
@@ -69,10 +70,10 @@ export function ArticlesPage() {
 
   useEffect(() => {
     setSeo({
-      title: 'Informasi Kesehatan — Desa Sehat Kenanga',
-      description: 'Temukan informasi sederhana seputar kesehatan, pemeriksaan rutin, pola hidup sehat, dan tips menjaga kesehatan keluarga di Desa Sehat Kenanga.',
-      canonical: 'https://dika-web.web.id/informasi-kesehatan',
-      image: 'https://dika-web.web.id/images/informasi-sehat-untuk-anda-dan-keluarga-800.webp',
+      title: 'Informasi Kesehatan — Desa Sehat',
+      description: 'Temukan informasi sederhana seputar kesehatan, pemeriksaan rutin, pola hidup sehat, dan tips menjaga kesehatan keluarga di Desa Sehat.',
+      canonical: 'https://desaku-sehat.my.id/informasi-kesehatan',
+      image: 'https://desaku-sehat.my.id/images/informasi-sehat-untuk-anda-dan-keluarga-800.webp',
       type: 'website'
     })
   }, [])
@@ -110,7 +111,7 @@ export function ArticlesPage() {
                 src={HERO_IMAGE_800}
                 srcSet={`${HERO_IMAGE_400} 400w, ${HERO_IMAGE_800} 800w`}
                 sizes="(max-width: 900px) 100vw, 460px"
-                alt="Keluarga sehat bersama tenaga kesehatan desa Kenanga"
+                alt="Keluarga sehat bersama tenaga kesehatan Desa Sehat"
                 width={760}
                 height={520}
                 loading="eager"

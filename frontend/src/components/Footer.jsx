@@ -6,7 +6,7 @@ export function Footer() {
     <footer className="footer">
       <div className="container footer-inner">
         <div className="footer-brand"><Brand /></div>
-        <p className="footer-copy">© 2026 Desa Sehat Kenanga</p>
+        <p className="footer-copy">© 2026 Desa Sehat</p>
         <p className="footer-credits">
           <span>Created by</span>
           <a href="https://projek-sdgs.vercel.app" target="_blank" rel="noopener noreferrer">SDGS Projek 4G</a>

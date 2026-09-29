@@ -127,7 +127,7 @@ export function QrAccessExperience({ token, onSuccess, onRetry, onClose, mode = 
               <span className="qr-access-icon"><QrCode size={28} /></span>
             </div>
             <h2 className="qr-access-title">Memverifikasi akses...</h2>
-            <p className="qr-access-sub">Sedang menghubungkan Anda dengan<br />Desa Sehat Kenanga.</p>
+            <p className="qr-access-sub">Sedang menghubungkan Anda dengan<br />Desa Sehat.</p>
             <div className="qr-access-dots" aria-hidden="true"><span className="dot" /><span className="dot d2" /><span className="dot d3" /></div>
           </>
         )}
@@ -170,7 +170,7 @@ export function QrAccessExperience({ token, onSuccess, onRetry, onClose, mode = 
           <>
             <div className="qr-access-avatar" aria-hidden="true">{avatarLetter}</div>
             <h2 className="qr-access-title">Selamat datang,<br />{firstName} 👋</h2>
-            <p className="qr-access-sub">Desa Sehat Kenanga<br />Data kesehatan Anda berhasil ditemukan dan siap ditampilkan.</p>
+            <p className="qr-access-sub">Desa Sehat<br />Data kesehatan Anda berhasil ditemukan dan siap ditampilkan.</p>
             <div className="qr-access-progress"><div className="qr-access-progress-fill" /></div>
             <p className="qr-access-redirect">Menuju dashboard...</p>
           </>

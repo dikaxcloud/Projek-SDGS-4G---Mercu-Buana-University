@@ -10,7 +10,7 @@ const demo = {
   households: [1, 2, 3, 4, 5].flatMap((rt) => Array.from({ length: 3 }, (_, index) => ({ household_id: `demo-kk-${rt}-${index}`, household_number: `KK-${String(rt).padStart(2, '0')}-${String(index + 1).padStart(2, '0')}`, head_name: index % 2 ? 'Rina Wulandari' : 'Budi Santoso', address: `Jalan Kenanga ${index + 1}`, rt_code: `RT ${String(rt).padStart(2, '0')}`, citizen_count: index + 1 }))),
   rts: [1, 2, 3, 4, 5].map((n) => ({ rt_id: `demo-rt-${n}`, code: `RT ${String(n).padStart(2, '0')}`, name: `RT ${String(n).padStart(2, '0')}`, household_count: 10, citizen_count: 25 })),
   workers: [{ health_worker_id: 'demo-worker-1', full_name: 'Siti Rahmawati', position: 'Bidan Desa', specialty: 'Kesehatan ibu & anak', phone: '08••••••001', is_online: true, is_active: true }, { health_worker_id: 'demo-worker-2', full_name: 'Dedi Prasetyo', position: 'Perawat Desa', specialty: 'Pemeriksaan umum', phone: '08••••••002', is_online: true, is_active: true }, { health_worker_id: 'demo-worker-3', full_name: 'Maya Lestari', position: 'Kader Kesehatan', specialty: 'Posyandu & edukasi', phone: '08••••••003', is_online: false, is_active: true }],
-  profiles: [{ user_id: 'demo-admin', role: 'admin', display_name: 'Admin Desa', is_active: true, created_at: '2026-08-01' }, { user_id: 'demo-nakes', role: 'nakes', display_name: 'Siti Rahmawati', is_active: true, created_at: '2026-08-01' }],
+  profiles: [{ user_id: 'demo-developer', role: 'developer', display_name: 'Developer', is_active: true, created_at: '2026-08-01' }, { user_id: 'demo-nakes', role: 'nakes', display_name: 'Siti Rahmawati', is_active: true, created_at: '2026-08-01' }],
   articles: [{ article_id: 'demo-article-1', title: 'Cara menjaga tekanan darah tetap sehat', slug: 'menjaga-tekanan-darah', summary: 'Kebiasaan sederhana untuk membantu menjaga tekanan darah.', content: 'Kurangi garam dan bergerak rutin.', is_published: true, updated_at: '2026-08-23' }],
   contacts: [{ emergency_contact_id: 'demo-contact-1', officer_name: 'Siti Rahmawati', label: 'Petugas kesehatan desa', phone: '08••••••001', whatsapp_url: 'https://wa.me/628120000001', sort_order: 1, is_active: true }],
   audit: [{ audit_log_id: 'demo-audit-1', actor_user_id: 'demo-admin', action: 'seed', entity: 'demo_data', metadata: { source: 'synthetic' }, created_at: '2026-08-23T08:00:00+07:00' }],
@@ -25,15 +25,14 @@ const call = async (name, params = {}) => { const { data, error } = await supaba
 
 export async function getAdminSummary() { if (!supabase) return demo.summary; return call('get_admin_summary') }
 
-/** Promote/demote a Google user by email to nakes or warga (server-side guard). */
+/** Promote/demote a Google user by email (developer/rt_rw/nakes/warga). Server-side guard. */
 export async function setUserRoleByEmail(email, role) {
   if (!supabase) return { status: 'updated', role }
   return call('admin_set_user_role', { p_email: email, p_role: role })
 }
 
-/** Invite a new user (nakes/admin/warga) via Supabase Auth email invite.
- *  Tier-aware: Owner can invite tier 2/3/4/5, Senior can invite tier 3/4/5. */
-export async function inviteUser(email, role, fullName = '', tier = null) {
+/** Invite a new user (rt_rw/nakes/warga) via Supabase Auth email invite. */
+export async function inviteUser(email, role, fullName = '') {
   if (!rateLimit('invite_user', 5, 60000)) throw new Error('Terlalu banyak undangan. Coba lagi dalam 1 menit.')
   const cleanEmail = sanitizeText(email, 254).toLowerCase()
   if (!isValidEmail(cleanEmail)) throw new Error('Format email tidak valid')
@@ -52,7 +51,7 @@ export async function inviteUser(email, role, fullName = '', tier = null) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${freshSession.access_token}`,
     },
-    body: JSON.stringify({ email: cleanEmail, role, full_name: cleanName || undefined, tier: tier || undefined }),
+    body: JSON.stringify({ email: cleanEmail, role, full_name: cleanName || undefined }),
   })
   const json = await res.json().catch(() => ({}))
   if (!res.ok) {
@@ -60,32 +59,6 @@ export async function inviteUser(email, role, fullName = '', tier = null) {
     throw new Error(sanitizeErrorMessage(json.error || json.message || 'Undangan gagal dikirim'))
   }
   return json
-}
-
-/** True when the caller is the app owner (allowed to grant the admin role). */
-export async function isAppOwner() {
-  if (!supabase) return false
-  const data = await call('is_app_owner')
-  return Boolean(data)
-}
-
-/** Tier helpers: 1=Owner,2=Senior,3=Junior,4=Nakes,5=Warga */
-export function getTier(access) {
-  if (!access) return 5
-  if (access.role === 'admin') return access.admin_tier ?? 3
-  if (access.role === 'nakes') return 4
-  return 5
-}
-export function tierLabel(tier) {
-  if (tier === 1) return 'Owner'
-  if (tier === 2) return 'Senior Admin'
-  if (tier === 3) return 'Junior Admin'
-  if (tier === 4) return 'Nakes'
-  return 'Warga'
-}
-export async function setAdminTier(userId, tier) {
-  if (!supabase) return { status: 'updated', tier }
-  return call('admin_set_admin_tier', { p_user_id: userId, p_tier: tier })
 }
 
 /** Issue (or re-issue) the 30-minute activation challenge token for a verified citizen. */

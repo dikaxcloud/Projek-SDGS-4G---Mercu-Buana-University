@@ -133,13 +133,13 @@ export function NakesPublicProfilePage() {
 
     <div className="staff-panel" style={{marginTop:16}}>
       <h3 style={{margin:'0 0 6px', fontSize:15}}>Profil singkat</h3>
-      <p className="muted-text" style={{margin:0, lineHeight:1.6}}>Tenaga kesehatan yang membantu pelayanan kesehatan warga Desa Sehat Kenanga. Berkomitmen memberikan pemeriksaan rutin, edukasi, dan pendampingan kesehatan keluarga.</p>
+      <p className="muted-text" style={{margin:0, lineHeight:1.6}}>Tenaga kesehatan yang membantu pelayanan kesehatan warga Desa Sehat. Berkomitmen memberikan pemeriksaan rutin, edukasi, dan pendampingan kesehatan keluarga.</p>
     </div>
 
     <div className="staff-panel" style={{marginTop:16}}>
       <h3 style={{margin:'0 0 12px', fontSize:15}}>Informasi profesional</h3>
       <div style={{display:'grid', gap:12}}>
-        <div style={{display:'flex', gap:12, alignItems:'flex-start'}}><MapPin size={18} color="var(--teal)" style={{marginTop:2}}/><div><strong style={{fontSize:13}}>Wilayah pelayanan</strong><div className="muted-text" style={{fontSize:13}}>Desa Sehat Kenanga</div></div></div>
+        <div style={{display:'flex', gap:12, alignItems:'flex-start'}}><MapPin size={18} color="var(--teal)" style={{marginTop:2}}/><div><strong style={{fontSize:13}}>Wilayah pelayanan</strong><div className="muted-text" style={{fontSize:13}}>Desa Sehat</div></div></div>
         <div style={{display:'flex', gap:12, alignItems:'flex-start'}}><Building2 size={18} color="var(--teal)" style={{marginTop:2}}/><div><strong style={{fontSize:13}}>Tempat bertugas</strong><div className="muted-text" style={{fontSize:13}}>Pos Kesehatan Desa</div></div></div>
         <div style={{display:'flex', gap:12, alignItems:'flex-start'}}><Stethoscope size={18} color="var(--teal)" style={{marginTop:2}}/><div><strong style={{fontSize:13}}>Fokus pelayanan</strong><div className="muted-text" style={{fontSize:13}}>{worker.specialty || 'Pemeriksaan kesehatan warga'}</div></div></div>
         <div style={{display:'flex', gap:12, alignItems:'flex-start'}}><Clock size={18} color="var(--teal)" style={{marginTop:2}}/><div><strong style={{fontSize:13}}>Jadwal pelayanan</strong><div className="muted-text" style={{fontSize:13}}>{worker.schedule || 'Senin - Jumat, 08.00 - 15.00'}</div></div></div>

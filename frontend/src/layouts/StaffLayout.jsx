@@ -7,6 +7,7 @@ import { useLogout } from '../components/LogoutExperience'
 import { supabase } from '../lib/supabase'
 import { MobileMoreSheet } from '../components/MobileMoreSheet'
 import { UserPill } from '../components/UserPill'
+import { ADMIN_ROLES, ROLES } from '../features/auth/roles'
 // Desktop navbar (≥801px) — tidak berubah
 const navLinks = [
   { to: '/nakes', Icon: LayoutDashboard, label: 'Ringkasan' },
@@ -41,16 +42,17 @@ export function StaffLayout() {
   const location = useLocation()
 
   useEffect(() => {
-    if (!supabase || access?.role !== 'nakes') return undefined
+    if (!supabase || access?.role !== ROLES.NAKES) return undefined
     const heartbeat = () => { void supabase.rpc('touch_my_nakes_presence') }
     heartbeat()
     const timer = window.setInterval(heartbeat, 60000)
     return () => window.clearInterval(timer)
   }, [access?.role])
 
-  const staffNavLinks = access?.role === 'admin' ? navLinks : navLinks.filter((item) => item.to !== '/admin')
+  const canSwitchToAdmin = ADMIN_ROLES.includes(access?.role)
+  const staffNavLinks = canSwitchToAdmin ? navLinks : navLinks.filter((item) => item.to !== '/admin')
   const sheetItems = [
-    ...(access?.role === 'admin' ? moreItems : moreItems.filter((item) => item.to !== '/admin')),
+    ...(canSwitchToAdmin ? moreItems : moreItems.filter((item) => item.to !== '/admin')),
     { label: 'Keluar Akun', Icon: LogOut, danger: true, onClick: logout },
   ]
 

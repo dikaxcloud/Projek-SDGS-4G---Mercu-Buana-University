@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { demoAccess, getAccess, signInWithGoogle, signOut } from './authService'
 import { clearOfflineUser } from '../../lib/offlineStore'
+import { ADMIN_ROLES, ROLES } from './roles'
 
 const AuthContext = createContext(null)
 
@@ -39,8 +40,13 @@ export function AuthProvider({ children }) {
 
   useEffect(() => { if (access) clearAuthError() }, [access])
 
+  const role = access?.role ?? null
+
   const value = useMemo(() => ({
-    session, access, loading, error, isAuthenticated: Boolean(session) || Boolean(access?.user_id?.startsWith('demo-')),
+    session, access, role, loading, error,
+    isDeveloper: role === ROLES.DEVELOPER,
+    isAdminArea: ADMIN_ROLES.includes(role),
+    isAuthenticated: Boolean(session) || Boolean(access?.user_id?.startsWith('demo-')),
     isDemo: Boolean(access?.user_id?.startsWith('demo-')),
     setDemoAccess: (role) => { setError(''); setAccess(demoAccess[role] ?? null); setSession(null); setLoading(false) },
     clearDemoAccess: () => { setAccess(null) },
@@ -54,7 +60,7 @@ export function AuthProvider({ children }) {
       } catch {}
       await signOut(); setSession(null); setAccess(null)
     },
-  }), [access, error, loading, session])
+  }), [access, error, loading, role, session])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -5,7 +5,7 @@ export function Brand() {
         <source srcSet="/logo-76.webp 1x, /logo-152.webp 2x" type="image/webp" />
         <img
           src="/logo-152.png"
-          alt="Logo Desa Kenanga"
+          alt="Logo Desa Sehat"
           className="brand-logo"
           width={38}
           height={38}
@@ -15,7 +15,7 @@ export function Brand() {
           onError={(event) => { event.currentTarget.style.display = 'none' }}
         />
       </picture>
-      <span>Desa Sehat <strong>Kenanga</strong></span>
+      <span>Desa Sehat</span>
     </span>
   )
 }

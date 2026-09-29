@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ProtectedRoute, RoleRoute, CitizenRoute } from '../features/auth/ProtectedRoute'
+import { ADMIN_ROLES, ROLES } from '../features/auth/roles'
 
 const PublicLayout = lazy(() => import('../layouts/PublicLayout').then(m => ({ default: m.PublicLayout })))
 const CitizenLayout = lazy(() => import('../layouts/CitizenLayout').then(m => ({ default: m.CitizenLayout })))
@@ -77,7 +78,7 @@ export function App() {
           <Route path="/warga/*" element={<CitizenDashboard />} />
         </Route>
       </Route>
-      <Route element={<RoleRoute roles={['nakes', 'admin']} />}>
+      <Route element={<RoleRoute roles={[ROLES.NAKES, ...ADMIN_ROLES]} />}>
         <Route element={<StaffLayout />}>
           <Route path="/nakes" element={<NakesDashboard />} />
           <Route path="/nakes/warga" element={<NakesWargaPage />} />
@@ -92,7 +93,7 @@ export function App() {
         </Route>
       </Route>
 
-      <Route element={<RoleRoute roles={['admin']} />}>
+      <Route element={<RoleRoute roles={ADMIN_ROLES} />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/warga/baru" element={<AddCitizenPage basePath="/admin" />} />
@@ -107,7 +108,7 @@ export function App() {
           <Route path="/admin/kontak" element={<AdminManagementPage resource="emergency_contacts" />} />
           <Route path="/admin/qr" element={<QrToolsPage />} />
           <Route path="/admin/audit-log" element={<AdminManagementPage resource="audit_logs" />} />
-          <Route path="/admin/*" element={<AdminDashboard />} />
+          <Route path="*" element={<AdminDashboard />} />
         </Route>
       </Route>
     </Route>

@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CheckCircle2, Stethoscope } from 'lucide-react'
+import { ROLES } from '../features/auth/roles'
 
 const ROLE_CONFIG = {
-  admin: {
-    label: 'Admin',
-    message: 'Akses Admin Desa Anda telah disiapkan.',
-    checklist: 'Akses Admin disiapkan',
+  developer: {
+    label: 'Developer',
+    message: 'Akses Developer Anda telah disiapkan.',
+    checklist: 'Akses Developer disiapkan',
+  },
+  rt_rw: {
+    label: 'RT/RW',
+    message: 'Akses RT/RW Anda telah disiapkan.',
+    checklist: 'Akses RT/RW disiapkan',
   },
   nakes: {
     label: 'Nakes',
@@ -30,12 +36,12 @@ export function WelcomeTransition({ access, onComplete, isInvitation = false }) 
   const [showFinal, setShowFinal] = useState(false)
 
   const displayName = access?.display_name?.trim() || ''
-  const role = access?.role || 'warga'
+  const role = access?.role || ROLES.WARGA
   const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.warga
 
   const heading = useMemo(() => {
     if (displayName) return `Selamat datang, ${displayName}!`
-    return 'Selamat datang di Desa Sehat Kenanga!'
+    return 'Selamat datang di Desa Sehat!'
   }, [displayName])
 
   const subMessage = cfg.message
@@ -54,8 +60,8 @@ export function WelcomeTransition({ access, onComplete, isInvitation = false }) 
   }, [onComplete, role])
 
   const getDestination = () => {
-    if (role === 'admin') return '/admin'
-    if (role === 'nakes') return '/nakes'
+    if (role === ROLES.DEVELOPER || role === ROLES.RT_RW) return '/admin'
+    if (role === ROLES.NAKES) return '/nakes'
     return '/warga'
   }
 
@@ -78,7 +84,7 @@ export function WelcomeTransition({ access, onComplete, isInvitation = false }) 
         <div className="welcome-logo-wrap welcome-animate-logo">
           <img
             src="/logo.png"
-            alt="Logo Desa Sehat Kenanga"
+            alt="Logo Desa Sehat"
             className="welcome-logo"
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
@@ -87,7 +93,7 @@ export function WelcomeTransition({ access, onComplete, isInvitation = false }) 
           </span>
         </div>
 
-        <p className="welcome-brand">Desa Sehat Kenanga</p>
+        <p className="welcome-brand">Desa Sehat</p>
 
         {/* Welcome message - appears at 300ms */}
         <div className="welcome-animate welcome-delay-1">

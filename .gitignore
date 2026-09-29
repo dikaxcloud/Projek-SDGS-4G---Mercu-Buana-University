@@ -41,3 +41,5 @@ Thumbs.db
 # !logo.png allowed
 token.txt
 .env*
+resend.txt
+resend*.png

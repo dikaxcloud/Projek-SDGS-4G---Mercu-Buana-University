@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, ChevronDown, ChevronUp, Download, KeyRound, Plus, Printer, RefreshCw, Save, Search, ShieldCheck, Trash2, UserX, UserCheck, UserX as UserXIcon, Wifi, WifiOff, Shield, Mail, Loader2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
-import { deleteAdminResource, getDemoAdminRows, getTier, isAppOwner, inviteUser, listAdmin, moveAdminContact, saveAdmin, setAdminTier, setUserRoleByEmail, tierLabel } from '../features/admin/adminService'
+import { deleteAdminResource, getDemoAdminRows, inviteUser, listAdmin, moveAdminContact, saveAdmin, setUserRoleByEmail } from '../features/admin/adminService'
+import { ROLES, ROLE_COLORS, canChangeRole, canDeleteRole, invitableRoles, roleLabel } from '../features/auth/roles'
 import { createActivationCode, createStaffHousehold, createAdminRt, listHouseholdMembers, listStaffCitizens, listStaffHouseholds, listStaffRts, updateStaffCitizen, updateAdminRt } from '../features/staff/staffService'
 import { downloadQr, makeQrDataUrl, printQr } from '../utils/qr'
 import { useAuth } from '../features/auth/AuthProvider'
@@ -62,17 +63,10 @@ const config = {
   profiles: {
     title: 'Akun',
     description: '',
-    columns: [['display_name', 'Nama'], ['email', 'Email Google'], ['role', 'Role'], ['admin_tier', 'Tier'], ['is_active', 'Status']],
+    columns: [['display_name', 'Nama'], ['email', 'Email Google'], ['role', 'Role'], ['is_active', 'Status']],
     roleControl: true,
-    renderCell: (key, value, row) => {
-      if (key === 'role') return statusBadge(value, value === 'admin' ? '#7c3aed' : value === 'nakes' ? '#0891b2' : '#16a34a', Shield)
-      if (key === 'admin_tier') {
-        if (row.role !== 'admin') return statusBadge(row.role === 'nakes' ? 'Tier 4' : 'Tier 5', '#6b7280', Shield)
-        const t = value ?? 3
-        const map = { 1: ['Tier 1 Owner', '#dc2626'], 2: ['Tier 2 Senior', '#7c3aed'], 3: ['Tier 3 Junior', '#0891b2'] }
-        const [label, color] = map[t] || [`Tier ${t}`, '#6b7280']
-        return statusBadge(label, color, Shield)
-      }
+    renderCell: (key, value) => {
+      if (key === 'role') return statusBadge(roleLabel(value), ROLE_COLORS[value] ?? '#6b7280', Shield)
       if (key === 'is_active') return statusBadge(value ? 'Aktif' : 'Tidak aktif', value ? '#16a34a' : '#ef4444', value ? UserCheck : UserXIcon)
       return String(value || '—')
     }
@@ -115,22 +109,18 @@ export function AdminManagementPage({ resource }) {
   const meta = config[resource]
   const navigate = useNavigate()
   const { access } = useAuth()
-  const isCallerAdmin = access?.role === 'admin'
+  const callerRole = access?.role ?? null
+  const isDeveloper = callerRole === ROLES.DEVELOPER
   const [rows, setRows] = useState([]); const [query, setQuery] = useState(''); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [editing, setEditing] = useState(null)
   const [statusFilter, setStatusFilter] = useState('')
   const [rtFilter, setRtFilter] = useState('')
   const [rts, setRts] = useState([])
-  const [accountTierFilter, setAccountTierFilter] = useState('')
+  const [accountRoleFilter, setAccountRoleFilter] = useState('')
   const [kkForm, setKkForm] = useState(null); const [kkSaving, setKkSaving] = useState(false); const [members, setMembers] = useState(null)
   const [rtForm, setRtForm] = useState(null); const [rtSaving, setRtSaving] = useState(false)
   const [codeInfo, setCodeInfo] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const [notice, setNotice] = useState('')
-  const [deleteId, setDeleteId] = useState(null)
-  const [isOwner, setIsOwner] = useState(false)
-  useEffect(() => { if (resource === 'profiles') isAppOwner().then(setIsOwner).catch(() => {}) }, [resource])
-  const callerTier = getTier(access)
-  const isTier1 = callerTier === 1
 
   // Toast state
   const [toasts, setToasts] = useState([])
@@ -159,17 +149,11 @@ export function AdminManagementPage({ resource }) {
 
   const filteredRows = useMemo(() => {
     if (resource !== 'profiles') return rows
-    let filtered = rows
-    if (callerTier === 2) filtered = filtered.filter(r => getTier(r) !== 1)
-    if (callerTier === 3) filtered = filtered.filter(r => ![1, 2].includes(getTier(r)))
-    if (accountTierFilter === 'tier2') filtered = filtered.filter(r => getTier(r) === 2)
-    else if (accountTierFilter === 'tier3') filtered = filtered.filter(r => getTier(r) === 3)
-    else if (accountTierFilter === 'nakes') filtered = filtered.filter(r => r.role === 'nakes' || getTier(r) === 4)
-    else if (accountTierFilter === 'warga') filtered = filtered.filter(r => r.role === 'warga' || getTier(r) === 5)
-    else if (accountTierFilter === 'tier4') filtered = filtered.filter(r => getTier(r) === 4)
-    else if (accountTierFilter === 'tier5') filtered = filtered.filter(r => getTier(r) === 5)
-    return filtered
-  }, [rows, resource, callerTier, accountTierFilter])
+    // RT/RW tidak boleh melihat akun Developer.
+    const visible = isDeveloper ? rows : rows.filter(r => r.role !== ROLES.DEVELOPER)
+    if (!accountRoleFilter) return visible
+    return visible.filter(r => r.role === accountRoleFilter)
+  }, [rows, resource, isDeveloper, accountRoleFilter])
 
   const submit = async (event) => {
     event.preventDefault()
@@ -259,8 +243,8 @@ export function AdminManagementPage({ resource }) {
     setBusyId(row.user_id); setError(''); setNotice('')
     try {
       await setUserRoleByEmail(row.email, role)
-      setNotice(`✅ Role ${row.email} diubah menjadi ${role}.`)
-      pushToast('success', `Role ${row.email} diubah menjadi ${role}.`)
+      setNotice(`✅ Role ${row.email} diubah menjadi ${roleLabel(role)}.`)
+      pushToast('success', `Role ${row.email} diubah menjadi ${roleLabel(role)}.`)
       await load()
     } catch (err) {
       setError(err.message || 'Role belum berhasil diubah.')
@@ -271,51 +255,22 @@ export function AdminManagementPage({ resource }) {
   const showActions = resource === 'citizens'
 
   // Invite states — upgraded UX
-  const [inviteName, setInviteName] = useState(''); const [inviteEmail, setInviteEmail] = useState(''); const [inviteTier, setInviteTier] = useState('tier2'); const [inviting, setInviting] = useState(false)
-  // invite modal state: { open, step 1-4, status: 'loading'|'success'|'error'|'duplicate', email, errorDetail, tierLabel }
+  const [inviteName, setInviteName] = useState(''); const [inviteEmail, setInviteEmail] = useState(''); const [inviteRole, setInviteRole] = useState(ROLES.NAKES); const [inviting, setInviting] = useState(false)
+  // invite modal state: { open, step 1-4, status: 'loading'|'success'|'error'|'duplicate', email, errorDetail, roleLabel }
   const [inviteModal, setInviteModal] = useState(null)
-  const inviteTierBlocked = inviteTier === 'tier4' || inviteTier === 'tier5'
 
-  const getInviteOptions = () => {
-    if (callerTier === 1) return [
-      { value: 'tier2', label: 'Senior Admin (Tier 2)' },
-      { value: 'tier3', label: 'Junior Admin (Tier 3)' },
-      { value: 'tier4', label: 'Nakes (Tier 4)' },
-      { value: 'tier5', label: 'Warga (Tier 5)' },
-    ]
-    if (callerTier === 2) return [
-      { value: 'tier3', label: 'Junior Admin (Tier 3)' },
-      { value: 'tier4', label: 'Nakes (Tier 4)' },
-      { value: 'tier5', label: 'Warga (Tier 5)' },
-    ]
-    if (callerTier === 3) return [
-      { value: 'tier4', label: 'Nakes (Tier 4)' },
-      { value: 'tier5', label: 'Warga (Tier 5)' },
-    ]
-    return []
-  }
+  const inviteOptions = invitableRoles(callerRole).map((value) => ({ value, label: roleLabel(value) }))
   useEffect(() => {
-    const opts = getInviteOptions()
-    if (opts.length && !opts.some(o => o.value === inviteTier)) setInviteTier(opts[0].value)
-  }, [callerTier])
+    if (inviteOptions.length && !inviteOptions.some(o => o.value === inviteRole)) setInviteRole(inviteOptions[0].value)
+  }, [callerRole])
 
-  const doInviteRequest = async ({ email, role, tier, fullName, tierLabelStr }) => {
-    // Open modal loading state
-    setInviteModal({ open: true, step: 1, status: 'loading', email, tierLabel: tierLabelStr, errorDetail: '' })
+  const doInviteRequest = async ({ email, role, fullName, roleLabelStr }) => {
+    setInviteModal({ open: true, step: 1, status: 'loading', email, roleLabel: roleLabelStr, errorDetail: '' })
     setInviting(true)
-    // step 1
     await new Promise(r => setTimeout(r, 400))
     setInviteModal(m => m ? { ...m, step: 2 } : m)
     try {
-      let r = role; let t = tier
-      const res = await inviteUser(email.trim(), r, fullName.trim(), t)
-      if (r === 'admin' && t === 2) {
-        try {
-          const rows = await listAdmin('profiles', email.trim())
-          const target = rows.find(x => (x.email || '').toLowerCase() === email.trim().toLowerCase())
-          if (target?.user_id) await setAdminTier(target.user_id, 2)
-        } catch {}
-      }
+      await inviteUser(email.trim(), role, fullName.trim())
       setInviteModal(m => m ? { ...m, step: 3 } : m)
       await new Promise(r2 => setTimeout(r2, 450))
       setInviteModal(m => m ? { ...m, step: 4, status: 'success' } : m)
@@ -323,13 +278,9 @@ export function AdminManagementPage({ resource }) {
     } catch (err) {
       const msg = err.message || 'Undangan gagal dikirim.'
       const isDuplicate = /sudah terdaftar|already|exists|registered/i.test(msg)
-      const isTierBlock = /Tier 1.?3|hanya tersedia untuk Tier/i.test(msg)
       if (isDuplicate) {
         setInviteModal(m => m ? { ...m, status: 'duplicate', errorDetail: msg, step: 2 } : m)
-      } else if (isTierBlock) {
-        setInviteModal(m => m ? { ...m, status: 'error', errorDetail: msg, step: 2 } : m)
       } else {
-        // generic email service error
         const friendly = /email|resend|smtp|limit|rate/i.test(msg) ? 'Terjadi masalah pada layanan email.' : msg
         setInviteModal(m => m ? { ...m, status: 'error', errorDetail: friendly, step: 2 } : m)
       }
@@ -341,19 +292,8 @@ export function AdminManagementPage({ resource }) {
 
   const submitInvite = async (event) => {
     event.preventDefault()
-    if (inviteTierBlocked) return
-    if (inviting) return
-    let role = 'warga'; let tier = null
-    if (inviteTier === 'tier2') { role = 'admin'; tier = 2 }
-    else if (inviteTier === 'tier3') { role = 'admin'; tier = 3 }
-    else if (inviteTier === 'tier4') role = 'nakes'
-    else if (inviteTier === 'tier5') role = 'warga'
-    else role = inviteTier
-    const label = inviteTier === 'tier2' ? 'Senior Admin (Tier 2)' : inviteTier === 'tier3' ? 'Junior Admin (Tier 3)' : inviteTier === 'tier4' ? 'Nakes (Tier 4)' : 'Warga (Tier 5)'
-    const result = await doInviteRequest({ email: inviteEmail.trim(), role, tier, fullName: inviteName.trim(), tierLabelStr: label })
-    if (result.ok) {
-      // keep modal open on success, will be closed via button
-    }
+    if (!inviteRole || inviting) return
+    await doInviteRequest({ email: inviteEmail.trim(), role: inviteRole, fullName: inviteName.trim(), roleLabelStr: roleLabel(inviteRole) })
   }
 
   const handleInviteSuccessClose = async () => {
@@ -366,13 +306,7 @@ export function AdminManagementPage({ resource }) {
 
   const handleInviteRetry = async () => {
     if (!inviteModal) return
-    let role = 'warga'; let tier = null
-    if (inviteTier === 'tier2') { role = 'admin'; tier = 2 }
-    else if (inviteTier === 'tier3') { role = 'admin'; tier = 3 }
-    else if (inviteTier === 'tier4') role = 'nakes'
-    else if (inviteTier === 'tier5') role = 'warga'
-    const label = inviteModal.tierLabel
-    await doInviteRequest({ email: inviteModal.email, role, tier, fullName: inviteName.trim() || '', tierLabelStr: label })
+    await doInviteRequest({ email: inviteModal.email, role: inviteRole, fullName: inviteName.trim() || '', roleLabelStr: roleLabel(inviteRole) })
   }
 
   return <div className="admin-page"><div className="container">
@@ -418,13 +352,12 @@ export function AdminManagementPage({ resource }) {
         </select>
       </>}
       {resource === 'profiles' && (
-        <select value={accountTierFilter} onChange={(event) => setAccountTierFilter(event.target.value)} aria-label="Filter role" style={{ minHeight: 44, padding: '0 10px', border: '1px solid var(--line)', borderRadius: 12, minWidth: 160 }}>
+        <select value={accountRoleFilter} onChange={(event) => setAccountRoleFilter(event.target.value)} aria-label="Filter role" style={{ minHeight: 44, padding: '0 10px', border: '1px solid var(--line)', borderRadius: 12, minWidth: 160 }}>
           <option value="">Semua Role</option>
-          {(callerTier === 1 || callerTier === 2) && <option value="tier2">Senior Admin (Tier 2)</option>}
-          <option value="tier3">Junior Admin (Tier 3)</option>
-          <option value="nakes">Nakes (Tier 4)</option>
-          <option value="warga">Warga (Tier 5)</option>
-          {callerTier === 1 && <option value="tier1">Developer (Tier 1)</option>}
+          {isDeveloper && <option value={ROLES.DEVELOPER}>Developer</option>}
+          <option value={ROLES.RT_RW}>RT/RW</option>
+          <option value={ROLES.NAKES}>Nakes</option>
+          <option value={ROLES.WARGA}>Warga</option>
         </select>
       )}
     </div>
@@ -472,7 +405,7 @@ export function AdminManagementPage({ resource }) {
 
     {resource === 'profiles' && (
       <>
-        {(callerTier <= 3) && (
+        {inviteOptions.length > 0 && (
           <form className="admin-form" onSubmit={submitInvite} style={{ marginBottom: 14 }}>
             <h2>Undang pengguna baru (via email)</h2>
             <div className="field-grid">
@@ -480,17 +413,17 @@ export function AdminManagementPage({ resource }) {
               <label>Email Google target<input required type="email" placeholder="nama@gmail.com" value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} /></label>
             </div>
             <div className="field-grid" style={{ marginTop: 12 }}>
-              <label>Role / Tier<select value={inviteTier} onChange={(event) => setInviteTier(event.target.value)}>
-                {getInviteOptions().map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              <label>Role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value)}>
+                {inviteOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select></label>
             </div>
-            {inviteTierBlocked && (
+            {!isDeveloper && (
               <div className="invite-warning" role="alert">
-                <AlertTriangle size={14} /> Undangan via email hanya tersedia untuk Tier 1–3.
+                <AlertTriangle size={14} /> Hanya Developer yang dapat mengundang akun RT/RW.
               </div>
             )}
             <div style={{ marginTop: 20 }}>
-              <button className="btn btn-primary" disabled={inviting || !inviteEmail.trim() || !inviteName.trim() || inviteTierBlocked} aria-busy={inviting}>
+              <button className="btn btn-primary" disabled={inviting || !inviteEmail.trim() || !inviteName.trim() || !inviteRole} aria-busy={inviting}>
                 {inviting ? <><Loader2 size={16} className="spin" /> Menyiapkan undangan...</> : <><ShieldCheck size={16} /> Kirim Undangan</>}
               </button>
             </div>
@@ -531,7 +464,7 @@ export function AdminManagementPage({ resource }) {
               <div className="ux-modal-icon success"><CheckCircle2 size={28} /></div>
               <h3 className="ux-modal-title">Undangan berhasil dikirim!</h3>
               <p className="ux-modal-desc">Undangan telah dikirim ke<br /><strong>{inviteModal.email}</strong></p>
-              <p className="ux-modal-desc small">User dapat mengikuti tautan pada email untuk bergabung ke Desa Sehat Kenanga.</p>
+              <p className="ux-modal-desc small">User dapat mengikuti tautan pada email untuk bergabung ke Desa Sehat.</p>
               <button className="btn btn-primary btn-wide" onClick={handleInviteSuccessClose} autoFocus>Selesai</button>
             </>
           )}
@@ -539,7 +472,7 @@ export function AdminManagementPage({ resource }) {
             <>
               <div className="ux-modal-icon warning"><AlertCircle size={28} /></div>
               <h3 className="ux-modal-title">Email sudah terdaftar</h3>
-              <p className="ux-modal-desc">Email tersebut sudah memiliki akun di Desa Sehat Kenanga.</p>
+              <p className="ux-modal-desc">Email tersebut sudah memiliki akun di Desa Sehat.</p>
               {inviteModal.errorDetail && <p className="ux-modal-desc small" style={{ color:'#92400e' }}>{inviteModal.errorDetail}</p>}
               <div className="ux-modal-actions">
                 <button className="btn btn-ghost" onClick={() => setInviteModal(null)}>Tutup</button>
@@ -656,16 +589,15 @@ export function AdminManagementPage({ resource }) {
       </div>
     )}
 
-    {(() => { const displayRows = resource === 'profiles' ? filteredRows : rows; return displayRows.length === 0 ? (loading ? <p className="muted-text">Memuat data...</p> : <p className="muted-text">Data belum ditemukan.{resource==='profiles' && accountTierFilter ? ' Coba ubah filter atau cari akun lain.' : ''}</p>) : (
+    {(() => { const displayRows = resource === 'profiles' ? filteredRows : rows; return displayRows.length === 0 ? (loading ? <p className="muted-text">Memuat data...</p> : <p className="muted-text">Data belum ditemukan.{resource==='profiles' && accountRoleFilter ? ' Coba ubah filter atau cari akun lain.' : ''}</p>) : (
       <div className="admin-table-wrap"><table className="admin-table">
         <thead><tr>{meta.columns.map(([, label]) => <th key={label}>{label}</th>)}{(showActions || ['households', 'rts', 'emergency_contacts', 'health_workers', 'profiles'].includes(resource)) && <th>Aksi</th>}</tr></thead>
         <tbody>
           {displayRows.map((row) => <tr key={row[Object.keys(row)[0]]}>
             {meta.columns.map(([key, label]) => {
               if (meta.roleControl && key === 'role') {
-                const targetTier = getTier(row)
-                const canModifyRole = callerTier < targetTier
-                const canSetAdmin = isTier1
+                const canModifyRole = canChangeRole(callerRole, row.role)
+                const assignable = invitableRoles(callerRole)
                 return (
                   <td key={key} data-label={label}>
                     <select
@@ -674,11 +606,10 @@ export function AdminManagementPage({ resource }) {
                       onChange={(event) => void changeRole(row, event.target.value)}
                       style={{ minHeight: 40, padding: '4px 8px', border: '1px solid var(--line)', borderRadius: 10, background: canModifyRole ? '#fff' : '#f3f4f6', fontSize: 13 }}
                       aria-label={`Role ${row.display_name ?? row.email ?? ''}`}
-                      title={!canModifyRole ? `Tidak berwenang mengubah ${tierLabel(targetTier)} (Tier ${targetTier})` : ''}
+                      title={!canModifyRole ? `Tidak berwenang mengubah role ${roleLabel(row.role)}` : ''}
                     >
-                      <option value="warga">Warga (Tier 5)</option>
-                      <option value="nakes">Nakes (Tier 4)</option>
-                      <option value="admin" disabled={!canSetAdmin}>{isTier1 ? 'Admin' : 'Admin (khusus owner)'}</option>
+                      {assignable.length === 0 && <option value={row.role}>{roleLabel(row.role)}</option>}
+                      {assignable.map((value) => <option key={value} value={value}>{roleLabel(value)}</option>)}
                     </select>
                   </td>
                 )
@@ -696,15 +627,13 @@ export function AdminManagementPage({ resource }) {
             {resource === 'rts' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi"><button className="btn btn-ghost table-action" onClick={() => setRtForm({ rt_id: row.rt_id, code: row.code, name: row.name })}>Ubah nama</button><button className="btn btn-danger table-action" disabled={busyId===rowIdOf(row)} onClick={()=>openDeleteConfirm(row)}>Hapus</button></td>}
             {resource === 'health_workers' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi"><button className="btn btn-ghost table-action" onClick={() => setEditing({ ...row })}><Save size={14} /> Ubah</button><button className="btn btn-danger table-action" disabled={busyId===rowIdOf(row)} onClick={()=>openDeleteConfirm(row)}>Hapus</button></td>}
             {resource === 'profiles' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi">{(() => {
-              const targetTier = getTier(row)
               const isSelf = row.user_id === access?.user_id
-              const canDelete = !isSelf && callerTier < targetTier && targetTier !== 1
-              if (!canDelete) {
+              if (!canDeleteRole(callerRole, row.role)) {
                 if (isSelf) return <span className="muted-text" style={{ fontSize: 12 }}>Akun sendiri</span>
-                if (targetTier === 1) return <span className="muted-text" style={{ fontSize: 12 }}>Owner tidak dapat dihapus</span>
-                if (callerTier >= targetTier) return <span className="muted-text" style={{ fontSize: 12 }}>Hanya tier lebih tinggi bisa hapus ({tierLabel(callerTier)} Tier {callerTier} → {tierLabel(targetTier)} Tier {targetTier})</span>
-                return <span className="muted-text" style={{ fontSize: 12 }}>—</span>
+                if (row.role === ROLES.DEVELOPER) return <span className="muted-text" style={{ fontSize: 12 }}>Akun Developer tidak dapat dihapus</span>
+                return <span className="muted-text" style={{ fontSize: 12 }}>Hanya Developer yang dapat menghapus akun</span>
               }
+              if (isSelf) return <span className="muted-text" style={{ fontSize: 12 }}>Akun sendiri</span>
               return <button className="btn btn-danger table-action" disabled={busyId===row.user_id} onClick={() => openDeleteConfirm(row, 'Akun + semua data terhubung akan dihapus permanen.')}>Hapus</button>
             })()}</td>}
             {resource === 'emergency_contacts' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi">

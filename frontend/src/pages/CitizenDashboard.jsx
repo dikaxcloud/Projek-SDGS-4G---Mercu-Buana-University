@@ -161,7 +161,7 @@ export function CitizenDashboard() {
           <span style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,.9)', display: 'grid', placeItems: 'center', color: '#ea580c' }}><UserRound size={20} /></span>
           <span style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,.9)', display: 'grid', placeItems: 'center', color: '#16a34a' }}><Sparkles size={20} /></span>
         </div>
-        <small style={{ marginTop: 8, color: 'white', opacity: .9, fontWeight: 600, fontSize: 11 }}>Ilustrasi komunitas sehat — Desa Sehat Kenanga</small>
+        <small style={{ marginTop: 8, color: 'white', opacity: .9, fontWeight: 600, fontSize: 11 }}>Ilustrasi komunitas sehat — Desa Sehat</small>
       </div>
     </div>
 

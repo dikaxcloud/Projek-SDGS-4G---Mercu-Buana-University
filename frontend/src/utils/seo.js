@@ -50,10 +50,10 @@ export function setSeo({ title, description, canonical, image, type = 'website',
     s.textContent = JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'Desa Sehat Kenanga',
-      url: 'https://dika-web.web.id',
-      logo: 'https://dika-web.web.id/logo-512.webp',
-      description: 'Portal kesehatan warga Desa Sehat Kenanga'
+      name: 'Desa Sehat',
+      url: 'https://desaku-sehat.my.id',
+      logo: 'https://desaku-sehat.my.id/logo-512.webp',
+      description: 'Portal kesehatan warga Desa Sehat'
     })
     document.head.appendChild(s)
   }

@@ -2,8 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const root = resolve(new URL('..', import.meta.url).pathname.replace(/^\/(\w):/, '$1:'))
+const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const files = [
   'src/lib/supabase.js',
   'src/features/auth/authService.js',

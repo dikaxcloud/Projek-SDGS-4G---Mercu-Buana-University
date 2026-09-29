@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, LogOut, User } from 'lucide-react'
 import { useAuth } from '../features/auth/AuthProvider'
+import { roleLabel } from '../features/auth/roles'
 import { useLogout } from './LogoutExperience'
 
 export function UserPill() {
@@ -51,7 +52,7 @@ export function UserPill() {
         <div className="user-pill-dropdown" role="menu">
           <div className="user-pill-dropdown-head">
             <strong>{name}</strong>
-            <span>{access?.role === 'admin' ? (access?.admin_tier === 1 ? 'Owner' : access?.admin_tier === 2 ? 'Senior Admin' : 'Admin') : access?.role === 'nakes' ? 'Nakes' : 'Warga'}</span>
+            <span>{roleLabel(access?.role)}</span>
           </div>
           <button type="button" role="menuitem" className="user-pill-item danger" onClick={logout}>
             <LogOut size={14} /> Keluar
