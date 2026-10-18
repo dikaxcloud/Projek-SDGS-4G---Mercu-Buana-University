@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="footer">
       <div className="container footer-inner">
-        <div className="footer-brand"><Brand /></div>
+        <div className="footer-brand"><a href="https://desaku-sehat.my.id/" aria-label="Desa Sehat — beranda"><Brand /></a></div>
         <p className="footer-copy">© 2026 Desa Sehat</p>
         <p className="footer-credits">
           <span>Created by</span>
