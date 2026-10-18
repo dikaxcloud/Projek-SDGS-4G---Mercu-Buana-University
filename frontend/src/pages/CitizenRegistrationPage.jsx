@@ -150,7 +150,7 @@ export function CitizenRegistrationPage() {
               </div>
               <Field label="Nomor KK (16 digit sesuai dokumen)" value={newKK.kk_number} onChange={(v) => setNewKK({ ...newKK, kk_number: v.replace(/\D/g, '').slice(0, 16) })} inputMode="numeric" placeholder="Contoh: 3204012304560001" />
               <Field label="Nama kepala keluarga" value={newKK.head_name} onChange={(v) => setNewKK({ ...newKK, head_name: v })} placeholder="Sesuai kartu keluarga" />
-              <Field label="Alamat rumah" value={newKK.address} onChange={(v) => setNewKK({ ...newKK, address: v })} placeholder="Contoh: Jalan Kenanga No. 3, Desa Kenanga" />
+              <Field label="Alamat rumah" value={newKK.address} onChange={(v) => setNewKK({ ...newKK, address: v })} placeholder="Contoh: Jalan Kenanga No. 3, Desa Sehat" />
             </>
           )}
 

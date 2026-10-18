@@ -9,13 +9,37 @@ export const demoAccess = {
 
 export async function signInWithGoogle() {
   if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi. Gunakan akun demo untuk mencoba aplikasi.')
-  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/login' } })
+  // Redirect eksplisit ke /login supaya sesi hasil OAuth selalu kembali ke
+  // halaman yang tahu cara menukar ?code dan meneruskan ke dashboard role.
+  // Domain ini WAJIB terdaftar di Supabase Dashboard > Authentication > URL
+  // Configuration > Redirect URLs, kalau tidak login akan muter-muter.
+  const redirectTo = `${window.location.origin}/login`
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo,
+      queryParams: { prompt: 'select_account' },
+    },
+  })
   if (error) throw error
+}
+
+/** Timeout agar UI tidak nyangkut di loading selamanya saat RPC macet. */
+function withTimeout(promise, ms, label) {
+  let timer
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} melebihi batas waktu (${Math.round(ms / 1000)} detik). Periksa koneksi lalu coba lagi.`)), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
 }
 
 export async function getAccess() {
   if (!supabase) return null
-  const { data, error } = await supabase.rpc('get_my_access')
+  const { data, error } = await withTimeout(
+    supabase.rpc('get_my_access'),
+    15000,
+    'Pemuatan profil akses',
+  )
   if (error) throw error
   return data?.[0] ?? null
 }

@@ -10,7 +10,7 @@ on conflict (rw_id, code) do nothing;
 insert into public.households (rt_id, household_number, head_name, address)
 select rt_id, 'KK-' || replace(code, 'RT ', '') || '-' || lpad(n::text, 2, '0'),
        case when n % 3 = 0 then 'Slamet Haryono' when n % 3 = 1 then 'Budi Santoso' else 'Rina Wulandari' end,
-       'Jalan Kenanga ' || n || ', Desa Kenanga'
+       'Jalan Kenanga ' || n || ', Desa Sehat'
 from public.rts cross join generate_series(1, 10) as n
 on conflict (rt_id, household_number) do nothing;
 
@@ -43,5 +43,5 @@ on conflict (slug) do nothing;
 
 insert into public.emergency_contacts (label, phone, whatsapp_url, sort_order)
 values ('Petugas kesehatan desa', '081200000001', 'https://wa.me/628120000001', 1),
-       ('Kantor Desa Kenanga', '081200000010', 'https://wa.me/628120000010', 2)
+       ('Kantor Desa Sehat', '081200000010', 'https://wa.me/628120000010', 2)
 on conflict do nothing;

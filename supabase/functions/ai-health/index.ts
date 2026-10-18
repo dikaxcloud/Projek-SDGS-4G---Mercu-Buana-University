@@ -8,10 +8,29 @@
 // - Medical safety: rule engine classifies; AI only explains. No diagnosis.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+/** CORS dinamis: gema-kan Origin peminta bila ada di allowlist.
+ *  Satu header hanya boleh berisi satu origin, jadi daftar env (koma)
+ *  tidak bisa dikirim mentah — harus dipilih yang cocok. */
+function corsHeaders(req?: Request): Record<string, string> {
+  const raw = Deno.env.get('ALLOWED_ORIGINS') || Deno.env.get('SITE_URL') || ''
+  const allowed = raw.split(',').map((s) => s.trim()).filter(Boolean)
+  const origin = req?.headers.get('origin') ?? ''
+  const allowOrigin = origin
+    ? (allowed.includes(origin) ? origin : (allowed[0] ?? '*'))
+    : '*'
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  }
+}
+
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGINS') ?? '*',
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGINS')?.split(',')[0]?.trim() || Deno.env.get('SITE_URL') || '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Vary': 'Origin',
 }
 
 const DISCLAIMER = 'Analisis AI ini bersifat edukatif dan bukan diagnosis medis. Jika Anda memiliki keluhan atau kondisi khusus, konsultasikan dengan tenaga kesehatan.'
@@ -200,7 +219,13 @@ async function countRecentRequests(admin: any, userId: string, action: string): 
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS })
+  // Header per-request (bayangan lokal atas global) agar setiap origin
+  // yang diizinkan mendapat gema yang tepat walau request bersamaan.
+  const H = corsHeaders(req)
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...H, 'Content-Type': 'application/json' } })
+  const fail = (error: string, status = 400) => json({ ok: false, error }, status)
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: H })
   if (req.method !== 'POST') return fail('Metode tidak didukung.', 405)
 
   try {

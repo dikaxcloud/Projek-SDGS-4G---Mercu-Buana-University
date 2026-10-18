@@ -33,7 +33,7 @@ async function main() {
 
   // ---------- Dashboard ----------
   let r = await rpc('get_my_access', {}, token)
-  report('ADMIN get_my_access role=admin', r.body?.[0]?.role === 'admin', `role=${r.body?.[0]?.role}`)
+  report('ADMIN get_my_access role=developer/rt_rw', ['developer', 'rt_rw'].includes(r.body?.[0]?.role), `role=${r.body?.[0]?.role}`)
 
   r = await rpc('get_admin_summary', {}, token)
   report('DASHBOARD get_admin_summary lengkap', r.status === 200 && ['totalCitizens','weekExaminations','neverExaminedCitizens','newCitizensThisWeek'].every((k) => k in (r.body ?? {})), `warga=${r.body?.totalCitizens}, minggu=${r.body?.weekExaminations}`)

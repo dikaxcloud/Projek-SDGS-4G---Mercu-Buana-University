@@ -9,8 +9,8 @@ import { supabase } from '../lib/supabase'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { access, loading: authLoading, signInWithGoogle, error: authError } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { access, loading: authLoading, session, signInWithGoogle, refreshAccess, signOut, error: authError } = useAuth()
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [email, setEmail] = useState('')
@@ -18,6 +18,28 @@ export function LoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [emailLoading, setEmailLoading] = useState(false)
   const [loginSuccess, setLoginSuccess] = useState(false)
+  const [retrying, setRetrying] = useState(false)
+
+  // Callback OAuth: Supabase menukar ?code menjadi sesi. Selama penukaran
+  // berlangsung tampilkan status yang jelas, bukan spinner tanpa pesan.
+  const oauthCode = searchParams.get('code')
+  const oauthError = searchParams.get('error')
+  const oauthErrorDesc = searchParams.get('error_description')
+  const isOAuthCallback = Boolean(oauthCode)
+
+  useEffect(() => {
+    if (!oauthError && !oauthErrorDesc) return
+    setMessage(decodeURIComponent((oauthErrorDesc || oauthError || '').replace(/\+/g, ' ')) || 'Login Google dibatalkan atau ditolak. Silakan coba lagi.')
+    try {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('error')
+      url.searchParams.delete('error_description')
+      url.searchParams.delete('code')
+      window.history.replaceState({}, '', url.pathname + url.search)
+      setSearchParams((prev) => { prev.delete('error'); prev.delete('error_description'); prev.delete('code'); return prev }, { replace: true })
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [oauthError, oauthErrorDesc])
 
   const welcomeParam = searchParams.get('welcome')
   const isInvitationParam = welcomeParam === 'invitation' || (typeof window !== 'undefined' && (() => {
@@ -88,10 +110,18 @@ export function LoginPage() {
     if (!access) return
     if (showWelcome) return
     if (!isInvitationParam && !metadataChecked && !authLoading && !hasLoginFlag) return
+    try {
+      const url = new URL(window.location.href)
+      if (url.searchParams.has('code')) {
+        url.searchParams.delete('code')
+        window.history.replaceState({}, '', url.pathname + url.search)
+        setSearchParams((prev) => { prev.delete('code'); return prev }, { replace: true })
+      }
+    } catch {}
     if (access.role === ROLES.WARGA) navigate(access.citizen_id ? '/warga' : '/registrasi', { replace: true })
     if (access.role === ROLES.NAKES) navigate('/nakes', { replace: true })
     if (access.role === ROLES.DEVELOPER || access.role === ROLES.RT_RW) navigate('/admin', { replace: true })
-  }, [access, navigate, showWelcome, isInvitationParam, metadataChecked, authLoading, hasLoginFlag])
+  }, [access, navigate, showWelcome, isInvitationParam, metadataChecked, authLoading, hasLoginFlag, setSearchParams])
 
   const useGoogle = async () => {
     try { sessionStorage.setItem('welcome_login', '1'); setHasLoginFlag(true) } catch {}
@@ -128,6 +158,27 @@ export function LoginPage() {
         <p>Memvalidasi undangan Anda. Mohon tunggu sebentar.</p>
       </div></main>
     )
+  }
+
+  // Baru kembali dari Google dan sesi masih ditukar: jangan tampilkan form
+  // login (terlihat seperti "gagal / disuruh login lagi"), tampilkan progres.
+  if (isOAuthCallback && (authLoading || !access)) {
+    return (
+      <main className="auth-page"><div className="auth-card" style={{ textAlign: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}><Brand /></div>
+        <h1 className="display">Menyelesaikan login Google...</h1>
+        <p>Menukar kode keamanan dan memuat profil akses Anda. Mohon tunggu sebentar, jangan tutup halaman ini.</p>
+        {(message || authError) && <p role="alert" className="login-alert">{message || authError}</p>}
+      </div></main>
+    )
+  }
+
+  // Sesi Google sudah ada tapi profil akses tidak ditemukan (mis. trigger
+  // database gagal / RPC error). Tampilkan aksi pemulihan, jangan muter diam.
+  const sessionWithoutAccess = !authLoading && Boolean(session) && !access
+  const retryAccess = async () => {
+    setRetrying(true); setMessage('')
+    try { await refreshAccess() } catch (err) { setMessage(err.message || 'Profil akses belum dapat dimuat.') } finally { setRetrying(false) }
   }
 
   return (
@@ -178,6 +229,21 @@ export function LoginPage() {
             <div className="login-card-brand"><Brand /></div>
             <h2 className="login-card-title">Masuk ke akun Anda</h2>
             <p className="login-card-sub">Gunakan akun Anda untuk melanjutkan ke Desa Sehat.</p>
+
+            {sessionWithoutAccess && (
+              <div role="alert" style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 13, padding: 12, fontSize: 13, marginBottom: 12 }}>
+                <strong>Login Google berhasil, tapi profil akses belum ditemukan.</strong>
+                <span style={{ display: 'block', marginTop: 4 }}>Biasanya karena data profil di database belum terbentuk. Tekan “Coba lagi”, dan jika masih gagal hubungi admin desa.</span>
+                <span style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <button type="button" className="btn btn-primary" onClick={retryAccess} disabled={retrying} style={{ flex: 1 }}>
+                    {retrying ? 'Memuat ulang...' : 'Coba lagi'}
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => signOut().catch(() => {})}>
+                    Keluar
+                  </button>
+                </span>
+              </div>
+            )}
 
             <button className={`btn login-google ${loading ? 'loading' : ''}`} onClick={useGoogle} disabled={loading || loginSuccess}>
               {loading ? <span className="spin" style={{ display: 'inline-grid' }}><Activity size={18} /></span> : <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09A6.99 6.99 0 015.48 12c0-.72.13-1.42.36-2.09V7.07H2.18A11 11 0 001 12c0 1.78.42 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>}

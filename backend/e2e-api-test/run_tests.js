@@ -1,4 +1,4 @@
-// API-level E2E test runner for Desa Sehat Kenanga (production Supabase).
+// API-level E2E test runner for Desa Sehat (production Supabase).
 // Runs with real auth sessions created via Supabase Auth REST.
 const fs = require('fs')
 const path = require('path')
@@ -105,10 +105,10 @@ async function main() {
   const patchRes = await fetch(`${URL_BASE}/rest/v1/profiles?user_id=eq.${a.session.user.id}`, {
     method: 'PATCH',
     headers: { apikey: ANON, Authorization: `Bearer ${tokenA}`, Prefer: 'return=representation', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ role: 'admin' }),
+    body: JSON.stringify({ role: 'developer' }),
   })
   const patchBody = await patchRes.json().catch(() => [])
-  const escalated = patchRes.status === 200 && Array.isArray(patchBody) && patchBody[0]?.role === 'admin'
+  const escalated = patchRes.status === 200 && Array.isArray(patchBody) && patchBody[0]?.role === 'developer'
   report('SECURITY warga TIDAK bisa mengubah role sendiri', !escalated, escalated ? '!!! CELAKA: self-role escalation BERHASIL' : 'ditolak server')
 
   console.log(`\nRINGKASAN: ${passCount} pass, ${failCount} fail`)

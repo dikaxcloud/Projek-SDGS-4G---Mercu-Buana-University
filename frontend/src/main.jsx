@@ -5,34 +5,10 @@ import { App } from './app/App'
 import { AuthProvider } from './features/auth/AuthProvider'
 import { LogoutProvider } from './components/LogoutExperience'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { initPwa } from './lib/pwa'
 import './styles/global.css'
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then((reg) => {
-      reg.addEventListener('updatefound', () => {
-        const nw = reg.installing
-        if (!nw) return
-        nw.addEventListener('statechange', () => {
-          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            window.location.reload()
-          }
-        })
-      })
-    }).catch(()=>{})
-    let refreshing = false
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return
-      refreshing = true
-      window.location.reload()
-    })
-  })
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.getRegistration().then((reg) => reg && reg.update()).catch(()=>{})
-    }
-  })
-}
+initPwa()
 
 const BOOT_MIN_MS = 350
 function dismissBootScreen() {

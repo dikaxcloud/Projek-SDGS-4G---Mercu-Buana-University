@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, ChevronDown, ChevronUp, Download, KeyRound, Plus, Printer, RefreshCw, Save, Search, ShieldCheck, Trash2, UserX, UserCheck, UserX as UserXIcon, Wifi, WifiOff, Shield, Mail, Loader2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
 import { deleteAdminResource, getDemoAdminRows, inviteUser, listAdmin, moveAdminContact, saveAdmin, setUserRoleByEmail } from '../features/admin/adminService'
-import { ROLES, ROLE_COLORS, canChangeRole, canDeleteRole, invitableRoles, roleLabel } from '../features/auth/roles'
+import { ROLES, ROLE_COLORS, assignableRoles, canChangeRole, canDeleteRole, invitableRoles, roleLabel } from '../features/auth/roles'
 import { createActivationCode, createStaffHousehold, createAdminRt, listHouseholdMembers, listStaffCitizens, listStaffHouseholds, listStaffRts, updateStaffCitizen, updateAdminRt } from '../features/staff/staffService'
 import { downloadQr, makeQrDataUrl, printQr } from '../utils/qr'
 import { useAuth } from '../features/auth/AuthProvider'
@@ -597,7 +597,7 @@ export function AdminManagementPage({ resource }) {
             {meta.columns.map(([key, label]) => {
               if (meta.roleControl && key === 'role') {
                 const canModifyRole = canChangeRole(callerRole, row.role)
-                const assignable = invitableRoles(callerRole)
+                const assignable = assignableRoles(callerRole)
                 return (
                   <td key={key} data-label={label}>
                     <select

@@ -1,4 +1,4 @@
-# Supabase backend — Desa Sehat Kenanga
+# Supabase backend — Desa Sehat
 
 ## Isi
 

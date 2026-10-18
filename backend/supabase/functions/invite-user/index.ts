@@ -18,8 +18,9 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 // Developer tidak diundang lewat undangan biasa — hanya dibuat/dit appointing
-// oleh Developer lain lewat halaman Akun.
-const INVITABLE_ROLES = ["rt_rw", "nakes", "warga"];
+// oleh Developer lain lewat halaman Akun. Warga memakai alur pendaftaran
+// mandiri (/registrasi), jadi selector undangan hanya RT/RW dan Nakes.
+const INVITABLE_ROLES = ["rt_rw", "nakes"];
 const STAFF_ROLES = ["developer", "rt_rw"];
 
 function escapeHtml(value: string): string {

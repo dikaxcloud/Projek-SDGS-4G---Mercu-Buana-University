@@ -1694,7 +1694,7 @@ pre { white-space: pre-wrap; word-break: break-word; }
 }
 
 /* ============================================================
-   LOGIN REDESIGN — Desa Sehat Kenanga (Welcome Back)
+   LOGIN REDESIGN — Desa Sehat (Welcome Back)
    Desktop 2-column, mobile single, premium healthcare
    ============================================================ */
 .login-page {
@@ -2450,3 +2450,12 @@ html[data-theme="dark"] .skeleton { background: linear-gradient(90deg, #0f2e2a 2
   .article-float--b { right: 6px !important; bottom: 8px !important; }
 }
 
+
+/* PWA install and update */
+.pwa-install-wrap{display:inline-grid;gap:8px}
+.pwa-install-hint{margin:0;max-width:46ch;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#f7fbfa;color:var(--muted);font-size:12.5px;line-height:1.55}
+.pwa-update-bar{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 16px;background:#0b3f3a;color:#fff}
+.pwa-update-text{display:grid;gap:2px;font-size:13px}
+.pwa-update-text span{opacity:.85;font-size:12px}
+.pwa-update-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pwa-update-btn{min-height:40px;font-size:13px}

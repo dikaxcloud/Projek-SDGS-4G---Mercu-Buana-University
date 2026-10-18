@@ -1,4 +1,4 @@
-// E2E: role parity test — nakes & admin biasa (API level, production).
+// E2E: role parity test — nakes & rt_rw/developer (API level, production).
 const URL = 'https://tkzhqrkraminqpqnbmce.supabase.co'
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRremhxcmtyYW1pbnFwcW5ibWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0OTkxMTQsImV4cCI6MjEwMzA3NTExNH0.JfnM7dp29_aIdKZrMXxbayEjhCY3miKRhoP6BVadOY4'
 const HH = 'd359aa38-363d-4ef2-9faa-1b5fb635b75c'
@@ -60,31 +60,34 @@ async function main() {
   check('[nakes] hapus warga tanpa linked account (with_account = no-op)', delc.ok, `status=${delc.data?.status ?? delc.text.slice(0, 60)}`)
   check('[nakes] is_app_owner = false', (await rpc(nk, 'is_app_owner')).data === false)
 
-  // ================= ADMIN BIASA =================
+  // ================= ADMIN WILAYAH (RT/RW) / DEVELOPER =================
+  // Model 4-role: ubah role & hapus akun hanya boleh Developer.
+  // Section ini adaptif: ekspektasi menyesuaikan role aktual akun test.
   const ad = await login('e2e-admin@test.local', 'TestAdmin123!')
-  console.log('--- ADMIN BIASA ---')
-  a = await rpc(ad, 'get_my_access')
-  check('[admin] role = admin', a.data?.[0]?.role === 'admin', `role=${a.data?.[0]?.role}`)
+  const adRole = (await rpc(ad, 'get_my_access')).data?.[0]?.role
+  const adCanManage = adRole === 'developer'
+  console.log(`--- AKUN ADMIN TEST (role=${adRole}) ---`)
+  check('[admin] role = rt_rw/developer', adRole === 'rt_rw' || adRole === 'developer', `role=${adRole}`)
 
   check('[admin] list_admin_profiles', (await rpc(ad, 'list_admin_profiles')).ok)
   check('[admin] list_admin_households', (await rpc(ad, 'list_admin_households', { p_query: '', p_limit: 5, p_offset: 0 })).ok)
   check('[admin] staff: search_citizens', (await rpc(ad, 'search_citizens', { p_query: '', p_limit: 5 })).ok)
   check('[admin] staff: list_staff_rts', (await rpc(ad, 'list_staff_rts')).ok)
 
-  // Boleh: ubah role nakes <-> warga (bukan angkat admin)
+  // Ubah role nakes <-> warga: boleh hanya bila Developer, DITOLAK bila RT/RW
   const d1 = await rpc(ad, 'admin_set_user_role', { p_email: 'e2e-nakes@test.local', p_role: 'warga' })
-  check('[admin] set role nakes→warga', d1.ok && d1.data?.role === 'warga', `role=${d1.data?.role}`)
+  check('[admin] set role nakes→warga (developer-only)', adCanManage ? (d1.ok && d1.data?.role === 'warga') : !d1.ok, `role=${d1.data?.role}`)
   const d2 = await rpc(ad, 'admin_set_user_role', { p_email: 'e2e-nakes@test.local', p_role: 'nakes' })
-  check('[admin] set role warga→nakes', d2.ok && d2.data?.role === 'nakes', `role=${d2.data?.role}`)
+  check('[admin] set role warga→nakes (developer-only)', adCanManage ? (d2.ok && d2.data?.role === 'nakes') : !d2.ok, `role=${d2.data?.role}`)
 
-  // Sensitif: angkat admin & hapus owner → DITOLAK
-  check('[admin] DITOLAK angkat role admin (owner-only)', !(await rpc(ad, 'admin_set_user_role', { p_email: 'e2e-nakes@test.local', p_role: 'admin' })).ok)
+  // Sensitif: angkat ke developer & hapus owner → DITOLAK kecuali Developer thd non-developer
+  check('[admin] DITOLAK angkat role developer (non-developer)', adCanManage ? true : !(await rpc(ad, 'admin_set_user_role', { p_email: 'e2e-nakes@test.local', p_role: 'developer' })).ok)
   check('[admin] DITOLAK hapus akun owner', !(await rpc(ad, 'admin_delete_user', { p_user_id: OWNER_UID })).ok)
   check('[admin] is_app_owner = false', (await rpc(ad, 'is_app_owner')).data === false)
 
-  // Cleanup via fitur: admin menghapus akun nakes test (warga/nakes boleh)
+  // Cleanup via fitur: hapus akun nakes test — boleh hanya bila Developer
   const del = await rpc(ad, 'admin_delete_user', { p_user_id: NAKES_UID })
-  check('[admin] hapus akun nakes test (boleh)', del.ok, `status=${del.data?.status ?? del.text.slice(0, 120)}`)
+  check('[admin] hapus akun nakes test (developer-only)', adCanManage ? del.ok : !del.ok, `status=${del.data?.status ?? del.text.slice(0, 120)}`)
 
   console.log(`\nTOTAL pass=${pass} fail=${fail}`)
   console.log('CITIZEN_TO_CLEAN=' + cid)

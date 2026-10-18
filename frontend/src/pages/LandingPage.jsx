@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, Check, ChevronRight, HeartHandshake, ShieldCheck,
 import { Link } from 'react-router-dom'
 import { demoArticles, demoStats, demoWorkers } from '../services/demoData'
 import { setSeo } from '../utils/seo'
+import { PwaInstallButton } from '../components/PwaInstallButton'
 
 export function LandingPage() {
   const [stats, setStats] = useState(demoStats)
@@ -75,7 +76,7 @@ export function LandingPage() {
           <div className="eyebrow">Portal kesehatan warga desa</div>
           <h1 className="display">Kesehatan warga, <span style={{ color: 'var(--teal)' }}>lebih dekat.</span></h1>
           <p className="hero-copy">Pantau kesehatan keluarga, simpan riwayat pemeriksaan, dan hubungi petugas desa dengan lebih mudah dari HP.</p>
-          <div className="hero-actions"><Link className="btn btn-primary" to="/login">Masuk sebagai warga <ArrowRight size={17} /></Link><a className="btn btn-ghost" href="#layanan">Lihat layanan</a></div>
+          <div className="hero-actions"><Link className="btn btn-primary" to="/login">Masuk sebagai warga <ArrowRight size={17} /></Link><a className="btn btn-ghost" href="#layanan">Lihat layanan</a><PwaInstallButton variant="ghost" /></div>
           <div className="hero-note"><ShieldCheck size={16} color="var(--teal)" /><span>Data yang tampil adalah <strong>data demo</strong> untuk prototipe.</span></div>
         </div>
         <div className="hero-visual" aria-label="Pratinjau dashboard kesehatan warga"><div className="blob" /><div className="phone-card">

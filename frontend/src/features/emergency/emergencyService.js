@@ -2,7 +2,7 @@ import { supabase } from '../../lib/supabase'
 
 const demoContacts = [
   { emergency_contact_id: 'demo-contact-1', officer_name: 'Siti Rahmawati', label: 'Petugas kesehatan desa', phone: '081200000001', whatsapp_url: 'https://wa.me/628120000001', sort_order: 1, is_active: true },
-  { emergency_contact_id: 'demo-contact-2', officer_name: 'Budi Santoso', label: 'Kantor Desa Kenanga', phone: '081200000010', whatsapp_url: 'https://wa.me/628120000010', sort_order: 2, is_active: true },
+  { emergency_contact_id: 'demo-contact-2', officer_name: 'Budi Santoso', label: 'Kantor Desa Sehat', phone: '081200000010', whatsapp_url: 'https://wa.me/628120000010', sort_order: 2, is_active: true },
 ]
 
 export async function getEmergencyContacts() {

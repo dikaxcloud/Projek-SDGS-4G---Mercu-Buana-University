@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ProtectedRoute, RoleRoute, CitizenRoute } from '../features/auth/ProtectedRoute'
 import { ADMIN_ROLES, ROLES } from '../features/auth/roles'
+import { PwaUpdatePrompt } from '../components/PwaUpdatePrompt'
 
 const PublicLayout = lazy(() => import('../layouts/PublicLayout').then(m => ({ default: m.PublicLayout })))
 const CitizenLayout = lazy(() => import('../layouts/CitizenLayout').then(m => ({ default: m.CitizenLayout })))
@@ -47,7 +48,7 @@ function Fallback() {
 }
 
 export function App() {
-  return <Suspense fallback={<Fallback />}><Routes>
+  return <Suspense fallback={<Fallback />}><PwaUpdatePrompt /><Routes>
     <Route element={<PublicLayout />}>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />

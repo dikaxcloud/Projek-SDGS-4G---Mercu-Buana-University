@@ -43,3 +43,16 @@ token.txt
 .env*
 resend.txt
 resend*.png
+
+# Screenshot debug & catatan lokal (jangan di-push)
+/ada.png
+/cloudflare .png
+/eror.png
+/eror-1.png
+/gugel-cloud.png
+/sign.png
+/a.txt
+/perbaikan.txt
+
+# File besar di root (di-track sebelumnya, dihapus dari index)
+/logo.png

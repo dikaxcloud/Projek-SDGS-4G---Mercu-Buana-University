@@ -1,4 +1,4 @@
-# Desa Sehat Kenanga
+# Desa Sehat
 
 Portal kesehatan warga desa. Semua data yang digunakan pada demo ini adalah data dummy.
 
