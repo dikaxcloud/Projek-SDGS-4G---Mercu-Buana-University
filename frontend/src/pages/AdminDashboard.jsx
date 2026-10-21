@@ -11,14 +11,22 @@ export function AdminDashboard() {
   const { access } = useAuth()
   const role = access?.role ?? null
   const isDeveloper = role === ROLES.DEVELOPER
-  const [summary, setSummary] = useState(null); const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [pendingCount, setPendingCount] = useState(0)
+  const [summary, setSummary] = useState(null); const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [pendingCount, setPendingCount] = useState(0); const [correctionCount, setCorrectionCount] = useState(0)
   const load = async () => {
     setLoading(true); setError('')
     try {
-      setSummary(await getAdminSummary())
+      const data = await getAdminSummary()
+      setSummary(data)
       try {
-        const pending = await listStaffCitizens({ status: 'pending_verification', limit: 100 })
-        setPendingCount((pending ?? []).length)
+        if (data?.pendingVerifications != null) {
+          setPendingCount(data.pendingVerifications)
+          setCorrectionCount(data.needsCorrection ?? 0)
+        } else {
+          const rows = await listStaffCitizens({ status: '', limit: 100 })
+          const review = (rows ?? []).filter((row) => row.verification_status === 'pending' || row.verification_status === 'needs_correction')
+          setPendingCount(review.length)
+          setCorrectionCount(review.filter((row) => row.verification_status === 'needs_correction').length)
+        }
       } catch { /* non-fatal */ }
     } catch (err) { setError(err.message || 'Ringkasan admin belum dapat dimuat.') } finally { setLoading(false) }
   }
@@ -28,7 +36,7 @@ export function AdminDashboard() {
     {pendingCount > 0 && (
       <Link to="/admin/verifikasi" style={{ textDecoration: 'none', color: 'inherit', display: 'block', marginBottom: 16 }}>
         <div className="staff-alert" style={{ background: '#fff8e7', borderColor: '#fde68a', color: '#92400e', cursor: 'pointer', justifyContent: 'space-between' }}>
-          <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><ShieldCheck size={18} /> <strong>{pendingCount} pendaftaran warga</strong>&nbsp;menunggu verifikasi Anda</span>
+          <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><ShieldCheck size={18} /> <strong>{pendingCount} pendaftaran warga</strong>&nbsp;menunggu pemeriksaan{correctionCount > 0 ? ` · ${correctionCount} perlu perbaikan` : ''}</span>
           <ChevronRight size={18} />
         </div>
       </Link>

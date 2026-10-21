@@ -79,6 +79,15 @@ export async function getStaffCitizenDetail(citizenId) {
     return { citizen_id: citizenId, full_name: 'Budi Santoso', nik_last4: '0001', phone: '08••••••001', gender: 'laki-laki', birth_date: null, blood_type: 'O+', family_relation: 'Kepala Keluarga', is_active: true, household: { household_id: 'demo-kk-0', household_number: 'KK-01-01', address: 'Jalan Kenanga 1', rt_code: 'RT 01' }, google: { connected: false, email: null }, recent_records: [] }
   }
   const detail = await call('get_staff_citizen_detail', { p_citizen_id: citizenId })
+  let extra = null
+  try {
+    const { data } = await supabase
+      .from('citizens')
+      .select('verification_status,verification_note,verified_at,activated_at,birth_place,address,created_at,updated_at')
+      .eq('citizen_id', citizenId)
+      .maybeSingle()
+    extra = data
+  } catch { /* detail tetap tampil walau kolom tambahan tidak tersedia */ }
   let recent = []
   try {
     const { data } = await supabase
@@ -89,7 +98,85 @@ export async function getStaffCitizenDetail(citizenId) {
       .limit(5)
     recent = data ?? []
   } catch { /* detail still renders without history */ }
-  return { ...detail, recent_records: recent }
+  return { ...detail, ...(extra ?? {}), recent_records: recent }
+}
+
+export async function getStaffCitizenIdentity(citizenId) {
+  if (!supabase) {
+    return {
+      citizen_id: citizenId,
+      full_name: 'Budi Santoso',
+      nik_full: '3201010101010001',
+      nik_available: true,
+      nik_last4: '0001',
+      household_id: 'demo-kk-0',
+      household_number: '3201010101010002',
+      rt_code: 'RT 01',
+      verification_status: 'verified',
+      updated_at: new Date().toISOString(),
+      identity_updated_at: new Date().toISOString(),
+    }
+  }
+  return call('get_staff_citizen_identity', { p_citizen_id: citizenId })
+}
+
+/** Admin menyimpan NIK lengkap setelah pencocokan KTP. */
+export async function adminCorrectCitizenNik(citizenId, nik, expectedUpdatedAt) {
+  if (!supabase) return { status: 'saved', nik_last4: String(nik).slice(-4), changed: true }
+  return call('admin_correct_citizen_nik', {
+    p_citizen_id: citizenId,
+    p_nik: nik,
+    p_expected_updated_at: expectedUpdatedAt || null,
+  })
+}
+
+/** Admin memperbaiki nomor KK pada sumber data kartu keluarga. */
+export async function adminCorrectCitizenKk(citizenId, householdNumber, expectedUpdatedAt) {
+  if (!supabase) return { status: 'saved', kk_last4: String(householdNumber).slice(-4), changed: true }
+  return call('admin_correct_household_number', {
+    p_citizen_id: citizenId,
+    p_household_number: householdNumber,
+    p_expected_updated_at: expectedUpdatedAt || null,
+  })
+}
+
+/** Admin memperbaiki seluruh field pendaftaran tanpa mengubah status verifikasi. */
+export async function adminUpdateCitizenRegistration(values) {
+  if (!supabase) return { status: 'updated', updated_at: new Date().toISOString() }
+  return call('admin_update_citizen_registration', {
+    p_citizen_id: values.citizen_id,
+    p_full_name: values.full_name,
+    p_nik: values.nik || null,
+    p_birth_place: values.birth_place || null,
+    p_birth_date: values.birth_date || null,
+    p_gender: values.gender || null,
+    p_blood_type: values.blood_type || null,
+    p_family_relation: values.family_relation || null,
+    p_phone: values.phone || null,
+    p_address: values.address || null,
+    p_household_id: values.household_id || null,
+    p_household_number: values.household_number || null,
+    p_household_head_name: values.household_head_name || null,
+    p_household_address: values.household_address || null,
+    p_is_active: Boolean(values.is_active),
+    p_expected_updated_at: values.updated_at || null,
+  })
+}
+
+/** Admin meminta warga memperbaiki data (status needs_correction). */
+export async function requestCitizenCorrection(citizenId, note) {
+  if (!supabase) return { status: 'needs_correction' }
+  return call('admin_request_correction', { p_citizen_id: citizenId, p_note: note })
+}
+
+/** Verifikasi/tolak pendaftaran. Verifikasi tidak menerbitkan QR aktivasi. */
+export async function verifyCitizenRegistration(citizenId, approve, reason = '') {
+  if (!supabase) return { status: approve ? 'verified' : 'rejected' }
+  return call('admin_verify_citizen', {
+    p_citizen_id: citizenId,
+    p_approve: approve,
+    p_reason: approve ? null : reason,
+  })
 }
 
 export async function createStaffHousehold(payload) {

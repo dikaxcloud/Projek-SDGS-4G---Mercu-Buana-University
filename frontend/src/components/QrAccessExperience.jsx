@@ -42,6 +42,8 @@ export function QrAccessExperience({ token, onSuccess, onRetry, onClose, mode = 
       if (!active) return
       const status = verifyRes?.status
       if (status === 'expired') { setState('expired_qr'); return }
+      if (status === 'not_verified') { setState('not_verified'); return }
+      if (status === 'inactive') { setState('inactive'); return }
       if (status === 'invalid_token' || status === 'no_citizen') { setState('invalid_qr'); return }
       if (status === 'error' && !['activated','already_active'].includes(status)) {
         // Check citizen_not_found case
@@ -111,6 +113,8 @@ export function QrAccessExperience({ token, onSuccess, onRetry, onClose, mode = 
       case 'welcome': return `Selamat datang, ${firstName}`
       case 'invalid_qr': return 'QR tidak valid'
       case 'expired_qr': return 'QR sudah tidak berlaku'
+      case 'not_verified': return 'Pendaftaran belum diverifikasi'
+      case 'inactive': return 'Akun warga tidak aktif'
       case 'citizen_not_found': return 'Data warga belum ditemukan'
       case 'error': return 'Terjadi kesalahan'
       default: return ''
@@ -197,6 +201,28 @@ export function QrAccessExperience({ token, onSuccess, onRetry, onClose, mode = 
             <div className="qr-access-icon-wrap warning"><Clock size={32} /></div>
             <h2 className="qr-access-title">QR sudah tidak berlaku</h2>
             <p className="qr-access-sub">Silakan gunakan QR terbaru dari petugas desa.</p>
+            <div className="qr-access-actions">
+              <button className="btn btn-ghost" onClick={() => onRetry?.()}>Kembali</button>
+              {onClose && <button className="btn btn-ghost" onClick={onClose}>Tutup</button>}
+            </div>
+          </>
+        )}
+        {state === 'not_verified' && (
+          <>
+            <div className="qr-access-icon-wrap warning"><AlertTriangle size={32} /></div>
+            <h2 className="qr-access-title">Pendaftaran belum diverifikasi</h2>
+            <p className="qr-access-sub">Data Anda masih menunggu pemeriksaan petugas desa. QR aktivasi hanya dapat dipakai setelah pendaftaran terverifikasi.</p>
+            <div className="qr-access-actions">
+              <button className="btn btn-ghost" onClick={() => onRetry?.()}>Kembali</button>
+              {onClose && <button className="btn btn-ghost" onClick={onClose}>Tutup</button>}
+            </div>
+          </>
+        )}
+        {state === 'inactive' && (
+          <>
+            <div className="qr-access-icon-wrap error"><XCircle size={32} /></div>
+            <h2 className="qr-access-title">Akun tidak aktif</h2>
+            <p className="qr-access-sub">Akun warga Anda sedang dinonaktifkan. Hubungi petugas desa untuk informasi lebih lanjut.</p>
             <div className="qr-access-actions">
               <button className="btn btn-ghost" onClick={() => onRetry?.()}>Kembali</button>
               {onClose && <button className="btn btn-ghost" onClick={onClose}>Tutup</button>}

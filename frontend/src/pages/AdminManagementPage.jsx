@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, ChevronDown, ChevronUp, Download, KeyRound, Plus, Printer, RefreshCw, Save, Search, ShieldCheck, Trash2, UserX, UserCheck, UserX as UserXIcon, Wifi, WifiOff, Shield, Mail, Loader2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
-import { deleteAdminResource, getDemoAdminRows, inviteUser, listAdmin, moveAdminContact, saveAdmin, setUserRoleByEmail } from '../features/admin/adminService'
+import { deleteAdminResource, getDemoAdminRows, inviteUser, issueActivation, listAdmin, moveAdminContact, saveAdmin, setUserRoleByEmail } from '../features/admin/adminService'
 import { ROLES, ROLE_COLORS, assignableRoles, canChangeRole, canDeleteRole, invitableRoles, roleLabel } from '../features/auth/roles'
-import { createActivationCode, createStaffHousehold, createAdminRt, listHouseholdMembers, listStaffCitizens, listStaffHouseholds, listStaffRts, updateStaffCitizen, updateAdminRt } from '../features/staff/staffService'
+import { createStaffHousehold, createAdminRt, listHouseholdMembers, listStaffCitizens, listStaffHouseholds, listStaffRts, updateAdminRt } from '../features/staff/staffService'
 import { downloadQr, makeQrDataUrl, printQr } from '../utils/qr'
 import { useAuth } from '../features/auth/AuthProvider'
 import { subscribeToCitizenChanges } from '../lib/realtime'
@@ -24,19 +24,34 @@ const config = {
       ['nik_last4', 'NIK akhir'],
       ['household_number', 'KK'],
       ['rt_code', 'RT'],
+      ['created_at', 'Terdaftar'],
       ['verification_status', 'Verifikasi'],
-      ['google_connected', 'Akun Google'],
-      ['is_active', 'Status'],
+      ['activation_status', 'Aktivasi'],
     ],
     renderCell: (key, value, row) => {
-      if (key === 'google_connected') return statusBadge(value ? 'Terhubung' : 'Belum', value ? '#16a34a' : '#f59e0b', value ? UserCheck : UserXIcon)
-      if (key === 'is_active') return statusBadge(value ? 'Aktif' : 'Tidak aktif', value ? '#16a34a' : '#ef4444', value ? UserCheck : UserXIcon)
+      if (key === 'created_at') return value ? new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'
       if (key === 'verification_status') {
-        const map = { verified: ['Terverifikasi', '#16a34a', UserCheck], pending_verification: ['Menunggu verifikasi', '#f59e0b', AlertTriangle], pending: ['Pending', '#f59e0b', AlertTriangle], rejected: ['Ditolak', '#ef4444', UserXIcon], unverified: ['Belum', '#6b7280', UserXIcon] }
-        const [label, color, Icon] = map[value] || ['—', '#6b7280', null]
+        const map = {
+          verified: ['Terverifikasi', '#16a34a', UserCheck],
+          needs_correction: ['Perlu perbaikan', '#b45309', AlertTriangle],
+          pending: ['Menunggu verifikasi', '#f59e0b', AlertTriangle],
+          rejected: ['Ditolak', '#ef4444', UserXIcon],
+        }
+        const [label, color, Icon] = map[value] || ['Belum', '#6b7280', UserXIcon]
         return statusBadge(label, color, Icon)
       }
-      return String(value || '—')
+      if (key === 'activation_status') {
+        const map = {
+          activated: ['Aktif', '#16a34a', UserCheck],
+          pending_activation: ['Belum aktivasi', '#b45309', AlertTriangle],
+          needs_correction: ['Perbaikan', '#b45309', AlertTriangle],
+          rejected: ['Ditolak', '#ef4444', UserXIcon],
+          pending: ['Menunggu', '#f59e0b', AlertTriangle],
+        }
+        const [label, color, Icon] = map[value] || ['-', '#6b7280', null]
+        return statusBadge(label, color, Icon)
+      }
+      return String(value || '-')
     }
   },
   households: {
@@ -105,6 +120,16 @@ const config = {
   },
 }
 
+const CITIZEN_TABS = [
+  { key: 'incoming', label: 'Pendaftaran Masuk', match: (row) => row.verification_status === 'pending' || row.verification_status === 'needs_correction' },
+  { key: 'correction', label: 'Perlu Perbaikan', match: (row) => row.verification_status === 'needs_correction' },
+  { key: 'rejected', label: 'Ditolak', match: (row) => row.verification_status === 'rejected' },
+  { key: 'pending_activation', label: 'Belum Aktivasi', match: (row) => row.verification_status === 'verified' && !row.activated_at },
+  { key: 'active', label: 'Warga Aktif', match: (row) => row.verification_status === 'verified' && Boolean(row.activated_at) && row.is_active !== false },
+  { key: 'inactive', label: 'Dinonaktifkan', match: (row) => row.is_active === false },
+  { key: 'all', label: 'Semua', match: () => true },
+]
+
 export function AdminManagementPage({ resource }) {
   const meta = config[resource]
   const navigate = useNavigate()
@@ -112,7 +137,7 @@ export function AdminManagementPage({ resource }) {
   const callerRole = access?.role ?? null
   const isDeveloper = callerRole === ROLES.DEVELOPER
   const [rows, setRows] = useState([]); const [query, setQuery] = useState(''); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [editing, setEditing] = useState(null)
-  const [statusFilter, setStatusFilter] = useState('')
+  const [citizenTab, setCitizenTab] = useState('incoming')
   const [rtFilter, setRtFilter] = useState('')
   const [rts, setRts] = useState([])
   const [accountRoleFilter, setAccountRoleFilter] = useState('')
@@ -134,7 +159,7 @@ export function AdminManagementPage({ resource }) {
     setLoading(true); setError('')
     try {
       if (resource === 'citizens') {
-        const [rowsData, rtsData] = await Promise.all([listStaffCitizens({ query, rt: rtFilter, status: statusFilter }), listStaffRts()])
+        const [rowsData, rtsData] = await Promise.all([listStaffCitizens({ query, rt: rtFilter, status: '', limit: 100 }), listStaffRts()])
         setRows(rowsData ?? []); setRts(rtsData ?? [])
       } else if (resource === 'households') {
         setRows(await listStaffHouseholds(query))
@@ -144,8 +169,8 @@ export function AdminManagementPage({ resource }) {
     } catch (err) { setError(err.message || 'Data belum dapat dimuat.') } finally { setLoading(false) }
   }
   useEffect(() => { void load() }, [resource])
-  useEffect(() => { const timer = setTimeout(() => void load(), 250); return () => clearTimeout(timer) }, [query, statusFilter, rtFilter])
-  useEffect(() => resource === 'citizens' ? subscribeToCitizenChanges(() => void load()) : undefined, [resource, query, rtFilter, statusFilter])
+  useEffect(() => { const timer = setTimeout(() => void load(), 250); return () => clearTimeout(timer) }, [query, rtFilter])
+  useEffect(() => resource === 'citizens' ? subscribeToCitizenChanges(() => void load()) : undefined, [resource, query, rtFilter])
 
   const filteredRows = useMemo(() => {
     if (resource !== 'profiles') return rows
@@ -155,11 +180,16 @@ export function AdminManagementPage({ resource }) {
     return visible.filter(r => r.role === accountRoleFilter)
   }, [rows, resource, isDeveloper, accountRoleFilter])
 
+  const citizenRows = useMemo(() => {
+    if (resource !== 'citizens') return rows
+    const tab = CITIZEN_TABS.find((item) => item.key === citizenTab) ?? CITIZEN_TABS[0]
+    return rows.filter(tab.match)
+  }, [rows, resource, citizenTab])
+
   const submit = async (event) => {
     event.preventDefault()
     try {
-      if ((meta.form || 'citizen') === 'citizen' && editing?.citizen_id) await updateStaffCitizen(editing)
-      else await saveAdmin(meta.form || 'citizen', editing)
+      await saveAdmin(meta.form || 'citizen', editing)
       setEditing(null); await load()
       pushToast('success', 'Perubahan berhasil disimpan.')
     } catch (err) { setError(err.message || 'Perubahan belum tersimpan.') }
@@ -183,12 +213,17 @@ export function AdminManagementPage({ resource }) {
     try { setMembers({ household: row, list: await listHouseholdMembers(row.household_id) }) } catch (err) { setError(err.message || 'Anggota belum dapat dimuat.') }
   }
 
-  const makeActivationCode = async (row) => {
+  const makeActivation = async (row) => {
     try {
-      const code = await createActivationCode(row.citizen_id)
-      const qr = await makeQrDataUrl(`${window.location.origin}/hubungkan-akun?code=${encodeURIComponent(code)}`)
-      setCodeInfo({ name: row.full_name, code, qr })
-    } catch (err) { setError(err.message || 'Kode aktivasi belum dapat dibuat.') }
+      const activation = await issueActivation(row.citizen_id)
+      const qr = await makeQrDataUrl(`${window.location.origin}/warga/aktivasi?t=${encodeURIComponent(activation.token)}`)
+      setCodeInfo({ name: row.full_name, code: activation.code, qr, minutes: 30 })
+    } catch (err) {
+      const message = err?.message || ''
+      setError(/Could not find the function|PGRST202|schema cache/i.test(message)
+        ? 'Fitur QR aktivasi belum aktif di server. Migrasi database terbaru belum dijalankan.'
+        : message || 'QR aktivasi belum dapat dibuat.')
+    }
   }
 
   const moveContact = async (row, direction) => {
@@ -336,21 +371,11 @@ export function AdminManagementPage({ resource }) {
 
     <div className="admin-toolbar">
       <label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Cari ${meta.title.toLowerCase()}`} aria-label={`Cari ${meta.title}`} /></label>
-      {resource === 'citizens' && <>
+      {resource === 'citizens' && (
         <select value={rtFilter} onChange={(event) => setRtFilter(event.target.value)} aria-label="Filter RT" style={{ minHeight: 44, padding: '0 10px', border: '1px solid var(--line)', borderRadius: 12 }}>
           <option value="">Semua RT</option>{(rts ?? []).map((rt) => <option key={rt.rt_id} value={rt.code}>{rt.code}</option>)}
         </select>
-        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter status" style={{ minHeight: 44, padding: '0 10px', border: '1px solid var(--line)', borderRadius: 12 }}>
-          <option value="">Semua status</option>
-          <option value="verified">Terverifikasi</option>
-          <option value="pending_verification">Pending Verifikasi</option>
-          <option value="rejected">Ditolak</option>
-          <option value="connected">Google terhubung</option>
-          <option value="pending">Belum terhubung</option>
-          <option value="active">Aktif</option>
-          <option value="inactive">Tidak aktif</option>
-        </select>
-      </>}
+      )}
       {resource === 'profiles' && (
         <select value={accountRoleFilter} onChange={(event) => setAccountRoleFilter(event.target.value)} aria-label="Filter role" style={{ minHeight: 44, padding: '0 10px', border: '1px solid var(--line)', borderRadius: 12, minWidth: 160 }}>
           <option value="">Semua Role</option>
@@ -361,6 +386,43 @@ export function AdminManagementPage({ resource }) {
         </select>
       )}
     </div>
+
+    {resource === 'citizens' && (
+      <div style={{ marginBottom: 14 }}>
+        <div role="tablist" aria-label="Kelompok pendaftaran warga" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+          {CITIZEN_TABS.map((tab) => {
+            const count = rows.filter(tab.match).length
+            const active = citizenTab === tab.key
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setCitizenTab(tab.key)}
+                style={{
+                  border: `1px solid ${active ? 'var(--teal)' : 'var(--line)'}`,
+                  background: active ? 'var(--teal)' : '#fff',
+                  color: active ? '#fff' : 'var(--ink)',
+                  borderRadius: 999,
+                  padding: '8px 14px',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                }}
+              >
+                {tab.label} <span style={{ opacity: 0.75 }}>({count})</span>
+              </button>
+            )
+          })}
+        </div>
+        <p className="muted-text" style={{ margin: '8px 0 0', fontSize: 12.5 }}>
+          Menampilkan {citizenRows.length} data. Pemeriksaan dan perbaikan data dilakukan di halaman detail warga.
+          {rows.length >= 100 ? ' Maksimal 100 data dimuat; gunakan pencarian atau filter RT.' : ''}
+        </p>
+      </div>
+    )}
 
     {kkForm && (
       <form className="admin-form" onSubmit={saveKk}>
@@ -384,21 +446,6 @@ export function AdminManagementPage({ resource }) {
           <label>Nama RT<input required value={rtForm.name} onChange={(event) => setRtForm({ ...rtForm, name: event.target.value })} /></label>
         </div>
         <div className="form-actions"><button type="button" className="btn btn-ghost" onClick={() => setRtForm(null)}>Batal</button><button className="btn btn-primary" disabled={rtSaving}><Save size={16} /> Simpan</button></div>
-      </form>
-    )}
-    {editing && resource === 'citizens' && (
-      <form className="admin-form" onSubmit={submit}>
-        <h2>Ubah data warga</h2>
-        <div className="field-grid">
-          <label>Nama lengkap<input required value={editing.full_name ?? ''} onChange={(event) => setEditing({ ...editing, full_name: event.target.value })} /></label>
-          <label>Kontak<input value={editing.phone ?? ''} onChange={(event) => setEditing({ ...editing, phone: event.target.value })} /></label>
-        </div>
-        <div className="field-grid">
-          <label>Jenis kelamin<select value={editing.gender ?? ''} onChange={(event) => setEditing({ ...editing, gender: event.target.value })}><option value="">Pilih</option><option value="laki-laki">Laki-laki</option><option value="perempuan">Perempuan</option></select></label>
-          <label>Golongan darah<select value={editing.blood_type ?? ''} onChange={(event) => setEditing({ ...editing, blood_type: event.target.value })}><option value="">Pilih</option>{['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((type) => <option key={type}>{type}</option>)}</select></label>
-        </div>
-        <label className="check-row"><input type="checkbox" checked={Boolean(editing.is_active)} onChange={(event) => setEditing({ ...editing, is_active: event.target.checked })} /> <span>Data aktif (nonaktifkan untuk soft-delete)</span></label>
-        <div className="form-actions"><button type="button" className="btn btn-ghost" onClick={() => setEditing(null)}>Batal</button><button className="btn btn-primary"><Save size={16} /> Simpan</button></div>
       </form>
     )}
     {editing && resource !== 'citizens' && <EditForm resource={meta.form || 'citizen'} values={editing} setValues={setEditing} submit={submit} cancel={() => setEditing(null)} />}
@@ -577,10 +624,10 @@ export function AdminManagementPage({ resource }) {
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           <div><p style={{ margin: '0 0 4px', fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>KODE MANUAL (input di scan warga):</p>
             <strong style={{ fontSize: 24, letterSpacing: 3 }}>{codeInfo.code}</strong>
-            <p style={{ margin: '4px 0', fontSize: 12.5 }}>Berlaku 15 menit & sekali pakai.</p></div>
+            <p style={{ margin: '4px 0', fontSize: 12.5 }}>Berlaku {codeInfo.minutes ?? 30} menit & sekali pakai.</p></div>
           {codeInfo.qr && <img src={codeInfo.qr} alt="QR aktivasi" style={{ width: 120, borderRadius: 10, border: '1px solid var(--line)', background: '#fff', padding: 4 }} />}
         </div>
-        <p style={{ margin: '6px 0 10px', fontSize: 13 }}>QR berisi tautan aktivasi — bisa discan langsung dengan kamera HP warga (otomatis terbuka), atau warga ketik <strong>Kode Manual</strong> di atas lewat menu scan di aplikasi.</p>
+        <p style={{ margin: '6px 0 10px', fontSize: 13 }}>QR berisi tautan aktivasi — bisa discan langsung dengan kamera HP warga (otomatis terbuka), atau warga memasukkan <strong>Kode Manual</strong> di halaman aktivasi. Hanya berlaku untuk warga yang sudah terverifikasi.</p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {codeInfo.qr && <button className="btn btn-ghost" onClick={() => downloadQr(codeInfo.qr, `qr-aktivasi-${codeInfo.name}.png`)}><Download size={15} /> Unduh QR</button>}
           {codeInfo.qr && <button className="btn btn-ghost" onClick={() => printQr(codeInfo.qr, 'Aktivasi Akun Warga', `${codeInfo.name} — kode ${codeInfo.code}`)}><Printer size={15} /> Cetak</button>}
@@ -589,7 +636,7 @@ export function AdminManagementPage({ resource }) {
       </div>
     )}
 
-    {(() => { const displayRows = resource === 'profiles' ? filteredRows : rows; return displayRows.length === 0 ? (loading ? <p className="muted-text">Memuat data...</p> : <p className="muted-text">Data belum ditemukan.{resource==='profiles' && accountRoleFilter ? ' Coba ubah filter atau cari akun lain.' : ''}</p>) : (
+    {(() => { const displayRows = resource === 'profiles' ? filteredRows : resource === 'citizens' ? citizenRows : rows; return displayRows.length === 0 ? (loading ? <p className="muted-text">Memuat data...</p> : <p className="muted-text">Data belum ditemukan.{resource==='profiles' && accountRoleFilter ? ' Coba ubah filter atau cari akun lain.' : ''}</p>) : (
       <div className="admin-table-wrap"><table className="admin-table">
         <thead><tr>{meta.columns.map(([, label]) => <th key={label}>{label}</th>)}{(showActions || ['households', 'rts', 'emergency_contacts', 'health_workers', 'profiles'].includes(resource)) && <th>Aksi</th>}</tr></thead>
         <tbody>
@@ -618,9 +665,13 @@ export function AdminManagementPage({ resource }) {
               return <td key={key} data-label={label}>{cellContent}</td>
             })}
             {showActions && <td style={{ whiteSpace: 'normal' }} data-label="Aksi">
-              <button className="btn btn-ghost table-action" onClick={() => navigate(`/admin/warga/${row.citizen_id}`)}>Detail</button>
-              <button className="btn btn-ghost table-action" onClick={() => setEditing({ ...row })}><Save size={14} /> Ubah</button>
-              {row.is_active && <button className="btn btn-ghost table-action" onClick={() => void makeActivationCode(row)}><KeyRound size={14} /> Kode Aktivasi</button>}
+              <button className="btn btn-ghost table-action" onClick={() => navigate(`/admin/warga/${row.citizen_id}`)}>
+                {['pending', 'needs_correction', 'rejected'].includes(row.verification_status) ? <><ShieldCheck size={14} /> Periksa</> : 'Detail'}
+              </button>
+              <button className="btn btn-ghost table-action" onClick={() => navigate(`/admin/warga/${row.citizen_id}`)}><Save size={14} /> Ubah</button>
+              {row.verification_status === 'verified' && !row.activated_at && (
+                <button className="btn btn-ghost table-action" onClick={() => void makeActivation(row)}><KeyRound size={14} /> QR Aktivasi</button>
+              )}
               <button className="btn btn-danger table-action" disabled={busyId === rowIdOf(row)} onClick={() => openDeleteConfirm(row)}>Hapus</button>
             </td>}
             {resource === 'households' && <td style={{ whiteSpace: 'normal' }} data-label="Aksi"><button className="btn btn-ghost table-action" onClick={() => void openMembers(row)}>Anggota</button><button className="btn btn-danger table-action" disabled={busyId===rowIdOf(row)} onClick={()=>openDeleteConfirm(row)}>Hapus</button></td>}
@@ -652,8 +703,9 @@ export function AdminManagementPage({ resource }) {
         <div className="staff-panel-head"><div><h2>Anggota KK {members.household.household_number}</h2><p>{members.household.head_name} · {members.household.rt_code}</p></div><button className="btn btn-ghost" onClick={() => setMembers(null)}>Tutup</button></div>
         <div className="record-table">{(members.list ?? []).map((member) => (
           <div className="record-row" key={member.citizen_id}>
-            <div><strong>{member.full_name}</strong><small>{member.family_relation || 'Anggota'} · NIK ****{member.nik_last4}</small></div>
-            <span>{member.google_connected ? '🟢 Terhubung' : '🟡 Belum terhubung'}</span>
+            <div><strong>{member.full_name}</strong><small>{member.family_relation || 'Anggota'} - NIK ****{member.nik_last4}</small></div>
+            <span>{member.google_connected ? 'Terhubung' : 'Belum terhubung'}</span>
+            <button type="button" className="btn btn-ghost table-action" onClick={() => navigate(`/admin/warga/${member.citizen_id}`)}>Lihat</button>
           </div>
         ))}{(members.list ?? []).length === 0 && <p className="muted-text">Belum ada anggota pada KK ini.</p>}</div>
       </div>

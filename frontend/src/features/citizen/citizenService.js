@@ -21,6 +21,27 @@ export async function getCitizenContext() {
   return data ?? { profile: null, family: [] }
 }
 
+/** Warga memperbaiki data pendaftarannya sendiri (status kembali ke pending). */
+export async function updateMyRegistration(payload) {
+  if (!supabase) {
+    demoContext.profile = { ...demoContext.profile, ...payload }
+    return { status: 'submitted' }
+  }
+  const { data, error } = await supabase.rpc('update_my_registration', {
+    p_full_name: payload.full_name,
+    p_birth_place: payload.birth_place || null,
+    p_birth_date: payload.birth_date || null,
+    p_gender: payload.gender || null,
+    p_blood_type: payload.blood_type || null,
+    p_family_relation: payload.family_relation || null,
+    p_phone: payload.phone || null,
+    p_address: payload.address || null,
+    p_household_id: payload.household_id || null,
+  })
+  if (error) throw error
+  return data
+}
+
 export async function updateCitizenProfile({ fullName, phone, bloodType }) {
   if (!supabase) {
     demoContext.profile = { ...demoContext.profile, full_name: fullName, phone, blood_type: bloodType || demoContext.profile.blood_type }

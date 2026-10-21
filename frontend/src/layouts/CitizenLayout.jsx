@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from 'react'
 import { Outlet, Link, NavLink, useLocation } from 'react-router-dom'
-import { Bell, LogOut, RefreshCw, ScanLine, AlertTriangle, House, HeartPulse, BookOpen, Siren, QrCode, Sparkles, Users, UserRound, ListChecks, ChevronDown } from 'lucide-react'
+import { Bell, LogOut, RefreshCw, ScanLine, AlertTriangle, House, HeartPulse, BookOpen, Siren, QrCode, Sparkles, Users, UserRound, ListChecks, ChevronDown, CheckCircle2 } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { UserPill } from '../components/UserPill'
 import { useAuth } from '../features/auth/AuthProvider'
@@ -10,6 +10,7 @@ import { OfflineIndicator } from '../components/OfflineIndicator'
 import { QrScanner } from '../components/QrScanner'
 import { QrAccessExperience } from '../components/QrAccessExperience'
 import { getCitizenContext } from '../features/citizen/citizenService'
+import { CorrectionForm } from '../features/citizen/CorrectionForm'
 import { isSupabaseConfigured } from '../lib/supabase'
 
 const citizenNavPrimary = [
@@ -34,9 +35,11 @@ const citizenNavMore = [
 export function CitizenLayout() {
   const { access } = useAuth()
   const location = useLocation()
-  const [ctx, setCtx] = useState(null) // null = memuat, { status, profile }
+  const [ctx, setCtx] = useState(null) // null = memuat, { status, profile, can_edit }
   const [tick, setTick] = useState(0)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [correctionOpen, setCorrectionOpen] = useState(false)
+  const [correctionSaved, setCorrectionSaved] = useState(false)
   const moreRef = useRef(null)
   const hasMoreActive = citizenNavMore.some(({ to }) => location.pathname.startsWith(to))
 
@@ -51,15 +54,16 @@ export function CitizenLayout() {
   }, [moreOpen])
 
   const isDemoUser = Boolean(access?.user_id?.startsWith('demo-'))
-  const linked = Boolean(access?.citizen_id)
-  const bypass = isDemoUser || !linked || !isSupabaseConfigured || location.pathname === '/warga/aktivasi'
+  // Hanya demo/konfigurasi kosong/aktivasi yang boleh melewati gate.
+  // Warga yang sudah login tetapi belum terhubung TIDAK boleh masuk dashboard.
+  const bypass = isDemoUser || !isSupabaseConfigured || location.pathname === '/warga/aktivasi'
 
   useEffect(() => {
     if (bypass) { setCtx({ status: 'pass' }); return }
     let active = true
     setCtx(null)
     getCitizenContext()
-      .then((c) => { if (active) setCtx({ status: 'checked', profile: c.profile }) })
+      .then((c) => { if (active) setCtx({ status: 'checked', profile: c.profile, can_edit: c.can_edit }) })
       .catch(() => { if (active) setCtx({ status: 'error' }) })
     return () => { active = false }
   }, [bypass, access?.citizen_id, tick, location.pathname])
@@ -67,6 +71,7 @@ export function CitizenLayout() {
   const { requestLogout } = useLogout()
   const refresh = useCallback(() => setTick((value) => value + 1), [])
   const signOutNow = () => requestLogout()
+  const openCorrection = () => { setCorrectionSaved(false); setCorrectionOpen(true) }
 
   // Warga scans the admin's ACTIVATION QR — now via polished QR Access Experience
   const [scanMsg, setScanMsg] = useState('')
@@ -88,6 +93,7 @@ export function CitizenLayout() {
 
   const profile = ctx?.profile
   const vStatus = profile?.verification_status
+  const canEdit = Boolean(ctx?.can_edit)
 
   // QR Access Experience takes over when token is present — polished transition
   if (qrExpToken) {
@@ -116,32 +122,78 @@ export function CitizenLayout() {
         refresh, signOutNow,
       )
     }
-    if (vStatus === 'pending') {
+    if (ctx.status === 'checked' && !profile) {
       return gateShell(
         <>
-          <div style={{ fontSize: 44 }}>⏳</div>
-          <h1 className="display">Menunggu Verifikasi Admin</h1>
-          <p>Terima kasih, <strong>{profile?.full_name}</strong>! Data Anda sudah kami terima dan sedang diperiksa oleh petugas desa.<br />
-          Setelah disetujui, petugas akan menunjukkan <strong>QR aktivasi</strong> — scan QR tersebut di bawah ini untuk membuka akun Anda.</p>
-          {scanMsg && <p role="status" style={{ color: '#15803d', fontWeight: 700, margin: '8px 0' }}>{scanMsg}</p>}
-          {scanError && <p role="alert" style={{ color: '#b42318', fontSize: 13, marginBottom: 8 }}>{scanError}</p>}
-          <div style={{ marginTop: 16 }}>
-            <QrScanner
-              onScan={(value) => void handleWargaScan(value)}
-              label="Scan QR Aktivasi dari Petugas"
-              hint="Sudah diperiksa petugas dan ditunjukkan QR-nya? Langsung scan di sini — akun langsung terbuka tanpa perlu menunggu."
-            />
-          </div>
+          <AlertTriangle size={44} color="#b45309" />
+          <h1 className="display">Data Pendaftaran Tidak Ditemukan</h1>
+          <p>Akun Anda belum terhubung ke data warga, atau data sedang tidak dapat dibaca. Silakan hubungi petugas desa.</p>
+          {access?.citizen_id
+            ? <p style={{ fontSize: 12.5, color: 'var(--muted)' }}>ID warga: {String(access.citizen_id).slice(0, 8)}...</p>
+            : <p><Link className="btn btn-primary" to="/registrasi">Lengkapi Pendaftaran</Link></p>}
         </>,
         refresh, signOutNow,
       )
     }
-    if (vStatus === 'rejected') {
+    if (profile?.is_active === false) {
       return gateShell(
         <>
-          <div style={{ fontSize: 44 }}>❌</div>
-          <h1 className="display">Pendaftaran Ditolak</h1>
-          <p>{profile?.verification_note ? <>Alasan: <strong>{profile.verification_note}</strong><br /></> : null}Silakan hubungi petugas desa untuk memperbaiki data Anda.</p>
+          <AlertTriangle size={44} color="#b42318" />
+          <h1 className="display">Akun Dinonaktifkan</h1>
+          <p>Akun warga Anda sedang tidak aktif. Hubungi petugas desa untuk informasi lebih lanjut.</p>
+        </>,
+        refresh, signOutNow,
+      )
+    }
+    if (correctionOpen && ['pending', 'needs_correction', 'rejected'].includes(vStatus)) {
+      return (
+        <div className="dashboard-page correction-page">
+          <div className="container narrow-container">
+            <section className="panel correction-panel">
+              <CorrectionForm
+                profile={profile}
+                onCancel={() => setCorrectionOpen(false)}
+                onSaved={() => { setCorrectionOpen(false); setCorrectionSaved(true); refresh() }}
+              />
+            </section>
+            <AccountControls refresh={refresh} signOutNow={signOutNow} />
+          </div>
+        </div>
+      )
+    }
+    if (vStatus === 'pending') {
+      return gateShell(
+        <>
+          <div style={{ fontSize: 44 }}>⏳</div>
+          <h1 className="display">Menunggu Pemeriksaan Admin</h1>
+          {correctionSaved && (
+            <div className="gate-success" role="status">
+              <CheckCircle2 size={18} aria-hidden="true" />
+              <span>Perbaikan data berhasil dikirim. Data Anda akan diperiksa kembali oleh RT/RW.</span>
+            </div>
+          )}
+          <p>Terima kasih, <strong>{profile?.full_name}</strong>. Registrasi berhasil dikirim dan data Anda sedang menunggu pemeriksaan RT/RW.<br />
+          Akun dapat digunakan setelah data diverifikasi dan proses aktivasi selesai.</p>
+          {canEdit && (
+            <button type="button" className="btn btn-ghost" style={{ marginTop: 12 }} onClick={openCorrection}>
+              Perbaiki Data Saya
+            </button>
+          )}
+        </>,
+        refresh, signOutNow,
+      )
+    }
+    if (vStatus === 'needs_correction' || vStatus === 'rejected') {
+      const rejected = vStatus === 'rejected'
+      return gateShell(
+        <>
+          <AlertTriangle size={44} color={rejected ? '#b42318' : '#b45309'} />
+          <h1 className="display">{rejected ? 'Pendaftaran Ditolak' : 'Data Perlu Diperbaiki'}</h1>
+          <p>{profile?.verification_note ? <>Catatan petugas: <strong>{profile.verification_note}</strong><br /></> : null}
+          {rejected ? 'Silakan perbaiki data Anda agar dapat diperiksa ulang oleh petugas desa.' : 'Silakan lengkapi atau perbaiki data sesuai catatan petugas.'}</p>
+          <button type="button" className="btn btn-primary" style={{ marginTop: 12 }} onClick={openCorrection}>
+            Perbaiki Data
+          </button>
         </>,
         refresh, signOutNow,
       )
@@ -151,12 +203,11 @@ export function CitizenLayout() {
         <div className="dashboard-page">
           <div className="container narrow-container">
             <section className="panel" style={{ textAlign: 'center', padding: '28px 20px' }}>
-              <div style={{ fontSize: 40 }}>🔐</div>
+              <div style={{ fontSize: 40 }}>✅</div>
               <h1 className="display" style={{ fontSize: '1.4rem' }}>Satu Langkah Lagi!</h1>
               <p style={{ fontSize: 14 }}>
-                Data Anda telah <strong>terverifikasi ✅</strong>.<br />
-                Petugas desa menampilkan <strong>QR AKTIVASI</strong> —<br />
-                scan QR tersebut di bawah ini untuk membuka akun Anda.
+                Data Anda telah <strong>terverifikasi</strong>.<br />
+                Minta petugas desa menampilkan <strong>QR aktivasi</strong>, lalu scan di bawah ini untuk membuka akun Anda.
               </p>
 
               {scanMsg && <p role="status" style={{ color: '#15803d', fontWeight: 700, margin: '8px 0' }}>{scanMsg}</p>}
@@ -180,7 +231,17 @@ export function CitizenLayout() {
         </div>
       )
     }
-    // If verification status is unknown or verified with activated_at, proceed to normal layout
+    // Status tidak dikenal / belum aktif: jangan pernah membuka dashboard privat.
+    if (vStatus !== 'verified' || !profile?.activated_at) {
+      return gateShell(
+        <>
+          <AlertTriangle size={44} color="#b45309" />
+          <h1 className="display">Status Akun Belum Dapat Dipastikan</h1>
+          <p>Muat ulang status. Jika masalah berlanjut, hubungi petugas desa.</p>
+        </>,
+        refresh, signOutNow,
+      )
+    }
   }
 
   return (
@@ -215,14 +276,23 @@ function gateShell(content, refresh, signOutNow) {
       <div className="container narrow-container">
         <section className="panel" style={{ textAlign: 'center', padding: '36px 22px' }}>
           {content}
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 20 }}>
-            <button type="button" className="btn btn-primary" onClick={refresh}><RefreshCw size={16} /> Muat ulang status</button>
-            <button type="button" className="btn btn-ghost" onClick={signOutNow}><LogOut size={16} /> Keluar</button>
-          </div>
+          <AccountControls refresh={refresh} signOutNow={signOutNow} />
           <p style={{ marginTop: 14, fontSize: 12.5, color: 'var(--muted)', display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'center' }}>
             <ScanLine size={14} /> Butuh bantuan? Hubungi petugas desa atau buka menu Bantuan Darurat dari beranda publik.
           </p>
         </section>
+      </div>
+    </div>
+  )
+}
+
+function AccountControls({ refresh, signOutNow }) {
+  return (
+    <div className="gate-account-controls">
+      <span className="gate-account-label">Kontrol akun</span>
+      <div className="gate-account-buttons">
+        <button type="button" className="btn btn-ghost" onClick={refresh}><RefreshCw size={15} /> Muat ulang status</button>
+        <button type="button" className="btn btn-ghost" onClick={signOutNow}><LogOut size={15} /> Keluar</button>
       </div>
     </div>
   )
