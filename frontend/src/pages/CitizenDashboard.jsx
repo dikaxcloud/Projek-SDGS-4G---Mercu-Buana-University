@@ -110,12 +110,11 @@ export function CitizenDashboard() {
     <div className="warga-greeting">
       <div>
         <p style={{ color: 'var(--muted)', fontSize: 12.5, fontWeight: 600 }}>{today}</p>
-        <h1 className="display">Halo, {firstName} 👋</h1>
+        <h1 className="display">Halo, {firstName}</h1>
         <p>Jaga kesehatan, jaga masa depan.</p>
       </div>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-        <span className="warga-greeting-sub"><span style={{ width: 8, height: 8, borderRadius: 50, background: '#16a34a', display: 'inline-block' }} /> Online</span>
-        <Link to="/warga/notifikasi" aria-label="Notifikasi" style={{ width: 40, height: 40, display: 'grid', placeItems: 'center', background: 'white', border: '1px solid var(--line)', borderRadius: 12 }}><Bell size={18} color="var(--muted)" /></Link>
+        <Link to="/warga/notifikasi" aria-label="Notifikasi" style={{ width: 44, height: 44, display: 'grid', placeItems: 'center', background: 'white', border: '1px solid var(--line)', borderRadius: 12 }}><Bell size={18} color="var(--muted)" /></Link>
       </div>
     </div>
 
@@ -151,17 +150,12 @@ export function CitizenDashboard() {
 
     <div className="warga-banner card-reveal">
       <div>
-        <h2 className="display">Jaga Kesehatan, Raih Hidup Lebih Baik</h2>
-        <p>Pantau kesehatan secara rutin dan jangan abaikan perubahan kecil. Pemeriksaan berkala membantu deteksi dini.</p>
-        <Link className="btn" to="/warga/riwayat">Lihat Riwayat <ArrowRight size={16} /></Link>
+        <h2 className="display">Daftar pemeriksaan desa</h2>
+        <p>Lihat jadwal yang dibuka petugas, pilih layanan, lalu simpan nomor antrean Anda.</p>
+        <Link className="btn" to="/warga/jadwal-pemeriksaan">Lihat jadwal pemeriksaan</Link>
       </div>
       <div className="warga-banner-visual" aria-hidden="true">
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <span style={{ width: 56, height: 56, borderRadius: 16, background: 'white', display: 'grid', placeItems: 'center', color: 'var(--teal)' }}><HeartPulse size={26} /></span>
-          <span style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,.9)', display: 'grid', placeItems: 'center', color: '#ea580c' }}><UserRound size={20} /></span>
-          <span style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,.9)', display: 'grid', placeItems: 'center', color: '#16a34a' }}><Sparkles size={20} /></span>
-        </div>
-        <small style={{ marginTop: 8, color: 'white', opacity: .9, fontWeight: 600, fontSize: 11 }}>Ilustrasi komunitas sehat — Desa Sehat</small>
+        <CalendarDays size={48} />
       </div>
     </div>
 
@@ -173,7 +167,7 @@ export function CitizenDashboard() {
         )}
       </section>
       <section className="warga-panel" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
-        <h3 style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Sparkles size={16} color="#16a34a" /> Ringkasan Kesehatan</h3>
+        <h3 style={{ display: 'flex', gap: 8, alignItems: 'center' }}><HeartPulse size={16} color="#15803d" /> Ringkasan kesehatan</h3>
         <p style={{ margin: 0, color: '#36593d', fontSize: 13.5, lineHeight: 1.6 }}>{insightText}</p>
         <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Link className="btn btn-soft" to="/warga/kesehatan" style={{ fontSize: 12 }}>Pantau kesehatan</Link>
@@ -182,6 +176,6 @@ export function CitizenDashboard() {
       </section>
     </div>
 
-    <div className="dashboard-columns" style={{ marginTop: 16 }}><section className="panel"><div className="panel-header"><h2>Apa yang ingin dilakukan?</h2><CalendarDays size={19} color="var(--muted)" /></div><div className="action-list"><Link className="action-card" to="/warga/qr-kesehatan"><span className="icon-tile">🪪</span><span>QR Saya <ArrowRight size={14} /></span></Link><Link className="action-card" to="/warga/kesehatan"><span className="icon-tile"><Activity size={19} /></span><span>Pantau kesehatan <ArrowRight size={14} /></span></Link><Link className="action-card" to="/warga/ai-kesehatan"><span className="icon-tile"><Sparkles size={16} /></span><span>AI Kesehatan <ArrowRight size={14} /></span></Link><Link className="action-card" to="/warga/riwayat"><span className="icon-tile"><CalendarDays size={19} /></span><span>Lihat riwayat <ArrowRight size={14} /></span></Link></div></section><section className="emergency-panel"><Siren size={22} color="#b42318" /><h2>Bantuan darurat</h2><p>Jika kondisi terasa gawat, segera hubungi petugas.</p><Link className="btn btn-danger btn-wide" to="/warga/bantuan"><Phone size={17} /> Hubungi petugas</Link></section></div>
+    <div className="dashboard-columns" style={{ marginTop: 16 }}><section className="panel"><div className="panel-header"><h2>Apa yang ingin dilakukan?</h2><CalendarDays size={19} color="var(--muted)" /></div><div className="action-list"><Link className="action-card" to="/warga/qr-kesehatan"><span className="icon-tile"><UserRound size={19} /></span><span>QR Saya <ArrowRight size={14} /></span></Link><Link className="action-card" to="/warga/kesehatan"><span className="icon-tile"><Activity size={19} /></span><span>Pantau kesehatan <ArrowRight size={14} /></span></Link><Link className="action-card" to="/warga/ai-kesehatan"><span className="icon-tile"><Sparkles size={16} /></span><span>AI Kesehatan <ArrowRight size={14} /></span></Link><Link className="action-card" to="/warga/riwayat"><span className="icon-tile"><CalendarDays size={19} /></span><span>Lihat riwayat <ArrowRight size={14} /></span></Link><Link className="action-card" to="/warga/layanan"><span className="icon-tile"><HeartPulse size={19} /></span><span>Layanan warga <ArrowRight size={14} /></span></Link></div></section><section className="emergency-panel"><Siren size={22} color="#b42318" /><h2>Bantuan darurat</h2><p>Jika kondisi terasa gawat, segera hubungi petugas.</p><Link className="btn btn-danger btn-wide" to="/warga/bantuan"><Phone size={17} /> Hubungi petugas</Link></section></div>
   </div></div>
 }

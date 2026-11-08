@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from 'react'
 import { Outlet, Link, NavLink, useLocation } from 'react-router-dom'
-import { Bell, LogOut, RefreshCw, ScanLine, AlertTriangle, House, HeartPulse, BookOpen, Siren, QrCode, Sparkles, Users, UserRound, ListChecks, ChevronDown, CheckCircle2 } from 'lucide-react'
+import { Bell, LogOut, RefreshCw, ScanLine, AlertTriangle, House, HeartPulse, BookOpen, Siren, QrCode, Sparkles, Users, UserRound, ListChecks, CalendarDays, ChevronDown, CheckCircle2 } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { UserPill } from '../components/UserPill'
 import { useAuth } from '../features/auth/AuthProvider'
@@ -17,6 +17,8 @@ const citizenNavPrimary = [
   { to: '/warga', label: 'Beranda', Icon: House, end: true },
   { to: '/warga/kesehatan', label: 'Kesehatan', Icon: HeartPulse },
   { to: '/warga/riwayat', label: 'Riwayat', Icon: ListChecks },
+  { to: '/warga/jadwal-pemeriksaan', label: 'Jadwal', Icon: CalendarDays },
+  { to: '/warga/layanan', label: 'Layanan', Icon: HeartPulse },
   { to: '/informasi-kesehatan', label: 'Informasi', Icon: BookOpen },
 ]
 const citizenNavMore = [

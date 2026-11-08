@@ -56,3 +56,11 @@ resend*.png
 
 # File besar di root (di-track sebelumnya, dihapus dari index)
 /logo.png
+
+.vercel
+
+# File besar & catatan lokal — JANGAN DI-PUSH (9MB+ docx, prompt, screenshot)
+/Handbook_STACK_2026.docx
+/prompt.txt
+/prompt-2.txt
+/ss.png

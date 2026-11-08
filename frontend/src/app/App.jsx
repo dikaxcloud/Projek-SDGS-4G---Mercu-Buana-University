@@ -42,6 +42,10 @@ const CitizenProfilePage = lazy(() => import('../pages/CitizenPages').then(m => 
 const CitizenFamilyPage = lazy(() => import('../pages/CitizenPages').then(m => ({ default: m.CitizenFamilyPage })))
 const CitizenNotificationsPage = lazy(() => import('../pages/CitizenPages').then(m => ({ default: m.CitizenNotificationsPage })))
 const EmergencyPage = lazy(() => import('../pages/CitizenPages').then(m => ({ default: m.EmergencyPage })))
+const ServiceSchedulePage = lazy(() => import('../pages/ServiceSchedulePage').then(m => ({ default: m.ServiceSchedulePage })))
+const ManageServiceSchedulesPage = lazy(() => import('../pages/ManageServiceSchedulesPage').then(m => ({ default: m.ManageServiceSchedulesPage })))
+const CommunityServicesPage = lazy(() => import('../pages/CommunityServicesPage').then(m => ({ default: m.CommunityServicesPage })))
+const ManageCommunityServicesPage = lazy(() => import('../pages/ManageCommunityServicesPage').then(m => ({ default: m.ManageCommunityServicesPage })))
 
 function Fallback() {
   return <div style={{ padding: '40px 16px', textAlign: 'center', color: '#6b8582', fontSize: 13 }}>Memuat...</div>
@@ -72,7 +76,10 @@ export function App() {
           <Route path="/warga/qr-kesehatan" element={<CitizenQrPage />} />
           <Route path="/warga/kesehatan" element={<CitizenHealthPage />} />
           <Route path="/warga/ai-kesehatan" element={<CitizenAiPage />} />
-          <Route path="/warga/riwayat" element={<CitizenHistoryPage />} />          <Route path="/warga/profil" element={<CitizenProfilePage />} />
+          <Route path="/warga/riwayat" element={<CitizenHistoryPage />} />
+          <Route path="/warga/jadwal-pemeriksaan" element={<ServiceSchedulePage />} />
+          <Route path="/warga/layanan" element={<CommunityServicesPage />} />
+          <Route path="/warga/profil" element={<CitizenProfilePage />} />
           <Route path="/warga/keluarga" element={<CitizenFamilyPage />} />
           <Route path="/warga/notifikasi" element={<CitizenNotificationsPage />} />
           <Route path="/warga/bantuan" element={<EmergencyPage />} />
@@ -90,6 +97,8 @@ export function App() {
           <Route path="/nakes/scan" element={<NakesScanPage />} />
           <Route path="/nakes/pemeriksaan/baru" element={<ExaminationPage />} />
           <Route path="/nakes/profil" element={<NakesProfilePage />} />
+          <Route path="/nakes/jadwal-pemeriksaan" element={<ManageServiceSchedulesPage />} />
+          <Route path="/nakes/layanan" element={<ManageCommunityServicesPage />} />
           <Route path="/nakes/*" element={<NakesDashboard />} />
         </Route>
       </Route>
@@ -99,6 +108,8 @@ export function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/warga/baru" element={<AddCitizenPage basePath="/admin" />} />
           <Route path="/admin/verifikasi" element={<CitizenVerificationPage />} />
+          <Route path="/admin/jadwal-pemeriksaan" element={<ManageServiceSchedulesPage />} />
+          <Route path="/admin/layanan" element={<ManageCommunityServicesPage />} />
           <Route path="/admin/warga/:citizenId" element={<StaffCitizenDetailPage basePath="/admin" />} />
           <Route path="/admin/warga" element={<AdminManagementPage resource="citizens" />} />
           <Route path="/admin/kk" element={<AdminManagementPage resource="households" />} />

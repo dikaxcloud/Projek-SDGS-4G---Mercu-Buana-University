@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, CheckCircle2, ClipboardPlus, Info, Sparkles, Loader2, RefreshCw } from 'lucide-react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { searchCitizens, saveExamination } from '../features/health/healthService'
+import { completeServiceRegistration } from '../features/health/serviceScheduleService'
 import { useAuth } from '../features/auth/AuthProvider'
 import { calculateBmi, bmiLabel, needsFollowUp, validateExamination } from '../utils/health'
 import { generateNakesNote, analyzeHealthRecord } from '../services/ai/aiService'
@@ -13,6 +14,7 @@ export function ExaminationPage() {
   // Real citizen list from database (seeded demo + Google-registered citizens).
   const [citizens, setCitizens] = useState([]); const [loadingCitizens, setLoadingCitizens] = useState(true)
   const presetCitizenId = params.get('citizen') ?? ''
+  const registrationId = params.get('registration') ?? ''
 
   useEffect(() => {
     let active = true
@@ -84,13 +86,13 @@ export function ExaminationPage() {
     try {
       const result = await saveExamination({ citizenId: values.citizenId, values: { ...values, needsFollowUp: values.needsFollowUp || needsFollowUp(values) }, idempotencyKey: crypto.randomUUID(), userId: access?.user_id });
       
-      // Trigger AI Analysis in non-blocking way — save result is never affected.
       lastSavedRecordId.current = result?.health_record_id ?? null
+      if (registrationId && result?.health_record_id) await completeServiceRegistration(registrationId, result.health_record_id)
       void runAiAnalysis()
 
       if (result.status === 'already_saved') setStatus({ type: 'success', message: 'Pemeriksaan sudah tersimpan.' });
       else {
-        setStatus({ type: 'success', message: 'Pemeriksaan berhasil disimpan.' });
+        setStatus({ type: 'success', message: registrationId ? 'Pemeriksaan tersimpan dan antrean selesai.' : 'Pemeriksaan berhasil disimpan.' });
         markUnsaved(false)
         setValues({ ...initial })
         setTimeout(() => navigate(`/nakes/warga/${values.citizenId}`), 2500)

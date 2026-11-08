@@ -7,6 +7,7 @@ import { LogoutProvider } from './components/LogoutExperience'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { initPwa } from './lib/pwa'
 import './styles/global.css'
+import './styles/service-schedules.css'
 
 initPwa()
 

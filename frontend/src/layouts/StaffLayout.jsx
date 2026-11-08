@@ -16,6 +16,8 @@ const navLinks = [
   { to: '/nakes/scan', Icon: ScanLine, label: 'Scan QR' },
   { to: '/nakes/riwayat-saya', Icon: History, label: 'Riwayat' },
   { to: '/nakes/profil', Icon: User, label: 'Profil Saya' },
+  { to: '/nakes/jadwal-pemeriksaan', Icon: ClipboardPlus, label: 'Jadwal Layanan' },
+  { to: '/nakes/layanan', Icon: ClipboardPlus, label: 'Kegiatan & Layanan' },
   { to: '/admin', Icon: ShieldCheck, label: 'Mode Admin' },
 ]
 
@@ -30,6 +32,8 @@ const moreItems = [
   { to: '/nakes/riwayat-saya', label: 'Riwayat Pemeriksaan', Icon: History },
   { to: '/nakes/profil', label: 'Profil Saya', Icon: User },
   { to: '/nakes/warga/baru', label: 'Tambah Warga', Icon: UserPlus },
+  { to: '/nakes/jadwal-pemeriksaan', label: 'Jadwal Layanan', Icon: ClipboardPlus },
+  { to: '/nakes/layanan', label: 'Kegiatan & Layanan', Icon: ClipboardPlus },
   { to: '/informasi-kesehatan', label: 'Informasi Kesehatan', Icon: BookOpen },
   { to: '/admin', label: 'Mode Admin (Kelola Data)', Icon: ShieldCheck },
 ]

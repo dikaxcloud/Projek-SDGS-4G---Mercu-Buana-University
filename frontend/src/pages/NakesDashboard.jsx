@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Activity, AlertTriangle, BellRing, ClipboardList, Search, Users, ArrowRight, RefreshCw, Sparkles, UserPlus, CalendarClock, UserCheck, UserX, History, Radio, Power } from 'lucide-react'
+import { Activity, AlertTriangle, BellRing, ClipboardList, Search, Users, ArrowRight, RefreshCw, UserPlus, CalendarClock, UserCheck, UserX, History, Radio, Power } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getNakesSummary, getNakesDashboard, searchCitizens } from '../features/health/healthService'
@@ -88,6 +88,7 @@ export function NakesDashboard() {
             <Link className="btn btn-ghost" to="/nakes/riwayat-saya"><History size={17} /> Riwayat Saya</Link>
             <Link className="btn btn-ghost" to="/nakes/warga/baru"><UserPlus size={17} /> Tambah Warga</Link>
             <Link className="btn btn-primary" to="/nakes/pemeriksaan/baru"><ClipboardList size={17} /> Mulai pemeriksaan</Link>
+            <Link className="btn btn-ghost" to="/nakes/jadwal-pemeriksaan">Kelola jadwal</Link>
           </div>
         </div>
         <div className="nakes-quick">
@@ -141,26 +142,6 @@ export function NakesDashboard() {
           <StaffKpi icon={<UserX />} label="Warga belum pernah diperiksa" value={dash?.unexaminedCitizens ?? '—'} warning={Number(dash?.unexaminedCitizens) > 0} />
           <StaffKpi icon={<Activity />} label="Pemeriksaan hari ini (desa)" value={summary?.todayExaminations ?? '—'} />
         </div>
-
-        {/* AI Nakes Summary Widget */}
-        <section className="staff-panel ai-widget">
-          <h2 className="ai-widget-title"><Sparkles size={18} color="#6366f1" /> ✨ AI Health Monitoring Nakes</h2>
-          <div className="ai-widget-grid">
-            <div>
-              <strong>Ringkasan Populasi & Tren:</strong>
-              <p className="ai-widget-text">
-                Aktivitas pencatatan pemeriksaan stabil. {summary?.followUps ? `${summary.followUps} warga disarankan untuk jadwal tindak lanjut.` : 'Belum ada warga memerlukan penanganan khusus saat ini.'}
-              </p>
-            </div>
-            <div>
-              <strong>Saran AI Nakes:</strong>
-              <ul className="ai-widget-list">
-                <li>{'Prioritaskan lansia dan warga dengan tensi > 140/90 mmHg.'}</li>
-                <li>Pastikan edukasi pola makan rendah garam saat kunjungan warga.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
 
         {/* Pemeriksaan terbaru milik nakes */}
         <section className="staff-panel">

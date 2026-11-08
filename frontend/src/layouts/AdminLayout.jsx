@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Outlet, Link, NavLink, useLocation } from 'react-router-dom'
-import { BookOpen, FileClock, Home, LayoutDashboard, LogOut, Map, Phone, QrCode, ShieldCheck, Shield, Users, UserRoundCog, UserPlus, Menu, X, ChevronDown } from 'lucide-react'
+import { BookOpen, CalendarDays, FileClock, Home, LayoutDashboard, LogOut, Map, Phone, QrCode, ShieldCheck, Shield, Users, UserRoundCog, UserPlus, Menu, X, ChevronDown } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { useAuth } from '../features/auth/AuthProvider'
 import { ROLES, roleLabel } from '../features/auth/roles'
@@ -12,6 +12,8 @@ const allLinks = [
   ['/admin', LayoutDashboard, 'Ringkasan'],
   ['/admin/warga', Users, 'Warga'],
   ['/admin/verifikasi', ShieldCheck, 'Verifikasi'],
+  ['/admin/jadwal-pemeriksaan', CalendarDays, 'Jadwal Layanan'],
+  ['/admin/layanan', CalendarDays, 'Kegiatan & Layanan'],
   ['/admin/kk', Home, 'KK'],
   ['/admin/rt', Map, 'RT'],
   ['/admin/nakes', UserRoundCog, 'Nakes'],
@@ -33,6 +35,8 @@ const mobilePrimary = [
 
 const moreItems = [
   { to: '/admin/warga/baru', label: 'Tambah Warga', Icon: UserPlus },
+  { to: '/admin/jadwal-pemeriksaan', label: 'Jadwal Layanan', Icon: CalendarDays },
+  { to: '/admin/layanan', label: 'Kegiatan & Layanan', Icon: CalendarDays },
   { to: '/admin/kk', label: 'Kartu Keluarga (KK)', Icon: Home },
   { to: '/admin/rt', label: 'RT', Icon: Map },
   { to: '/admin/nakes', label: 'Nakes', Icon: UserRoundCog },
